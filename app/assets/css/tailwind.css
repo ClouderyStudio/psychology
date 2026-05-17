@@ -1,0 +1,68 @@
+@import 'tailwindcss';
+
+@layer base {
+  :root {
+    --bg: #f7f4f0;
+    --card-bg: #ffffff;
+    --text: #3a3540;
+    --text-secondary: #6b6372;
+    --text-muted: #9a919e;
+
+    /* 主色调 */
+    --primary: #5b8c9e;
+    --primary-light: #e8f0f4;
+    --primary-dark: #3d6a7c;
+    
+    /* 症状筛查 - 蓝色系 */
+    --symptom: #5b8c9e;
+    --symptom-light: #eaf3f7;
+    --symptom-dark: #3d6a7c;
+    --symptom-tag: #d0e4ed;
+    
+    /* 人格性格 - 紫色系 */
+    --personality: #7b6b8e;
+    --personality-light: #f2eef6;
+    --personality-dark: #5a4d6b;
+    --personality-tag: #e2daea;
+    
+    /* 专项量表 - 绿色系 */
+    --special: #5e8c6f;
+    --special-light: #eaf5ee;
+    --special-dark: #456d54;
+    --special-tag: #d0e8d6;
+    
+    --disharmony: #5b8c9e;
+    --disharmony-light: #e8f0f4;
+    --disharmony-dark: #3d6a7c;
+    
+    --flexibility: #5e8c6f;
+    --flexibility-light: #eaf5ee;
+    --flexibility-dark: #456d54;
+    
+    --rigidity: #7b6b8e;
+    --rigidity-light: #f2eef6;
+    --rigidity-dark: #5a4d6b;
+
+    /* 气质类型颜色 */
+    --choleric: #e07a5f;      /* 胆汁质 - 赤陶色（热情、活力） */
+    --choleric-light: #fbe9e5;
+    --choleric-dark: #c05a3f;
+    
+    --sanguine: #81b29a;      /* 多血质 - 鼠尾草绿（活泼、生机） */
+    --sanguine-light: #eef5f1;
+    --sanguine-dark: #5a927a;
+    
+    --phlegmatic: #6c91b5;    /* 粘液质 - 钢蓝色（稳重、平静） */
+    --phlegmatic-light: #e8eef5;
+    --phlegmatic-dark: #4c7195;
+    
+    --melancholic: #b5838d;   /* 抑郁质 - 玫瑰棕（细腻、深沉） */
+    --melancholic-light: #f8eff1;
+    --melancholic-dark: #95636d;
+
+    /* 警告色 */
+    --warning-bg: #fef9f0;
+    --warning-border: #f0d89c;
+    --warning-text: #8b6d3b;
+  }
+}
