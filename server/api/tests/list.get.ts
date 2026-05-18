@@ -82,6 +82,42 @@ export default defineEventHandler(() => {
       duration: '约10-15分钟',
       questionsCount: 60,
       category: 'special'
+    },
+    {
+      id: 'bdc',
+      title: '伯恩斯抑郁症清单',
+      englishName: 'Burns Depression Checklist (BDC)',
+      description: '美国心理治疗专家David D. Burns博士设计的抑郁症自我诊断表，帮助快速评估抑郁情绪程度',
+      duration: '约3-5分钟',
+      questionsCount: 15,
+      category: 'symptom'
+    },
+    {
+      id: 'epq',
+      title: '艾森克人格问卷',
+      englishName: 'Eysenck Personality Questionnaire (EPQ)',
+      description: '英国心理学家艾森克编制的人格测量工具，测评内外向、情绪稳定性、精神质三个维度',
+      duration: '约15-20分钟',
+      questionsCount: 88,
+      category: 'personality'
+    },
+    {
+      id: 'epq-rsc',
+      title: '艾森克人格问卷简式量表',
+      englishName: 'Eysenck Personality Questionnaire Revised Short Scale (EPQ-RSC)',
+      description: '北京大学钱铭怡教授等修订的中国版艾森克人格问卷简式版，评估内外向(E)、神经质(N)、精神质(P)、掩饰性(L)四个维度',
+      duration: '约10-15分钟',
+      questionsCount: 48,
+      category: 'personality'
+    },
+    {
+      id: 'emotional-stability',
+      title: '情绪稳定性测试',
+      englishName: 'Emotional Stability Test',
+      description: '评估您的情绪稳定程度，了解情绪波动情况和心理抗压能力',
+      duration: '约5-10分钟',
+      questionsCount: 30,
+      category: 'special'
     }
   ]
   
