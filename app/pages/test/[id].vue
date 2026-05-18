@@ -137,6 +137,7 @@ const route = useRoute()
 const router = useRouter()
 const testId = route.params.id as string
 const answerStore = useAnswerStore()
+const { $confirm, $toast } = useNuxtApp()
 
 // 每页显示题目数
 const QUESTIONS_PER_PAGE = 10
@@ -222,7 +223,7 @@ function nextPage() {
     // 滚动到顶部
     window.scrollTo({ top: 0, behavior: 'smooth' })
   } else if (!isCurrentPageComplete.value) {
-    alert(`请先完成当前页的所有题目（第${currentPage.value}页）再继续`)
+    $toast.error(`请先完成当前页的所有题目（第${currentPage.value}页）再继续`)
   }
 }
 
@@ -251,7 +252,7 @@ function goToPage(page: number) {
       currentPage.value = page
       window.scrollTo({ top: 0, behavior: 'smooth' })
     } else {
-      alert(`请先完成第${currentPage.value}页的所有题目再跳转`)
+      $toast.error(`请先完成第${currentPage.value}页的所有题目再跳转`)
     }
   }
 }
@@ -259,27 +260,44 @@ function goToPage(page: number) {
 // 提交测评
 async function submitTest() {
   if (!isComplete.value) {
-    alert(`请完成所有题目后再提交（还剩 ${remainingCount.value} 题）`)
+    $toast.warning(`请完成所有题目后再提交（还剩 ${remainingCount.value} 题）`, '提示')
     return
   }
   
-  try {
-    const { data } = await useFetch('/api/submit', {
-      method: 'POST',
-      body: {
-        testId,
-        answers: answers.value
+  $confirm({
+    title: '确认提交',
+    message: '确定要提交测评吗？提交后将无法修改答案。',
+    onConfirm: async () => {
+      try {
+        $toast.info('正在提交中，请稍候...', '提交中')
+        
+        const { data } = await useFetch('/api/submit', {
+          method: 'POST',
+          body: {
+            testId,
+            answers: answers.value
+          }
+        })
+        
+        if (data.value?.success) {
+          answerStore.setResult(data.value.data)
+          
+          sessionStorage.removeItem(`test_${testId}_answers`)
+          answerStore.clearSession() // 清除当前测评的 session
+
+          if (typeof window !== 'undefined') {
+            window.dispatchEvent(new CustomEvent('refreshProgress'))
+          }
+          
+          $toast.success('测评提交成功！', '完成')
+          await router.push('/result')
+        }
+      } catch (error) {
+        console.error('提交失败', error)
+        $toast.error('提交失败，请稍后重试', '错误')
       }
-    })
-    
-    if (data.value?.success) {
-      answerStore.setResult(data.value.data)
-      await router.push('/result')
     }
-  } catch (error) {
-    console.error('提交失败', error)
-    alert('提交失败，请稍后重试')
-  }
+  })
 }
 
 // 错误处理
@@ -291,10 +309,15 @@ if (error.value) {
 // 退出确认
 function goBack() {
   if (answeredCount.value > 0 && !isComplete.value) {
-    const confirmLeave = confirm('您有未完成的测评，确定要退出吗？您的进度会自动保存，下次可以继续答题。')
-    if (confirmLeave) {
-      router.push('/')
-    }
+    $confirm({
+      title: '确认退出',
+      message: '您有未完成的测评，确定要退出吗？您的进度会自动保存，下次可以继续答题。',
+      onConfirm: () => {
+        router.push('/')
+      },
+      onCancel: () => {
+      }
+    })
   } else {
     router.push('/')
   }
@@ -316,6 +339,8 @@ onMounted(() => {
     if (Object.keys(savedAnswers).length > 0 && totalQuestions.value > 0) {
       const lastAnsweredId = Math.max(...Object.keys(savedAnswers).map(Number))
       const questionIndex = allQuestions.value.findIndex((q: { id: number }) => q.id === lastAnsweredId)
+      const completedCount = Object.keys(savedAnswers).length
+      $toast.info(`已加载上次进度: ${completedCount}/${totalQuestions.value} 题`, '继续答题')
       if (questionIndex !== -1) {
         currentPage.value = Math.floor(questionIndex / QUESTIONS_PER_PAGE) + 1
       }

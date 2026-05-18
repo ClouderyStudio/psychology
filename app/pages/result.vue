@@ -118,12 +118,13 @@ import { useAnswerStore } from '~/stores/answer'
 
 const router = useRouter()
 const answerStore = useAnswerStore()
+const { $confirm, $toast } = useNuxtApp()
 
 // 获取结果
 const result = ref(answerStore.getResult())
 
 // 计算属性
-const circumference = 2 * Math.PI * 88 // 约 553
+const circumference = 2 * Math.PI * 88
 const strokeDashoffset = computed(() => {
   const percent = 1 - (result.value?.severity || 0)
   return circumference * percent
@@ -161,33 +162,38 @@ const severityBarClass = computed(() => {
 
 // 如果没有结果，重定向到首页
 onMounted(() => {
-  if (typeof window !== 'undefined') {
-    // 清空所有 sessionStorage 中的测评数据
-    const keys = Object.keys(sessionStorage)
-    keys.forEach(key => {
-      if (key.startsWith('test_') && key.endsWith('_answers')) {
-        sessionStorage.removeItem(key)
-      }
-    })
-    answerStore.clearAnswers()
-  }
   if (!result.value) {
     router.push('/')
   }
 })
 
+// 重新测评
 function retakeTest() {
   const testId = result.value?.testId
-  answerStore.clearAnswers()
-  if (testId) {
-    router.push(`/test/${testId}`)
-  } else {
-    router.push('/')
-  }
+  $confirm({
+    title: '确认重新测评',
+    message: '重新测评将清除当前结果，确定要继续吗？',
+    onConfirm: () => {
+      answerStore.clearAnswers()
+      if (testId) {
+        router.push(`/test/${testId}`)
+        $toast.info('开始新的测评', '提示')
+      } else {
+        router.push('/')
+      }
+    }
+  })
 }
 
 function goHome() {
   answerStore.clearAnswers()
   router.push('/')
 }
+
+// 结果加载成功
+onMounted(() => {
+  if (result.value) {
+    $toast.success('结果已生成', '完成')
+  }
+})
 </script>

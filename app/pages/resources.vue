@@ -107,7 +107,14 @@
 </template>
 
 <script setup lang="ts">
+const { $confirm } = useNuxtApp()
+
 const openLink = (url: string) => {
-  window.open(url, '_blank')
+  $confirm({
+    title: '确认',
+    message: `您即将打开以下不属于我们的链接：\n${url}\n是否继续？`,
+    onConfirm: () => {
+      window.open(url, '_blank')
+    }})
 }
 </script>

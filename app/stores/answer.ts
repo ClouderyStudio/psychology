@@ -16,7 +16,6 @@ export const useAnswerStore = defineStore('answer', {
   actions: {
     setAnswer(questionId: number, value: number) {
       this.answers[questionId] = value
-      // 保存到 sessionStorage
       this.saveToSession()
     },
     
@@ -28,13 +27,11 @@ export const useAnswerStore = defineStore('answer', {
     },
     
     setCurrentTest(testId: string) {
-      // 如果切换了不同的测评，清空之前的答案
       if (this.currentTestId !== testId) {
         this.answers = {}
         this.result = null
       }
       this.currentTestId = testId
-      // 从 sessionStorage 恢复
       this.loadFromSession()
     },
     
@@ -50,7 +47,6 @@ export const useAnswerStore = defineStore('answer', {
       return this.answers
     },
     
-    // 保存到 sessionStorage
     saveToSession() {
       if (typeof window !== 'undefined' && this.currentTestId) {
         try {
@@ -61,21 +57,22 @@ export const useAnswerStore = defineStore('answer', {
       }
     },
     
-    // 从 sessionStorage 加载
     loadFromSession() {
       if (typeof window !== 'undefined' && this.currentTestId) {
         try {
           const saved = sessionStorage.getItem(`test_${this.currentTestId}_answers`)
           if (saved) {
             this.answers = JSON.parse(saved)
+          } else {
+            this.answers = {}
           }
         } catch (e) {
           console.error('加载进度失败', e)
+          this.answers = {}
         }
       }
     },
     
-    // 清除 sessionStorage
     clearSession() {
       if (typeof window !== 'undefined' && this.currentTestId) {
         try {
@@ -86,7 +83,6 @@ export const useAnswerStore = defineStore('answer', {
       }
     },
     
-    // 检查是否有未完成的测评
     hasUnfinishedTest(testId: string): boolean {
       if (typeof window === 'undefined') return false
       try {

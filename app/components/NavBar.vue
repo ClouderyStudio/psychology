@@ -1,4 +1,4 @@
-<!-- components/NavBar.vue - 修复版 -->
+<!-- components/NavBar.vue -->
 <template>
   <nav class="sticky top-0 z-50 w-full transition-all duration-300"
        :class="{ 'shadow-lg': isScrolled }"
@@ -12,7 +12,7 @@
             <span class="text-xl">🧠</span>
           </div>
           <span class="font-semibold text-lg hidden sm:inline" style="color: var(--text);">
-            心灵驿站
+            心理健康测评中心
           </span>
           <span class="font-semibold text-lg sm:hidden" style="color: var(--text);">
             心理测评
@@ -38,8 +38,8 @@
                  @click.stop="showProgressPanel = !showProgressPanel">
               <div class="w-8 h-8 rounded-full flex items-center justify-center transition-all"
                    style="background-color: var(--warning-bg);"
-                   @mouseenter="e => e.currentTarget.style.backgroundColor = 'var(--warning-border)'"
-                   @mouseleave="e => e.currentTarget.style.backgroundColor = 'var(--warning-bg)'">
+                   @mouseenter="e => e.target.style.backgroundColor = 'var(--warning-border)'"
+                   @mouseleave="e => e.target.style.backgroundColor = 'var(--warning-bg)'">
                 <span class="text-sm">📋</span>
               </div>
               <span class="absolute -top-1 -right-1 w-4 h-4 rounded-full text-xs flex items-center justify-center"
@@ -54,8 +54,8 @@
         <button @click="toggleMobileMenu" 
                 class="md:hidden p-2 rounded-lg transition-colors"
                 style="color: var(--text);"
-                @mouseenter="e => e.currentTarget.style.backgroundColor = 'var(--primary-light)'"
-                @mouseleave="e => e.currentTarget.style.backgroundColor = 'transparent'">
+                @mouseenter="e => e.target.style.backgroundColor = 'var(--primary-light)'"
+                @mouseleave="e => e.target.style.backgroundColor = 'transparent'">
           <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path v-if="!mobileMenuOpen" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
                   d="M4 6h16M4 12h16M4 18h16"></path>
@@ -142,6 +142,7 @@
 <script setup lang="ts">
 const router = useRouter()
 const route = useRoute()
+const { $toast, $confirm } = useNuxtApp()
 
 // 滚动状态
 const isScrolled = ref(false)
@@ -175,24 +176,45 @@ const toggleMobileMenu = () => {
 
 // 继续测评
 const continueTest = (testId: string) => {
-  router.push(`/test/${testId}`)
+  // 关闭面板
   mobileMenuOpen.value = false
   showProgressPanel.value = false
+  
+  const answerStore = useAnswerStore()
+
+  answerStore.setCurrentTest(testId)
+
+  router.push(`/test/${testId}`)
+
+  $toast.info('正在加载您的进度...', '继续测评')
 }
 
 // 清空所有进度
 const clearAllProgress = () => {
   if (typeof window === 'undefined') return
-  if (confirm('确定要清空所有测评的进度吗？此操作不可恢复。')) {
-    const keys = Object.keys(sessionStorage)
-    keys.forEach(key => {
-      if (key.startsWith('test_') && key.endsWith('_answers')) {
-        sessionStorage.removeItem(key)
+  
+  $confirm({
+    title: '确认清空',
+    message: '确定要清空所有测评的进度吗？此操作不可恢复。',
+    onConfirm: () => {
+      const keys = Object.keys(sessionStorage)
+      let clearedCount = 0
+      keys.forEach(key => {
+        if (key.startsWith('test_') && key.endsWith('_answers')) {
+          sessionStorage.removeItem(key)
+          clearedCount++
+        }
+      })
+      // 立即清空本地列表
+      unfinishedTestsList.value = []
+      // 触发自定义事件，通知首页刷新
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(new CustomEvent('clearAllProgress'))
       }
-    })
-    loadUnfinishedTests()
-    alert('已清空所有进度')
-  }
+      $toast.success(`已清空 ${clearedCount} 个测评的进度`, '完成')
+      showProgressPanel.value = false
+    }
+  })
 }
 
 // 加载未完成的测评
@@ -211,7 +233,7 @@ const loadUnfinishedTests = async () => {
         if (saved) {
           const answers = JSON.parse(saved)
           const completed = Object.keys(answers).length
-          if (completed > 0 && completed < test.questionsCount) {
+          if (completed > 0 && completed <= test.questionsCount) {
             unfinished.push({
               id: test.id,
               title: test.title,
@@ -231,19 +253,30 @@ const loadUnfinishedTests = async () => {
   }
 }
 
-// 监听滚动事件
 onMounted(() => {
   window.addEventListener('scroll', () => {
     isScrolled.value = window.scrollY > 10
   })
   loadUnfinishedTests()
   
+  // 监听 storage 事件
   window.addEventListener('storage', (e) => {
     if (e.key && e.key.startsWith('test_') && e.key.endsWith('_answers')) {
       loadUnfinishedTests()
     }
   })
   
+  // 监听清空全部事件
+  window.addEventListener('clearAllProgress', () => {
+    loadUnfinishedTests()
+  })
+  
+  // 监听刷新进度事件
+  window.addEventListener('refreshProgress', () => {
+    loadUnfinishedTests()
+  })
+  
+  // 点击其他地方关闭进度面板
   const handleClickOutside = (event: MouseEvent) => {
     const target = event.target as HTMLElement
     if (!target.closest('.relative') && !target.closest('.md\\:hidden')) {
@@ -255,16 +288,21 @@ onMounted(() => {
   onUnmounted(() => {
     window.removeEventListener('scroll', () => {})
     window.removeEventListener('storage', () => {})
+    window.removeEventListener('clearAllProgress', () => {})
+    window.removeEventListener('refreshProgress', () => {})
     document.removeEventListener('click', handleClickOutside)
   })
 })
 
-// 监听路由变化，关闭菜单
+// 监听路由变化，关闭菜单并刷新进度
 watch(() => route.path, () => {
   mobileMenuOpen.value = false
   showProgressPanel.value = false
+  // 路由变化时刷新进度
+  loadUnfinishedTests()
 })
 
+// 暴露方法给父组件
 defineExpose({
   refreshProgress: loadUnfinishedTests
 })

@@ -270,7 +270,7 @@ onMounted(() => {
       if (saved) {
         const answers = JSON.parse(saved)
         const count = Object.keys(answers).length
-        if (count > 0 && count < test.questionsCount) {
+        if (count > 0 && count <= test.questionsCount) {
           unfinishedTests.value[test.id] = true
           unfinishedCounts.value[test.id] = count
         }
@@ -284,39 +284,109 @@ onMounted(() => {
 // 开始测评
 function startTest(testId: string, reset: boolean = false) {
   if (reset && typeof window !== 'undefined') {
-    // 清除该测评的进度
-    sessionStorage.removeItem(`test_${testId}_answers`)
-    // 清除 store 中的答案
-    answerStore.clearAnswers()
-    // 清除本地状态
-    delete unfinishedTests.value[testId]
-    delete unfinishedCounts.value[testId]
+    $confirm({
+      title: '确认重置',
+      message: '确定要重新开始吗？您的当前进度将被清除。',
+      onConfirm: () => {
+        sessionStorage.removeItem(`test_${testId}_answers`)
+        answerStore.clearAnswers()
+        delete unfinishedTests.value[testId]
+        delete unfinishedCounts.value[testId]
+        answerStore.setCurrentTest(testId)
+        router.push(`/test/${testId}`)
+        $toast.info('已重置，请重新作答', '提示')
+      }
+    })
+  } else {
+    answerStore.setCurrentTest(testId)
+    router.push(`/test/${testId}`)
   }
-  answerStore.setCurrentTest(testId)
-  router.push(`/test/${testId}`)
 }
+
+const { $confirm, $toast } = useNuxtApp()
 
 // 清空所有进度
 function clearAllProgress() {
-  if (typeof window === 'undefined') return
-  if (confirm('确定要清空所有测评的进度吗？此操作不可恢复。')) {
-    // 清空所有 sessionStorage 中的测评数据
-    const keys = Object.keys(sessionStorage)
-    keys.forEach(key => {
-      if (key.startsWith('test_') && key.endsWith('_answers')) {
-        sessionStorage.removeItem(key)
+  $confirm({
+    title: '确认清空',
+    message: '确定要清空所有测评的进度吗？此操作不可恢复。',
+    onConfirm: () => {
+      const keys = Object.keys(sessionStorage)
+      let clearedCount = 0
+      keys.forEach(key => {
+        if (key.startsWith('test_') && key.endsWith('_answers')) {
+          sessionStorage.removeItem(key)
+          clearedCount++
+        }
+      })
+      // 清空本地状态
+      unfinishedTests.value = {}
+      unfinishedCounts.value = {}
+      answerStore.clearAnswers()
+      // 触发自定义事件，通知 NavBar 刷新
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(new CustomEvent('clearAllProgress'))
       }
-    })
-    // 清空本地状态
-    unfinishedTests.value = {}
-    unfinishedCounts.value = {}
-    // 清空 store
-    answerStore.clearAnswers()
-    alert('已清空所有进度')
-  }
+      $toast.success(`已清空 ${clearedCount} 个测评的进度`, '完成')
+    }
+  })
 }
 
-// 如果加载失败
+// 监听进度变化，刷新未完成列表
+const refreshUnfinishedStatus = () => {
+  // 重新检查未完成的测评
+  if (typeof window === 'undefined') return
+  
+  tests.value.forEach((test: TestListItem) => {
+    try {
+      const saved = sessionStorage.getItem(`test_${test.id}_answers`)
+      if (saved) {
+        const answers = JSON.parse(saved)
+        const count = Object.keys(answers).length
+        if (count > 0 && count <= test.questionsCount) {
+          unfinishedTests.value[test.id] = true
+          unfinishedCounts.value[test.id] = count
+        } else {
+          delete unfinishedTests.value[test.id]
+          delete unfinishedCounts.value[test.id]
+        }
+      } else {
+        delete unfinishedTests.value[test.id]
+        delete unfinishedCounts.value[test.id]
+      }
+    } catch (e) {
+      console.error('检查进度失败', e)
+    }
+  })
+}
+
+// 监听存储事件和自定义事件
+// 监听刷新进度事件
+onMounted(() => {
+  refreshUnfinishedStatus()
+  
+  window.addEventListener('storage', (e) => {
+    if (e.key && e.key.startsWith('test_') && e.key.endsWith('_answers')) {
+      refreshUnfinishedStatus()
+    }
+  })
+  
+  window.addEventListener('clearAllProgress', () => {
+    refreshUnfinishedStatus()
+  })
+  
+  // 监听刷新进度事件
+  window.addEventListener('refreshProgress', () => {
+    refreshUnfinishedStatus()
+  })
+})
+
+onUnmounted(() => {
+  window.removeEventListener('storage', () => {})
+  window.removeEventListener('clearAllProgress', () => {})
+  window.removeEventListener('refreshProgress', () => {})
+})
+
 if (error.value) {
   console.error('加载测评列表失败', error.value)
 }
