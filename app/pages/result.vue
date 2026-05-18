@@ -1,13 +1,15 @@
+<!-- pages/result.vue -->
 <template>
   <div class="min-h-screen py-12" style="background-color: var(--bg);">
     <div class="container mx-auto px-4 max-w-3xl">
       <div v-if="result" class="rounded-2xl overflow-hidden" 
            style="background-color: var(--card-bg); box-shadow: var(--shadow-xl);">
+        
         <!-- 结果头部 -->
-        <div class="p-8 text-center" style="background-color: var(--primary); color: white;">
-          <h2 class="text-3xl font-bold mb-2">测评结果</h2>
-          <p style="color: rgba(255,255,255,0.9);">{{ result.testTitle }}</p>
-          <p class="text-sm mt-2" style="color: rgba(255,255,255,0.7);">测评时间：{{ formattedTime }}</p>
+        <div class="p-8 text-center" :style="{ backgroundColor: getHeaderColor() }">
+          <h2 class="text-3xl font-bold mb-2 text-white">测评结果</h2>
+          <p class="text-white/90">{{ result.testTitle }}</p>
+          <p class="text-sm mt-2 text-white/70">测评时间：{{ formattedTime }}</p>
         </div>
         
         <!-- 分数展示 -->
@@ -26,7 +28,7 @@
                         class="transition-all duration-1000"/>
               </svg>
               <div class="absolute inset-0 flex flex-col items-center justify-center">
-                <span class="text-5xl font-bold" style="color: var(--text);">{{ result.totalScore }}</span>
+                <span class="text-5xl font-bold" style="color: var(--text);">{{ displayScore }}</span>
                 <span style="color: var(--text-muted);">/ {{ result.maxScore }}</span>
               </div>
             </div>
@@ -40,6 +42,40 @@
             </div>
           </div>
           
+          <!-- SCL-90 维度详情 -->
+          <div v-if="isSCL90 && hasDimensionScores" 
+               class="mt-6 p-4 rounded-lg"
+               style="background-color: var(--bg);">
+            <h3 class="font-bold text-lg mb-4 flex items-center" style="color: var(--text);">
+              <span class="text-2xl mr-2">📊</span>
+              SCL-90 各维度评分详情
+            </h3>
+            <div class="space-y-3">
+              <div v-for="dim in scl90DimensionList" :key="dim.key"
+                   class="p-3 rounded-lg"
+                   :style="{ backgroundColor: 'var(--card-bg)' }">
+                <div class="flex justify-between items-center mb-2">
+                  <div class="flex items-center gap-2">
+                    <span>{{ dim.icon }}</span>
+                    <span class="font-medium" style="color: var(--text);">{{ dim.name }}</span>
+                  </div>
+                  <div class="flex items-center gap-2">
+                    <span class="text-sm" style="color: var(--text-secondary);">均分: {{ getDimAverage(dim.key) }}</span>
+                    <span class="text-xs px-2 py-1 rounded-full" :class="getLevelClass(getDimLevel(dim.key))">
+                      {{ getDimLevel(dim.key) }}
+                    </span>
+                  </div>
+                </div>
+                <div class="w-full rounded-full h-2" style="background-color: var(--primary-light);">
+                  <div class="rounded-full h-2 transition-all duration-500"
+                       :style="{ width: getDimPercentage(dim.key) + '%', backgroundColor: getLevelColor(getDimLevel(dim.key)) }">
+                  </div>
+                </div>
+                <p class="text-xs mt-2" style="color: var(--text-muted);">{{ getDimDescription(dim.key) }}</p>
+              </div>
+            </div>
+          </div>
+          
           <!-- 建议内容 -->
           <div class="rounded-lg p-6 mb-6" style="background-color: var(--primary-light);">
             <h3 class="font-bold text-lg mb-3 flex items-center" style="color: var(--text);">
@@ -49,18 +85,8 @@
             <p class="whitespace-pre-line" style="color: var(--text-secondary);">{{ result.suggestion }}</p>
           </div>
           
-          <!-- 个性化建议 -->
-          <div v-if="result.personalizedAdvice" 
-               class="rounded-lg p-6 mb-6" style="background-color: var(--personality-bg);">
-            <h3 class="font-bold text-lg mb-3 flex items-center" style="color: var(--text);">
-              <span class="text-2xl mr-2">❤️</span>
-              个性化关怀
-            </h3>
-            <p style="color: var(--text-secondary);">{{ result.personalizedAdvice }}</p>
-          </div>
-          
           <!-- 严重程度指示器 -->
-          <div class="mb-8">
+          <div class="mb-8" v-if="!isSCL90">
             <div class="flex justify-between text-sm mb-2" style="color: var(--text-secondary);">
               <span>严重程度</span>
               <span>{{ Math.round(severityPercent) }}%</span>
@@ -87,15 +113,17 @@
           <!-- 操作按钮 -->
           <div class="flex gap-4">
             <button @click="retakeTest" 
-                    class="flex-1 py-3 rounded-lg font-semibold transition-colors"
-                    style="background-color: var(--primary); color: white;"
+                    class="flex-1 py-3 rounded-lg font-semibold transition-all"
+                    :style="{ backgroundColor: 'var(--primary)', color: 'white', boxShadow: 'var(--shadow-sm)' }"
                     @mouseenter="e => e.target.style.backgroundColor = 'var(--primary-dark)'"
                     @mouseleave="e => e.target.style.backgroundColor = 'var(--primary)'">
               重新测评
             </button>
             <button @click="goHome" 
-                    class="flex-1 py-3 rounded-lg font-semibold transition-colors"
-                    style="background-color: var(--card-bg); color: var(--text-secondary); box-shadow: var(--shadow-sm);">
+                    class="flex-1 py-3 rounded-lg font-semibold transition-all"
+                    style="background-color: var(--card-bg); color: var(--text-secondary); box-shadow: var(--shadow-sm);"
+                    @mouseenter="e => e.target.style.backgroundColor = 'var(--bg)'"
+                    @mouseleave="e => e.target.style.backgroundColor = 'var(--card-bg)'">
               返回首页
             </button>
           </div>
@@ -115,13 +143,84 @@
 
 <script setup lang="ts">
 import { useAnswerStore } from '~/stores/answer'
+import type { SCL90DimensionScores } from '~/types/test'
 
 const router = useRouter()
 const answerStore = useAnswerStore()
-const { $confirm, $toast } = useNuxtApp()
 
 // 获取结果
-const result = ref(answerStore.getResult())
+const result = computed(() => answerStore.getResult())
+
+// 判断是否为 SCL-90
+const isSCL90 = computed(() => result.value?.testId === 'scl90')
+
+// 判断是否有维度分数
+const hasDimensionScores = computed(() => {
+  return result.value?.dimensionScores && Object.keys(result.value.dimensionScores).length > 0
+})
+
+// SCL-90 维度列表
+const scl90DimensionList = [
+  { key: 'somatization', name: '躯体化', icon: '💪' },
+  { key: 'obsessive', name: '强迫症状', icon: '🔄' },
+  { key: 'interpersonal', name: '人际关系敏感', icon: '👥' },
+  { key: 'depression', name: '抑郁', icon: '😔' },
+  { key: 'anxiety', name: '焦虑', icon: '😰' },
+  { key: 'hostility', name: '敌对', icon: '😠' },
+  { key: 'phobic', name: '恐怖', icon: '😨' },
+  { key: 'paranoid', name: '偏执', icon: '🔍' },
+  { key: 'psychotic', name: '精神病性', icon: '🧠' },
+  { key: 'additional', name: '其他', icon: '📋' }
+]
+
+// 获取维度分数对象
+const getDimensionScores = (): SCL90DimensionScores | null => {
+  return result.value?.dimensionScores as SCL90DimensionScores || null
+}
+
+// 获取维度均分
+const getDimAverage = (dimKey: string): string => {
+  const scores = getDimensionScores()
+  if (scores && scores[dimKey as keyof SCL90DimensionScores]) {
+    return scores[dimKey as keyof SCL90DimensionScores].average.toFixed(2)
+  }
+  return '0.00'
+}
+
+// 获取维度等级
+const getDimLevel = (dimKey: string): string => {
+  const scores = getDimensionScores()
+  if (scores && scores[dimKey as keyof SCL90DimensionScores]) {
+    return scores[dimKey as keyof SCL90DimensionScores].level
+  }
+  return '未知'
+}
+
+// 获取维度描述
+const getDimDescription = (dimKey: string): string => {
+  const scores = getDimensionScores()
+  if (scores && scores[dimKey as keyof SCL90DimensionScores]) {
+    return scores[dimKey as keyof SCL90DimensionScores].description
+  }
+  return ''
+}
+
+// 获取维度百分比
+const getDimPercentage = (dimKey: string): number => {
+  const scores = getDimensionScores()
+  if (scores && scores[dimKey as keyof SCL90DimensionScores]) {
+    return (scores[dimKey as keyof SCL90DimensionScores].average / 5) * 100
+  }
+  return 0
+}
+
+// 显示分数（处理 MBTI 等特殊量表）
+const displayScore = computed(() => {
+  if (result.value?.testId === 'mbti') {
+    return result.value?.level || '--'
+  }
+  return result.value?.totalScore || 0
+})
 
 // 计算属性
 const circumference = 2 * Math.PI * 88
@@ -139,11 +238,19 @@ const formattedTime = computed(() => {
   return new Date(result.value.timestamp).toLocaleString('zh-CN')
 })
 
+// 根据测试类型获取头部颜色
+const getHeaderColor = () => {
+  const testId = result.value?.testId
+  if (testId === 'scl90') return 'var(--primary)'
+  if (testId === 'mbti') return 'var(--personality)'
+  return 'var(--primary)'
+}
+
 const severityColor = computed(() => {
   const severity = result.value?.severity || 0
-  if (severity < 0.3) return '#10b981' // green
-  if (severity < 0.6) return '#eab308' // yellow
-  return '#ef4444' // red
+  if (severity < 0.3) return 'var(--special)'
+  if (severity < 0.6) return 'var(--personality)'
+  return 'var(--primary)'
 })
 
 const levelColorClass = computed(() => {
@@ -160,6 +267,28 @@ const severityBarClass = computed(() => {
   return 'bg-red-500'
 })
 
+const getLevelClass = (level: string) => {
+  const classes: Record<string, string> = {
+    '很低': 'bg-green-100 text-green-700',
+    '较低': 'bg-blue-100 text-blue-700',
+    '中等': 'bg-yellow-100 text-yellow-700',
+    '较高': 'bg-orange-100 text-orange-700',
+    '很高': 'bg-red-100 text-red-700'
+  }
+  return classes[level] || 'bg-gray-100 text-gray-700'
+}
+
+const getLevelColor = (level: string) => {
+  const colors: Record<string, string> = {
+    '很低': '#10b981',
+    '较低': '#3b82f6',
+    '中等': '#eab308',
+    '较高': '#f97316',
+    '很高': '#ef4444'
+  }
+  return colors[level] || '#9ca3af'
+}
+
 // 如果没有结果，重定向到首页
 onMounted(() => {
   if (!result.value) {
@@ -167,33 +296,18 @@ onMounted(() => {
   }
 })
 
-// 重新测评
 function retakeTest() {
   const testId = result.value?.testId
-  $confirm({
-    title: '确认重新测评',
-    message: '重新测评将清除当前结果，确定要继续吗？',
-    onConfirm: () => {
-      answerStore.clearAnswers()
-      if (testId) {
-        router.push(`/test/${testId}`)
-        $toast.info('开始新的测评', '提示')
-      } else {
-        router.push('/')
-      }
-    }
-  })
+  answerStore.clearAnswers()
+  if (testId) {
+    router.push(`/test/${testId}`)
+  } else {
+    router.push('/')
+  }
 }
 
 function goHome() {
   answerStore.clearAnswers()
   router.push('/')
 }
-
-// 结果加载成功
-onMounted(() => {
-  if (result.value) {
-    $toast.success('结果已生成', '完成')
-  }
-})
 </script>

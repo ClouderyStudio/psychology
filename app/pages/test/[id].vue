@@ -21,13 +21,39 @@
           </div>
         </div>
         
-        <!-- 分页信息 -->
+        <!-- 分页信息和操作按钮 -->
         <div class="flex justify-between items-center mb-4">
           <div class="text-sm" style="color: var(--text-muted);">
             第 {{ currentPage }} / {{ totalPages }} 页
           </div>
-          <div class="text-sm" style="color: var(--text-muted);">
-            本页 {{ currentPageQuestions.length }} 题
+          <div class="flex gap-2">
+            <div class="text-sm" style="color: var(--text-muted);">
+              本页 {{ currentPageQuestions.length }} 题
+            </div>
+            <!-- 清除本页答案按钮 -->
+            <button v-if="hasCurrentPageAnswers" 
+                    @click="clearCurrentPageAnswers" 
+                    class="text-xs px-2 py-1 rounded transition-colors"
+                    style="background-color: var(--warning-bg); color: var(--warning-text);"
+                    title="清除当前页所有答案">
+              🗑️ 清除本页
+            </button>
+            <!-- 清除所有答案按钮 -->
+            <button v-if="answeredCount > 0" 
+                    @click="clearAllAnswers" 
+                    class="text-xs px-2 py-1 rounded transition-colors"
+                    style="background-color: var(--warning-bg); color: var(--warning-text);"
+                    title="清除所有答案">
+              🗑️ 清除全部
+            </button>
+             <!-- 调试按钮：随机完成所有题目（仅开发环境） -->
+            <button v-if="isDevMode" 
+                    @click="quickCompleteAll" 
+                    class="text-xs px-2 py-1 rounded transition-colors"
+                    style="background-color: var(--special); color: white;"
+                    title="快速随机完成所有题目（调试用）">
+              🚀 快速完成
+            </button>
           </div>
         </div>
         
@@ -74,13 +100,14 @@
           <!-- 分页导航按钮 -->
           <div class="p-6 flex justify-between gap-4" style="background-color: var(--bg);">
             <button @click="prevPage" 
+                    :disabled="currentPage === 1"
                     class="px-6 py-3 rounded-lg font-semibold transition-all disabled:opacity-40 disabled:cursor-not-allowed"
                     :style="{
-                      backgroundColor: 'var(--card-bg)',
+                      backgroundColor: currentPage === 1 ? 'var(--text-muted)' : 'var(--card-bg)',
                       color: 'var(--text-secondary)',
                       boxShadow: 'var(--shadow-sm)'
                     }">
-                {{ currentPage === 1 ? '返回首页' : '上一页 ←' }}
+              ← 上一页
             </button>
             
             <button v-if="!isLastPage" 
@@ -121,7 +148,7 @@
                       color: currentPage === page ? 'white' : 'var(--text-secondary)',
                       boxShadow: 'var(--shadow-sm)'
                     }">
-              {{ page }}
+              {{ page === -1 ? '...' : page }}
             </button>
           </div>
         </div>
@@ -137,7 +164,13 @@ const route = useRoute()
 const router = useRouter()
 const testId = route.params.id as string
 const answerStore = useAnswerStore()
-const { $confirm, $toast } = useNuxtApp()
+const { $toast, $confirm } = useNuxtApp()
+
+// 客户端标志
+const isClient = ref(false)
+
+// 判断是否为开发环境
+const isDevMode = process.env.NODE_ENV === 'development'
 
 // 每页显示题目数
 const QUESTIONS_PER_PAGE = 10
@@ -146,7 +179,7 @@ const QUESTIONS_PER_PAGE = 10
 const { data: response, error } = await useFetch(`/api/tests/${testId}`)
 const test = computed(() => response.value?.data)
 
-// 使用 pinia 存储答案
+// 使用 Pinia 存储答案
 const answers = ref<Record<number, number>>({})
 
 // 分页相关
@@ -164,6 +197,9 @@ const currentPageQuestions = computed(() => {
   return allQuestions.value.slice(start, end)
 })
 
+// 当前页题目ID列表
+const currentPageQuestionIds = computed(() => currentPageQuestions.value.map(q => q.id))
+
 // 计算全局题号
 const getGlobalQuestionNumber = (questionId: number) => {
   return questionId
@@ -174,15 +210,18 @@ const answeredCount = computed(() => Object.keys(answers.value).length)
 const remainingCount = computed(() => totalQuestions.value - answeredCount.value)
 const isComplete = computed(() => answeredCount.value === totalQuestions.value && totalQuestions.value > 0)
 
+// 当前页是否有答案
+const hasCurrentPageAnswers = computed(() => {
+  return currentPageQuestionIds.value.some(id => answers.value[id] !== undefined)
+})
+
 // 当前页是否已全部作答
 const isCurrentPageComplete = computed(() => {
-  const currentIds = currentPageQuestions.value.map(q => q.id)
-  return currentIds.every(id => answers.value[id] !== undefined)
+  return currentPageQuestionIds.value.every(id => answers.value[id] !== undefined)
 })
 
 // 是否可以进入下一页
 const canGoToNextPage = computed(() => {
-  // 如果不是最后一页，必须答完当前页所有题目才能进入下一页
   return isCurrentPageComplete.value
 })
 
@@ -192,20 +231,141 @@ const isLastPage = computed(() => currentPage.value === totalPages.value)
 // 总进度
 const progress = computed(() => (answeredCount.value / totalQuestions.value) * 100 || 0)
 
-// 页码
+// 可见页码（用于快速跳转）
 const visiblePages = computed(() => {
+  const delta = 2
   const range: number[] = []
   for (let i = 1; i <= totalPages.value; i++) {
+    if (i === 1 || i === totalPages.value || (i >= currentPage.value - delta && i <= currentPage.value + delta)) {
       range.push(i)
+    } else if (range[range.length - 1] !== -1) {
+      range.push(-1)
+    }
   }
   return range
 })
 
+// 清除当前页的所有答案
+const clearCurrentPageAnswers = () => {
+  const toClearCount = currentPageQuestionIds.value.filter(id => answers.value[id] !== undefined).length
+  if (toClearCount === 0) {
+    $toast.info('当前页没有需要清除的答案', '提示')
+    return
+  }
+  
+  $confirm({
+    title: '确认清除',
+    message: `确定要清除当前页（第 ${currentPage.value} 页）的 ${toClearCount} 个答案吗？此操作不可恢复。`,
+    onConfirm: () => {
+      // 清除当前页的所有答案
+      currentPageQuestionIds.value.forEach(id => {
+        if (answers.value[id] !== undefined) {
+          delete answers.value[id]
+        }
+      })
+      
+      // 创建新的答案对象以触发响应式
+      const newAnswers = { ...answers.value }
+      answers.value = newAnswers
+      
+      // 直接操作 sessionStorage 和 store
+      if (typeof window !== 'undefined') {
+        if (Object.keys(newAnswers).length === 0) {
+          // 如果没有答案直接删除 sessionStorage
+          sessionStorage.removeItem(`test_${testId}_answers`)
+          // 清空 store
+          answerStore.clearAnswers()
+          answerStore.setCurrentTest(testId)
+        } else {
+          // 更新 sessionStorage
+          sessionStorage.setItem(`test_${testId}_answers`, JSON.stringify(newAnswers))
+          // 更新 store
+          answerStore.clearAnswers()
+          answerStore.setCurrentTest(testId)
+          Object.entries(newAnswers).forEach(([id, value]) => {
+            answerStore.setAnswer(parseInt(id), value)
+          })
+        }
+      }
+      
+      // 刷新导航栏进度
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(new CustomEvent('refreshProgress'))
+      }
+      
+      $toast.success(`已清除第 ${currentPage.value} 页的 ${toClearCount} 个答案`, '完成')
+    }
+  })
+}
+
+// 清除所有答案
+const clearAllAnswers = () => {
+  if (answeredCount.value === 0) {
+    $toast.info('没有需要清除的答案', '提示')
+    return
+  }
+  
+  $confirm({
+    title: '确认清除',
+    message: `确定要清除所有 ${answeredCount.value} 个答案吗？此操作不可恢复。`,
+    onConfirm: () => {
+      // 清空答案
+      answers.value = {}
+      
+      // 直接操作 sessionStorage 和 store
+      if (typeof window !== 'undefined') {
+        // 删除 sessionStorage
+        sessionStorage.removeItem(`test_${testId}_answers`)
+        // 清空 store
+        answerStore.clearAnswers()
+        answerStore.setCurrentTest(testId)
+      }
+      
+      // 重置到第一页
+      currentPage.value = 1
+      
+      // 刷新导航栏进度
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(new CustomEvent('refreshProgress'))
+      }
+      
+      $toast.success('已清除所有答案', '完成')
+    }
+  })
+}
+
 // 初始化时加载已保存的答案
-onMounted(() => {
+onMounted(async () => {
+  isClient.value = true
+  
+  if (answerStore.currentTestId !== testId) {
+    answerStore.setCurrentTest(testId)
+  }
+  
   const savedAnswers = answerStore.getAnswers()
+  
   if (savedAnswers && Object.keys(savedAnswers).length > 0) {
+    const completedCount = Object.keys(savedAnswers).length
+    const totalCount = totalQuestions.value
+    
     answers.value = { ...savedAnswers }
+    
+    if (totalQuestions.value > 0) {
+      const answeredIds = Object.keys(savedAnswers).map(Number)
+      const lastAnsweredId = Math.max(...answeredIds)
+      const questionIndex = allQuestions.value.findIndex(q => q.id === lastAnsweredId)
+      if (questionIndex !== -1) {
+        currentPage.value = Math.floor(questionIndex / QUESTIONS_PER_PAGE) + 1
+      }
+    }
+    
+    if (completedCount === totalCount && totalCount > 0) {
+      $toast.info(`您已完成所有 ${completedCount} 题，请提交测评`, '温馨提示')
+    } else {
+      $toast.info(`检测到您上次答题进度：已完成 ${completedCount}/${totalCount} 题`, '继续答题')
+    }
+  } else {
+    answers.value = {}
   }
 })
 
@@ -220,10 +380,9 @@ watch(answers, (newAnswers) => {
 function nextPage() {
   if (canGoToNextPage.value && currentPage.value < totalPages.value) {
     currentPage.value++
-    // 滚动到顶部
     window.scrollTo({ top: 0, behavior: 'smooth' })
   } else if (!isCurrentPageComplete.value) {
-    $toast.error(`请先完成当前页的所有题目（第${currentPage.value}页）再继续`)
+    $toast.warning(`请先完成当前页的所有题目（第${currentPage.value}页）再继续`, '提示')
   }
 }
 
@@ -232,28 +391,36 @@ function prevPage() {
     currentPage.value--
     window.scrollTo({ top: 0, behavior: 'smooth' })
   }
-  else {
-    // 如果在第一页返回首页
-    goBack()
-  }
 }
 
 function goToPage(page: number) {
   if (page === currentPage.value) return
   
-  // 检查是否允许跳转
   if (page < currentPage.value) {
-    // 向后跳转允许
     currentPage.value = page
     window.scrollTo({ top: 0, behavior: 'smooth' })
   } else {
-    // 向前检查当前页是否完成
     if (isCurrentPageComplete.value) {
       currentPage.value = page
       window.scrollTo({ top: 0, behavior: 'smooth' })
     } else {
-      $toast.error(`请先完成第${currentPage.value}页的所有题目再跳转`)
+      $toast.warning(`请先完成第${currentPage.value}页的所有题目再跳转`, '提示')
     }
+  }
+}
+
+// 退出确认
+function goBack() {
+  if (answeredCount.value > 0 && !isComplete.value) {
+    $confirm({
+      title: '确认退出',
+      message: '您有未完成的测评，确定要退出吗？您的进度会自动保存，下次可以继续答题。',
+      onConfirm: () => {
+        router.push('/')
+      }
+    })
+  } else {
+    router.push('/')
   }
 }
 
@@ -280,15 +447,16 @@ async function submitTest() {
         })
         
         if (data.value?.success) {
-          answerStore.setResult(data.value.data)
           
-          sessionStorage.removeItem(`test_${testId}_answers`)
-          answerStore.clearSession() // 清除当前测评的 session
-
+          
           if (typeof window !== 'undefined') {
+            sessionStorage.removeItem(`test_${testId}_answers`)
             window.dispatchEvent(new CustomEvent('refreshProgress'))
           }
           
+          answerStore.clearAnswers()
+
+          answerStore.setResult(data.value.data)
           $toast.success('测评提交成功！', '完成')
           await router.push('/result')
         }
@@ -306,45 +474,49 @@ if (error.value) {
   router.push('/')
 }
 
-// 退出确认
-function goBack() {
-  if (answeredCount.value > 0 && !isComplete.value) {
-    $confirm({
-      title: '确认退出',
-      message: '您有未完成的测评，确定要退出吗？您的进度会自动保存，下次可以继续答题。',
-      onConfirm: () => {
-        router.push('/')
-      },
-      onCancel: () => {
+// 快速随机完成所有题目（调试用）
+const quickCompleteAll = () => {
+  if (!isDevMode) return
+  
+  // 确认对话框
+  $confirm({
+    title: '调试模式',
+    message: `确定要随机完成所有 ${totalQuestions.value} 道题目吗？此操作将覆盖已有答案。`,
+    confirmText: '确定',
+    cancelText: '取消',
+    onConfirm: () => {
+      const newAnswers: Record<number, number> = {}
+      
+      // 遍历所有题目
+      for (const question of allQuestions.value) {
+        const options = question.options
+        if (options && options.length > 0) {
+          // 随机选择一个选项
+          const randomIndex = Math.floor(Math.random() * options.length)
+          const randomValue = options[randomIndex].value
+          newAnswers[question.id] = randomValue
+        }
       }
-    })
-  } else {
-    router.push('/')
-  }
-}
-
-// 页面卸载时保存进度
-onBeforeUnmount(() => {
-  if (Object.keys(answers.value).length > 0 && !isComplete.value) {
-    answerStore.saveToSession()
-  }
-})
-
-// 组件挂载时恢复进度
-onMounted(() => {
-  const savedAnswers = answerStore.getAnswers()
-  if (savedAnswers && Object.keys(savedAnswers).length > 0) {
-    answers.value = { ...savedAnswers }
-    // 如果有保存的答案，跳转到最后未完成的页面
-    if (Object.keys(savedAnswers).length > 0 && totalQuestions.value > 0) {
-      const lastAnsweredId = Math.max(...Object.keys(savedAnswers).map(Number))
-      const questionIndex = allQuestions.value.findIndex((q: { id: number }) => q.id === lastAnsweredId)
-      const completedCount = Object.keys(savedAnswers).length
-      $toast.info(`已加载上次进度: ${completedCount}/${totalQuestions.value} 题`, '继续答题')
-      if (questionIndex !== -1) {
-        currentPage.value = Math.floor(questionIndex / QUESTIONS_PER_PAGE) + 1
+      
+      // 应用答案
+      answers.value = newAnswers
+      
+      // 保存到 store
+      Object.entries(newAnswers).forEach(([id, value]) => {
+        answerStore.setAnswer(parseInt(id), value)
+      })
+      
+      // 跳转到最后一页
+      currentPage.value = totalPages.value
+      
+      // 显示成功提示
+      $toast.success(`已完成 ${Object.keys(newAnswers).length} 道题目（随机答案）`, '调试完成')
+      
+      // 刷新导航栏进度
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(new CustomEvent('refreshProgress'))
       }
     }
-  }
-})
+  })
+}
 </script>

@@ -1,5 +1,6 @@
 import { epqInterpretation, epqScales } from "./epq-questions"
 import { epqRscScales } from "./epq-rsc-questions"
+import { calculateDimensionScores, scl90Dimensions } from "./scl90-dimensions"
 
 interface ScoringInput {
   testId: string
@@ -157,7 +158,7 @@ function scorePSS(answers: Record<number, number>): ScoringResult {
   }
 }
 
-// SCL-90 症状自评量表
+// 更新 SCL-90 评分函数
 function scoreSCL90(answers: Record<number, number>): ScoringResult {
   // 计算总分（所有题目得分之和）
   const totalScore = Object.values(answers).reduce((sum, val) => sum + val, 0)
@@ -165,22 +166,79 @@ function scoreSCL90(answers: Record<number, number>): ScoringResult {
   // 计算总均分 = 总分 / 90
   const averageScore = totalScore / 90
   
-  // 判断严重程度
+  // 计算各维度得分
+  const dimensionScores = calculateDimensionScores(answers)
+  
+  // 找出得分最高的三个维度
+  const sortedDimensions = Object.entries(dimensionScores)
+    .sort((a, b) => b[1].average - a[1].average)
+    .slice(0, 3)
+  
+  // 判断总体严重程度
   let level = ''
   let suggestion = ''
   
   if (averageScore < 2) {
     level = '心理健康状况良好'
-    suggestion = '您的心理健康状况良好，请继续保持健康的生活方式，定期关注自己的心理状态。'
+    suggestion = `您的SCL-90总均分为 ${averageScore.toFixed(2)} 分，处于正常范围。
+
+【总体评估】
+心理健康状况良好，各项指标均在正常范围内。您具有良好的心理适应能力，能够较好地应对日常生活中的压力。
+
+${generateDimensionReport(dimensionScores, sortedDimensions)}
+
+【成长建议】
+• 继续保持健康的生活方式
+• 定期关注自己的心理状态
+• 培养积极乐观的心态
+• 与他人保持良好的社交关系`
   } else if (averageScore < 2.5) {
     level = '轻度心理困扰'
-    suggestion = '您可能存在轻度心理困扰，建议：\n• 注意自我调适和放松\n• 保持规律作息和运动\n• 与亲友保持良好沟通\n• 学习压力管理技巧'
+    suggestion = `您的SCL-90总均分为 ${averageScore.toFixed(2)} 分，处于轻度水平。
+
+【总体评估】
+您可能存在轻度的心理困扰，主要表现为${sortedDimensions.map(d => scl90Dimensions[d[0]]?.name || d[0]).join('、')}等方面的问题。
+
+${generateDimensionReport(dimensionScores, sortedDimensions)}
+
+【成长建议】
+• 关注自己的情绪变化，记录心情日记
+• 增加户外活动和体育锻炼
+• 与信任的朋友或家人倾诉
+• 学习放松技巧，如深呼吸、冥想
+• 培养兴趣爱好，丰富生活`
   } else if (averageScore < 3.5) {
     level = '中度心理困扰'
-    suggestion = '您的心理困扰程度中等，建议：\n• 寻求专业心理咨询帮助\n• 深入探索困扰来源\n• 学习情绪管理技巧\n• 考虑参加支持性团体'
+    suggestion = `您的SCL-90总均分为 ${averageScore.toFixed(2)} 分，处于中度水平。
+
+【总体评估】
+您存在中度心理困扰，${sortedDimensions.map(d => scl90Dimensions[d[0]]?.name || d[0]).join('、')}等方面的症状较为明显，需要引起重视。
+
+${generateDimensionReport(dimensionScores, sortedDimensions)}
+
+【成长建议】
+• 建议寻求专业心理咨询帮助
+• 进行系统的心理评估和治疗
+• 建立健康的支持系统
+• 学习压力管理和情绪调节技巧
+• 保持规律作息和健康饮食
+• 避免自我责备，接纳当前状态`
   } else {
     level = '重度心理困扰'
-    suggestion = '您的心理困扰较明显，强烈建议：\n• 尽快寻求专业心理医生帮助\n• 可能需要系统的心理治疗\n• 建立紧急支持系统\n• 不要独自承受，勇敢求助'
+    suggestion = `您的SCL-90总均分为 ${averageScore.toFixed(2)} 分，处于重度水平。
+
+【总体评估】
+您存在较明显的心理困扰，多个维度的得分较高，强烈建议寻求专业帮助。
+
+${generateDimensionReport(dimensionScores, sortedDimensions)}
+
+【成长建议】
+• 尽快寻求专业心理医生帮助
+• 前往医院心理科或精神科就诊
+• 告知家人或信任的朋友您的情况
+• 24小时心理援助热线：400-161-9995
+• 如有自伤念头，请立即前往医院急诊
+• 请记住：寻求帮助是勇敢和智慧的表现`
   }
   
   return {
@@ -188,10 +246,45 @@ function scoreSCL90(answers: Record<number, number>): ScoringResult {
     maxScore: 450,
     level,
     suggestion,
-    severity: averageScore / 5, // 将5分制转换为0-1的严重程度
+    severity: averageScore / 5,
     rawScore: totalScore,
-    standardizedScore: averageScore
+    standardizedScore: averageScore,
+    dimensionScores: dimensionScores
   }
+}
+
+// 生成维度报告
+function generateDimensionReport(
+  dimensionScores: Record<string, { total: number; average: number; level: string; description: string }>,
+  topDimensions: [string, { average: number; level: string }][]
+): string {
+  let report = '\n【各维度得分详情】\n\n'
+  
+  const dimensionOrder = ['somatization', 'obsessive', 'interpersonal', 'depression', 'anxiety', 'hostility', 'phobic', 'paranoid', 'psychotic', 'additional']
+  
+  for (const dimKey of dimensionOrder) {
+    const dimInfo = scl90Dimensions[dimKey]
+    const score = dimensionScores[dimKey]
+    if (dimInfo && score) {
+      const levelIcon = score.level === '很高' ? '🔴' : score.level === '较高' ? '🟠' : score.level === '中等' ? '🟡' : score.level === '较低' ? '🟢' : '⚪'
+      report += `${levelIcon} ${dimInfo.icon} ${dimInfo.name}（${dimInfo.nameEn}）\n`
+      report += `   均分：${score.average} 分（${score.level}）\n`
+      report += `   ${dimInfo.description}\n`
+      if (score.average >= 2.5) {
+        report += `   ⚠️ ${dimInfo.highScore}\n`
+      }
+      report += '\n'
+    }
+  }
+  
+  report += '【重点关注维度】\n'
+  for (let i = 0; i < topDimensions.length; i++) {
+    const [dimKey, score] = topDimensions[i]
+    const dimInfo = scl90Dimensions[dimKey]
+    report += `${i + 1}. ${dimInfo?.icon || '📌'} ${dimInfo?.name || dimKey}：${score.average}分（${score.level}）\n`
+  }
+  
+  return report
 }
 
 // SDS 抑郁自评量表
@@ -315,41 +408,45 @@ function scoreMBTI(answers: Record<number, number>): ScoringResult {
   let tfCount = 0
   let jpCount = 0
   
-  // 题目维度映射（基于题目ID范围）
+  // 遍历所有答案计算分数
   Object.entries(answers).forEach(([qid, value]) => {
     const id = parseInt(qid)
     
+    // E/I 维度 (1-24题)
     if (id >= 1 && id <= 24) {
-      // E/I 维度
+      // E/I 维度的反向计分题：9-16题是反向（偏向I的题目）
       if (id >= 9 && id <= 16) {
-        // 反向计分题
+        // 反向计分: 0→4, 1→3, 2→2, 3→1, 4→0
         eiScore += 4 - value
       } else {
         eiScore += value
       }
       eiCount++
-    } else if (id >= 25 && id <= 47) {
-      // S/N 维度
+    } 
+    // S/N 维度 (25-47题)
+    else if (id >= 25 && id <= 47) {
+      // S/N 维度的反向计分题：35-47题是反向（偏向N的题目）
       if (id >= 35 && id <= 47) {
-        // 反向计分题（偏向N的题目）
         snScore += 4 - value
       } else {
         snScore += value
       }
       snCount++
-    } else if (id >= 48 && id <= 70) {
-      // T/F 维度
+    } 
+    // T/F 维度 (48-70题)
+    else if (id >= 48 && id <= 70) {
+      // T/F 维度的反向计分题：59-70题是反向（偏向F的题目）
       if (id >= 59 && id <= 70) {
-        // 反向计分题（偏向F的题目）
         tfScore += 4 - value
       } else {
         tfScore += value
       }
       tfCount++
-    } else if (id >= 71 && id <= 93) {
-      // J/P 维度
+    } 
+    // J/P 维度 (71-93题)
+    else if (id >= 71 && id <= 93) {
+      // J/P 维度的反向计分题：82-93题是反向（偏向P的题目）
       if (id >= 82 && id <= 93) {
-        // 反向计分题（偏向P的题目）
         jpScore += 4 - value
       } else {
         jpScore += value
@@ -359,12 +456,14 @@ function scoreMBTI(answers: Record<number, number>): ScoringResult {
   })
   
   // 计算平均分（0-4分制）
+  // 使用总分除以题数，而不是简单平均
   const eiAvg = eiCount > 0 ? eiScore / eiCount : 2
   const snAvg = snCount > 0 ? snScore / snCount : 2
   const tfAvg = tfCount > 0 ? tfScore / tfCount : 2
   const jpAvg = jpCount > 0 ? jpScore / jpCount : 2
   
   // 确定类型（以2.5为分界点）
+  // 注意：分数越高越偏向第一个字母，分数越低越偏向第二个字母
   const ei = eiAvg > 2.5 ? 'E' : 'I'
   const sn = snAvg > 2.5 ? 'S' : 'N'
   const tf = tfAvg > 2.5 ? 'T' : 'F'
@@ -379,16 +478,16 @@ function scoreMBTI(answers: Record<number, number>): ScoringResult {
   const suggestion = generateMBTISuggestion(mbtiType, { eiAvg, snAvg, tfAvg, jpAvg })
   
   return {
-    totalScore: 0,
-    maxScore: 0,
+    totalScore: Math.round((eiAvg + snAvg + tfAvg + jpAvg) / 4 * 25), // 转换为百分制
+    maxScore: 100,
     level: mbtiType,
     suggestion: suggestion,
     severity: 0,
     dimensionScores: {
-      E_I: eiAvg,
-      S_N: snAvg,
-      T_F: tfAvg,
-      J_P: jpAvg,
+      E_I: { score: eiScore, avg: eiAvg, result: ei },
+      S_N: { score: snScore, avg: snAvg, result: sn },
+      T_F: { score: tfScore, avg: tfAvg, result: tf },
+      J_P: { score: jpScore, avg: jpAvg, result: jp },
       type: mbtiType,
       typeName: typeInfo.name
     }

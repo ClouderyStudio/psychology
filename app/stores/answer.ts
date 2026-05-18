@@ -15,15 +15,17 @@ export const useAnswerStore = defineStore('answer', {
   
   actions: {
     setAnswer(questionId: number, value: number) {
+      // 直接设置答案
       this.answers[questionId] = value
       this.saveToSession()
     },
     
     clearAnswers() {
+      // 清空内存中的答案
       this.answers = {}
       this.currentTestId = null
       this.result = null
-      this.clearSession()
+      this.saveToSession()
     },
     
     setCurrentTest(testId: string) {
@@ -50,7 +52,13 @@ export const useAnswerStore = defineStore('answer', {
     saveToSession() {
       if (typeof window !== 'undefined' && this.currentTestId) {
         try {
-          sessionStorage.setItem(`test_${this.currentTestId}_answers`, JSON.stringify(this.answers))
+          if (Object.keys(this.answers).length > 0) {
+            // 有答案，保存
+            sessionStorage.setItem(`test_${this.currentTestId}_answers`, JSON.stringify(this.answers))
+          } else {
+            // 没有答案，删除
+            sessionStorage.removeItem(`test_${this.currentTestId}_answers`)
+          }
         } catch (e) {
           console.error('保存进度失败', e)
         }

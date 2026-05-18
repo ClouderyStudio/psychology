@@ -69,17 +69,22 @@
       <!-- 量表卡片网格 -->
       <div class="cards-grid grid md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-6xl mx-auto">
         <div v-for="test in filteredTests" :key="test.id" 
-             class="card rounded-xl transition-all duration-300 hover:transform hover:-translate-y-1"
-             :style="{ backgroundColor: getCardBgColor('var(--card-bg)'), boxShadow: 'var(--shadow-md)' }">
-          <div class="p-6">
+             class="card rounded-xl transition-all duration-300 hover:transform hover:-translate-y-1 overflow-hidden flex flex-col"
+             :style="{ boxShadow: 'var(--shadow-md)' }">
+          
+          <!-- 卡片顶部色带 -->
+          <div class="h-2" :style="{ backgroundColor: getCategoryColor(test.category) }"></div>
+          
+          <!-- 卡片内容 - 使用 flex-grow 确保内容区域撑开 -->
+          <div class="p-6 flex flex-col flex-grow" :style="{ backgroundColor: 'var(--card-bg)' }">
             <!-- 分类标签 -->
             <div class="flex items-start justify-between mb-3">
-              <span class="category-tag px-2 py-1 rounded text-xs font-medium"
+              <span class="category-tag px-3 py-1 rounded-full text-xs font-medium"
                     :style="{ backgroundColor: getCategoryTagColor(test.category), color: '#ffffff' }">
                 {{ getCategoryName(test.category) }}
               </span>
               <span class="duration-badge px-2 py-1 rounded text-xs"
-                    :style="{ backgroundColor: 'var(--'+test.category+'-light)', color: 'var(--'+test.category+')' }">
+                    :style="{ backgroundColor: 'var(--' + test.category + '-light)', color: 'var(--' + test.category + ')' }">
                 {{ test.duration }}
               </span>
             </div>
@@ -92,27 +97,34 @@
               {{ test.englishName }}
             </p>
             
-            <!-- 描述 -->
-            <p class="text-sm mb-4 leading-relaxed" style="color: var(--text-secondary);">
+            <!-- 描述 - 固定最小高度，确保对齐 -->
+            <p class="text-sm mb-4 leading-relaxed min-h-[60px]" style="color: var(--text-secondary);">
               {{ test.description }}
             </p>
             
             <!-- 题目数量 -->
-            <div class="flex items-center justify-between mb-4 text-xs" style="color: var(--text-muted);">
+            <div class="flex items-center mt-auto justify-between mb-4 text-xs" style="color: var(--text-muted);">
               <span>📝 {{ test.questionsCount }} 题</span>
-              <span>⭐ 专业量表</span>
+              <div>
+                <span v-for="tag in test.tags" :key="tag" class="tag px-2 py-1 rounded-full text-xs mr-2"
+                      :style="{ backgroundColor: 'var(--' + test.category + '-light)', color: 'var(--' + test.category + ')' }">
+                  {{ tag }}
+                </span>
+              </div>
             </div>
             
-            <!-- 进度提示 -->
-            <div v-if="unfinishedTests[test.id]" 
-                 class="mb-3 p-2 rounded-lg text-xs text-center"
-                 style="background-color: var(--warning-bg); color: var(--warning-text);">
-              📌 已完成 {{ unfinishedCounts[test.id] }}/{{ test.questionsCount }} 题
+            <!-- 进度提示 - 固定高度，避免布局偏移 -->
+            <div v-if="unfinishedTests[test.id]" class="min-h-[42px]">
+              <div
+                   class="mb-3 p-2 rounded-lg text-xs text-center"
+                   style="background-color: var(--warning-bg); color: var(--warning-text);">
+                📌 已完成 {{ unfinishedCounts[test.id] }}/{{ test.questionsCount }} 题
+              </div>
             </div>
             
-            <!-- 按钮 -->
-            <div class="flex gap-2">
-              <button @click="; startTest(test.id)" 
+            <!-- 按钮区域 - 固定高度，确保所有卡片按钮高度一致 -->
+            <div class="flex gap-2 pt-2 min-h-[44px]">
+              <button @click="startTest(test.id, false)" 
                       class="flex-1 py-2.5 rounded-lg font-semibold transition-all text-sm"
                       :style="{ backgroundColor: getButtonColor(test.category), color: 'white' }"
                       @mouseenter="e => e.target.style.backgroundColor = getButtonHoverColor(test.category)"
@@ -158,6 +170,7 @@ import type { TestListItem } from '~/types/test'
 
 const router = useRouter()
 const answerStore = useAnswerStore()
+const { $toast, $confirm } = useNuxtApp()
 
 // 获取测评列表
 const { data: response, error } = await useFetch('/api/tests/list')
@@ -184,8 +197,8 @@ const filteredTests = computed(() => {
 
 // 获取唯一分类数量
 const uniqueCategories = computed(() => {
-  const categories = new Set(tests.value.map(test => test.category))
-  return categories.size
+  const cats = new Set(tests.value.map(test => test.category))
+  return cats.size
 })
 
 // 存储未完成的测评
@@ -199,44 +212,44 @@ const getCategoryName = (categoryId: string) => {
   return category ? category.name : '专项量表'
 }
 
-// 获取卡片背景色
-const getCardBgColor = (categoryId: string) => {
+// 获取分类主色
+const getCategoryColor = (categoryId: string) => {
   const colors: Record<string, string> = {
-    symptom: 'var(--symptom-bg)',
-    personality: 'var(--personality-bg)',
-    special: 'var(--special-bg)'
+    symptom: 'var(--symptom)',
+    personality: 'var(--personality)',
+    special: 'var(--special)'
   }
-  return colors[categoryId] || 'var(--card-bg)'
+  return colors[categoryId] || 'var(--primary)'
 }
 
 // 获取分类标签颜色
 const getCategoryTagColor = (categoryId: string) => {
-  const colors: Record<string, string> = {
-    symptom: 'var(--symptom)',
-    personality: 'var(--personality)',
-    special: 'var(--special)'
-  }
-  return colors[categoryId] || 'var(--primary)'
-}
-
-// 获取按钮颜色
-const getButtonColor = (categoryId: string) => {
-  const colors: Record<string, string> = {
-    symptom: 'var(--symptom)',
-    personality: 'var(--personality)',
-    special: 'var(--special)'
-  }
-  return colors[categoryId] || 'var(--primary)'
-}
-
-// 获取按钮悬停颜色
-const getButtonHoverColor = (categoryId: string) => {
   const colors: Record<string, string> = {
     symptom: 'var(--symptom-dark)',
     personality: 'var(--personality-dark)',
     special: 'var(--special-dark)'
   }
   return colors[categoryId] || 'var(--primary-dark)'
+}
+
+// 获取按钮颜色
+const getButtonColor = (categoryId: string) => {
+  const colors: Record<string, string> = {
+    symptom: 'var(--symptom-dark)',
+    personality: 'var(--personality-dark)',
+    special: 'var(--special-dark)'
+  }
+  return colors[categoryId] || 'var(--primary-dark)'
+}
+
+// 获取按钮悬停颜色
+const getButtonHoverColor = (categoryId: string) => {
+  const colors: Record<string, string> = {
+    symptom: 'var(--symptom)',
+    personality: 'var(--personality)',
+    special: 'var(--special)'
+  }
+  return colors[categoryId] || 'var(--primary)'
 }
 
 // 获取筛选按钮样式
@@ -261,80 +274,7 @@ const getFilterButtonStyle = (categoryId: string) => {
 }
 
 // 在客户端检查未完成的测评
-onMounted(() => {
-  if (typeof window === 'undefined') return
-  
-  tests.value.forEach((test: TestListItem) => {
-    try {
-      const saved = sessionStorage.getItem(`test_${test.id}_answers`)
-      if (saved) {
-        const answers = JSON.parse(saved)
-        const count = Object.keys(answers).length
-        if (count > 0 && count <= test.questionsCount) {
-          unfinishedTests.value[test.id] = true
-          unfinishedCounts.value[test.id] = count
-        }
-      }
-    } catch (e) {
-      console.error('检查进度失败', e)
-    }
-  })
-})
-
-// 开始测评
-function startTest(testId: string, reset: boolean = false) {
-  if (reset && typeof window !== 'undefined') {
-    $confirm({
-      title: '确认重置',
-      message: '确定要重新开始吗？您的当前进度将被清除。',
-      onConfirm: () => {
-        sessionStorage.removeItem(`test_${testId}_answers`)
-        answerStore.clearAnswers()
-        delete unfinishedTests.value[testId]
-        delete unfinishedCounts.value[testId]
-        answerStore.setCurrentTest(testId)
-        router.push(`/test/${testId}`)
-        $toast.info('已重置，请重新作答', '提示')
-      }
-    })
-  } else {
-    answerStore.setCurrentTest(testId)
-    router.push(`/test/${testId}`)
-  }
-}
-
-const { $confirm, $toast } = useNuxtApp()
-
-// 清空所有进度
-function clearAllProgress() {
-  $confirm({
-    title: '确认清空',
-    message: '确定要清空所有测评的进度吗？此操作不可恢复。',
-    onConfirm: () => {
-      const keys = Object.keys(sessionStorage)
-      let clearedCount = 0
-      keys.forEach(key => {
-        if (key.startsWith('test_') && key.endsWith('_answers')) {
-          sessionStorage.removeItem(key)
-          clearedCount++
-        }
-      })
-      // 清空本地状态
-      unfinishedTests.value = {}
-      unfinishedCounts.value = {}
-      answerStore.clearAnswers()
-      // 触发自定义事件，通知 NavBar 刷新
-      if (typeof window !== 'undefined') {
-        window.dispatchEvent(new CustomEvent('clearAllProgress'))
-      }
-      $toast.success(`已清空 ${clearedCount} 个测评的进度`, '完成')
-    }
-  })
-}
-
-// 监听进度变化，刷新未完成列表
 const refreshUnfinishedStatus = () => {
-  // 重新检查未完成的测评
   if (typeof window === 'undefined') return
   
   tests.value.forEach((test: TestListItem) => {
@@ -343,7 +283,7 @@ const refreshUnfinishedStatus = () => {
       if (saved) {
         const answers = JSON.parse(saved)
         const count = Object.keys(answers).length
-        if (count > 0 && count <= test.questionsCount) {
+        if (count > 0 && count < test.questionsCount) {
           unfinishedTests.value[test.id] = true
           unfinishedCounts.value[test.id] = count
         } else {
@@ -360,8 +300,105 @@ const refreshUnfinishedStatus = () => {
   })
 }
 
+// 开始测评
+let isNavigating = false
+
+function startTest(testId: string, reset: boolean = false) {
+  if (isNavigating) return
+  isNavigating = true
+  
+  if (reset && typeof window !== 'undefined') {
+    $confirm({
+      title: '确认重置',
+      message: '确定要重新开始吗？您的当前进度将被清除。',
+      onConfirm: () => {
+        sessionStorage.removeItem(`test_${testId}_answers`)
+        answerStore.clearAnswers()
+        delete unfinishedTests.value[testId]
+        delete unfinishedCounts.value[testId]
+        answerStore.setCurrentTest(testId)
+        router.push(`/test/${testId}`)
+        $toast.info('已重置，请重新作答', '提示')
+        isNavigating = false
+      },
+      onCancel: () => {
+        isNavigating = false
+      }
+    })
+  } else {
+    // 检查是否有保存的进度
+    const saved = sessionStorage.getItem(`test_${testId}_answers`)
+    if (saved) {
+      const answers = JSON.parse(saved)
+      const completedCount = Object.keys(answers).length
+      const test = tests.value.find(t => t.id === testId)
+      const totalCount = test?.questionsCount || 0
+      
+      if (completedCount === totalCount && totalCount > 0) {
+        $confirm({
+          title: '检测到已完成但未提交的测评',
+          message: `您上次已完成所有 ${totalCount} 题但未提交，是否要继续提交？`,
+          confirmText: '继续提交',
+          cancelText: '重新开始',
+          onConfirm: () => {
+            answerStore.setCurrentTest(testId)
+            router.push(`/test/${testId}`)
+            $toast.info('继续提交', '提示')
+            isNavigating = false
+          },
+          onCancel: () => {
+            sessionStorage.removeItem(`test_${testId}_answers`)
+            delete unfinishedTests.value[testId]
+            delete unfinishedCounts.value[testId]
+            answerStore.setCurrentTest(testId)
+            router.push(`/test/${testId}`)
+            $toast.info('已重置，请重新作答', '提示')
+            isNavigating = false
+          }
+        })
+      } else {
+        answerStore.setCurrentTest(testId)
+        router.push(`/test/${testId}`)
+        setTimeout(() => {
+          isNavigating = false
+        }, 500)
+      }
+    } else {
+      answerStore.setCurrentTest(testId)
+      router.push(`/test/${testId}`)
+      setTimeout(() => {
+        isNavigating = false
+      }, 500)
+    }
+  }
+}
+
+// 清空所有进度
+function clearAllProgress() {
+  $confirm({
+    title: '确认清空',
+    message: '确定要清空所有测评的进度吗？此操作不可恢复。',
+    onConfirm: () => {
+      const keys = Object.keys(sessionStorage)
+      let clearedCount = 0
+      keys.forEach(key => {
+        if (key.startsWith('test_') && key.endsWith('_answers')) {
+          sessionStorage.removeItem(key)
+          clearedCount++
+        }
+      })
+      refreshUnfinishedStatus()
+      answerStore.clearAnswers()
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(new CustomEvent('clearAllProgress'))
+        window.dispatchEvent(new CustomEvent('refreshProgress'))
+      }
+      $toast.success(`已清空 ${clearedCount} 个测评的进度`, '完成')
+    }
+  })
+}
+
 // 监听存储事件和自定义事件
-// 监听刷新进度事件
 onMounted(() => {
   refreshUnfinishedStatus()
   
@@ -375,7 +412,6 @@ onMounted(() => {
     refreshUnfinishedStatus()
   })
   
-  // 监听刷新进度事件
   window.addEventListener('refreshProgress', () => {
     refreshUnfinishedStatus()
   })
@@ -387,6 +423,7 @@ onUnmounted(() => {
   window.removeEventListener('refreshProgress', () => {})
 })
 
+// 如果加载失败
 if (error.value) {
   console.error('加载测评列表失败', error.value)
 }

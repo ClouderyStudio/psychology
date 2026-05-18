@@ -1,4 +1,3 @@
-// server/utils/emotional-stability-questions.ts
 export interface EmotionalStabilityQuestion {
   id: number
   text: string

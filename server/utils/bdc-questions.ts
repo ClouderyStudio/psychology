@@ -1,4 +1,3 @@
-// server/utils/bdc-questions.ts
 export interface BDCQuestion {
   id: number
   text: string
