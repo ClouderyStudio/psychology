@@ -12,7 +12,7 @@
             <span class="text-xl">🧠</span>
           </div>
           <span class="font-semibold text-lg hidden sm:inline" style="color: var(--text);">
-            心理健康测评中心
+            心灵驿站
           </span>
           <span class="font-semibold text-lg sm:hidden" style="color: var(--text);">
             心理测评
