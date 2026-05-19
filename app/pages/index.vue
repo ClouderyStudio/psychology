@@ -34,7 +34,7 @@
         </div>
         <div class="stat-item text-center p-4 rounded-xl" style="background-color: var(--card-bg); box-shadow: var(--shadow-sm);">
           <div class="stat-num text-3xl md:text-4xl font-bold mb-1" style="color: var(--primary);">
-            2-20
+            2-40
           </div>
           <div class="stat-label text-sm" style="color: var(--text-secondary);">分钟完成</div>
         </div>
@@ -93,7 +93,7 @@
             <h3 class="text-xl font-bold mb-1" style="color: var(--text);">{{ test.title }}</h3>
             
             <!-- 英文副标题 -->
-            <p class="text-xs mb-3" style="color: var(--text-muted); font-family: monospace;">
+            <p class="text-xs mb-3" style="color: var(--text-muted);">
               {{ test.englishName }}
             </p>
             

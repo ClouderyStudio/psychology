@@ -66,3 +66,26 @@
     --warning-text: #8b6d3b;
   }
 }
+
+  html {
+    font-family: 'Recursive Mn Csl St Med', 'HarmonyOS Sans SC', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+  }
+
+@font-face {
+  font-family: 'HarmonyOS Sans SC';
+  font-style: normal;
+  font-weight: 300;
+  font-display: swap;
+  src: url('../fonts/HarmonyOS_Sans_SC_Regular.ttf') format('ttf');
+}
+
+@font-face {
+  font-family: 'Recursive Mn Csl St Med';
+  font-style: normal;
+  font-weight: 300;
+  font-display: swap;
+  src: url('../fonts/RecursiveMonoCslSt-Med.woff2') format('woff2');
+}
