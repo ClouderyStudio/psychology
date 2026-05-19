@@ -132,6 +132,14 @@
               {{ test.description }}
             </p>
             
+            <div v-if="unfinishedTests[test.id]" class="min-h-[42px] pb-2">
+              <div
+                   class="mb-3 p-2 rounded-lg text-xs text-center"
+                   style="background-color: var(--warning-bg); color: var(--warning-text);">
+                📌 已完成 {{ unfinishedCounts[test.id] }}/{{ test.questionsCount }} 题
+              </div>
+            </div>
+
             <div class="flex items-center mt-auto justify-between mb-4 text-xs" style="color: var(--text-muted);">
               <span>📝 {{ test.questionsCount }} 题</span>
               <div>
@@ -142,16 +150,8 @@
               </div>
             </div>
             
-            <div v-if="unfinishedTests[test.id]" class="min-h-[42px]">
-              <div
-                   class="mb-3 p-2 rounded-lg text-xs text-center"
-                   style="background-color: var(--warning-bg); color: var(--warning-text);">
-                📌 已完成 {{ unfinishedCounts[test.id] }}/{{ test.questionsCount }} 题
-              </div>
-            </div>
-            
             <!-- 按钮区域 -->
-            <div class="flex gap-2 mt-auto pt-2">
+            <div class="flex gap-2 pt-2 min-h-[44px]">
               <button @click="startTest(test.id, false)" 
                       class="flex-1 py-2.5 rounded-lg font-semibold transition-all text-sm"
                       :style="{ backgroundColor: getButtonColor(test.category), color: 'white' }"
@@ -193,35 +193,6 @@
   </div>
 </template>
 
-<!--
-            <h3 class="text-xl font-bold mb-1" style="color: var(--text);">{{ test.title }}</h3>
-            
-            <p class="text-xs mb-3" style="color: var(--text-muted);">
-              {{ test.englishName }}
-            </p>
-            
-            <p class="text-sm mb-4 leading-relaxed min-h-[60px]" style="color: var(--text-secondary);">
-              {{ test.description }}
-            </p>
-            
-            <div class="flex items-center mt-auto justify-between mb-4 text-xs" style="color: var(--text-muted);">
-              <span>📝 {{ test.questionsCount }} 题</span>
-              <div>
-                <span v-for="tag in test.tags" :key="tag" class="tag px-2 py-1 rounded-full text-xs mr-2"
-                      :style="{ backgroundColor: 'var(--' + test.category + '-light)', color: 'var(--' + test.category + ')' }">
-                  {{ tag }}
-                </span>
-              </div>
-            </div>
-            
-            <div v-if="unfinishedTests[test.id]" class="min-h-[42px]">
-              <div
-                   class="mb-3 p-2 rounded-lg text-xs text-center"
-                   style="background-color: var(--warning-bg); color: var(--warning-text);">
-                📌 已完成 {{ unfinishedCounts[test.id] }}/{{ test.questionsCount }} 题
-              </div>
-            </div>
--->
 <script setup lang="ts">
 import type { TestListItem } from '~/types/test'
 
@@ -340,7 +311,7 @@ const refreshUnfinishedStatus = () => {
       if (saved) {
         const answers = JSON.parse(saved)
         const count = Object.keys(answers).length
-        if (count > 0 && count < test.questionsCount) {
+        if (count > 0 && count <= test.questionsCount) {
           unfinishedTests.value[test.id] = true
           unfinishedCounts.value[test.id] = count
         } else {
@@ -386,40 +357,11 @@ function startTest(testId: string, reset: boolean = false) {
     // 检查是否有保存的进度
     const saved = sessionStorage.getItem(`test_${testId}_answers`)
     if (saved) {
-      const answers = JSON.parse(saved)
-      const completedCount = Object.keys(answers).length
-      const test = tests.value.find(t => t.id === testId)
-      const totalCount = test?.questionsCount || 0
-      
-      if (completedCount === totalCount && totalCount > 0) {
-        $confirm({
-          title: '检测到已完成但未提交的测评',
-          message: `您上次已完成所有 ${totalCount} 题但未提交，是否要继续提交？`,
-          confirmText: '继续提交',
-          cancelText: '重新开始',
-          onConfirm: () => {
-            answerStore.setCurrentTest(testId)
-            router.push(`/test/${testId}`)
-            $toast.info('继续提交', '提示')
-            isNavigating = false
-          },
-          onCancel: () => {
-            sessionStorage.removeItem(`test_${testId}_answers`)
-            delete unfinishedTests.value[testId]
-            delete unfinishedCounts.value[testId]
-            answerStore.setCurrentTest(testId)
-            router.push(`/test/${testId}`)
-            $toast.info('已重置，请重新作答', '提示')
-            isNavigating = false
-          }
-        })
-      } else {
         answerStore.setCurrentTest(testId)
         router.push(`/test/${testId}`)
         setTimeout(() => {
           isNavigating = false
         }, 500)
-      }
     } else {
       answerStore.setCurrentTest(testId)
       router.push(`/test/${testId}`)

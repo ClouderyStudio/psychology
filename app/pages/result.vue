@@ -299,7 +299,6 @@ function retakeTest() {
   const testId = result.value?.testId
   if (testId) {
     router.push(`/test/${testId}`)
-      answerStore.clearLastResult()
   } else {
     router.push('/')
   }

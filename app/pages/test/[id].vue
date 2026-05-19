@@ -323,6 +323,7 @@ const clearAllAnswers = () => {
 
 // 初始化时加载已保存的答案
 onMounted(async () => {
+  answerStore.clearLastResult()
   isClient.value = true
   
   if (answerStore.currentTestId !== testId) {
