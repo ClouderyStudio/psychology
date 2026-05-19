@@ -117,7 +117,7 @@
                 {{ getCategoryName(test.category) }}
               </span>
               <span class="duration-badge px-2 py-1 rounded text-xs"
-                    style="background-color: var(--primary-light); color: var(--primary);">
+                    :style="{ backgroundColor: 'var(--' + test.category + '-light)', color: 'var(--' + test.category + ')' }">
                 {{ test.duration }}
               </span>
             </div>
