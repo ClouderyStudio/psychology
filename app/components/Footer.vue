@@ -1,4 +1,3 @@
-<!-- components/Footer.vue -->
 <template>
   <footer class="mt-auto" style="background-color: var(--card-bg); border-top: 1px solid var(--primary-light);">
     <div class="container mx-auto px-4 py-12">

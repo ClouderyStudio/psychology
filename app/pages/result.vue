@@ -1,4 +1,3 @@
-<!-- pages/result.vue -->
 <template>
   <div class="min-h-screen py-12" style="background-color: var(--bg);">
     <div class="container mx-auto px-4 max-w-3xl">
@@ -298,16 +297,15 @@ onMounted(() => {
 
 function retakeTest() {
   const testId = result.value?.testId
-  answerStore.clearAnswers()
   if (testId) {
     router.push(`/test/${testId}`)
+      answerStore.clearLastResult()
   } else {
     router.push('/')
   }
 }
 
 function goHome() {
-  answerStore.clearAnswers()
   router.push('/')
 }
 </script>

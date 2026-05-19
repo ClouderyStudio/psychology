@@ -1,4 +1,3 @@
-<!-- components/NavBar.vue -->
 <template>
   <nav class="sticky top-0 z-50 w-full transition-all duration-300"
        :class="{ 'shadow-lg': isScrolled }"

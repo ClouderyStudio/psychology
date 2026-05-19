@@ -1,4 +1,3 @@
-<!-- pages/about.vue -->
 <template>
   <div class="min-h-screen py-12" style="background-color: var(--bg);">
     <div class="container mx-auto px-4 max-w-4xl">

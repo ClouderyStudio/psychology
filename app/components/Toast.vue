@@ -1,4 +1,3 @@
-<!-- components/Toast.vue -->
 <template>
   <Teleport to="body">
     <TransitionGroup name="toast" tag="div" class="toast-container">

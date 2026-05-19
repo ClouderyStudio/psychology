@@ -1,4 +1,3 @@
-<!-- pages/test/[id].vue -->
 <template>
   <div class="min-h-screen py-8" style="background-color: var(--bg);">
     <div class="container mx-auto px-4 max-w-3xl">
@@ -100,22 +99,20 @@
           <!-- 分页导航按钮 -->
           <div class="p-6 flex justify-between gap-4" style="background-color: var(--bg);">
             <button @click="prevPage" 
-                    :disabled="currentPage === 1"
                     class="px-6 py-3 rounded-lg font-semibold transition-all disabled:opacity-40 disabled:cursor-not-allowed"
                     :style="{
-                      backgroundColor: currentPage === 1 ? 'var(--text-muted)' : 'var(--card-bg)',
+                      backgroundColor: 'var(--card-bg)',
                       color: 'var(--text-secondary)',
                       boxShadow: 'var(--shadow-sm)'
                     }">
-              ← 上一页
+              {{ currentPage === 1 ? '返回主页' : '← 上一页' }}
             </button>
             
             <button v-if="!isLastPage" 
                     @click="nextPage" 
-                    :disabled="!canGoToNextPage"
                     class="px-6 py-3 rounded-lg font-semibold transition-all disabled:opacity-40 disabled:cursor-not-allowed"
                     :style="{
-                      backgroundColor: canGoToNextPage ? 'var(--primary)' : 'var(--text-muted)',
+                      backgroundColor: 'var(--primary)',
                       color: 'white',
                       boxShadow: 'var(--shadow-sm)'
                     }">
@@ -220,11 +217,6 @@ const isCurrentPageComplete = computed(() => {
   return currentPageQuestionIds.value.every(id => answers.value[id] !== undefined)
 })
 
-// 是否可以进入下一页
-const canGoToNextPage = computed(() => {
-  return isCurrentPageComplete.value
-})
-
 // 是否是最后一页
 const isLastPage = computed(() => currentPage.value === totalPages.value)
 
@@ -233,14 +225,9 @@ const progress = computed(() => (answeredCount.value / totalQuestions.value) * 1
 
 // 可见页码（用于快速跳转）
 const visiblePages = computed(() => {
-  const delta = 2
   const range: number[] = []
   for (let i = 1; i <= totalPages.value; i++) {
-    if (i === 1 || i === totalPages.value || (i >= currentPage.value - delta && i <= currentPage.value + delta)) {
-      range.push(i)
-    } else if (range[range.length - 1] !== -1) {
-      range.push(-1)
-    }
+    range.push(i)
   }
   return range
 })
@@ -378,7 +365,7 @@ watch(answers, (newAnswers) => {
 
 // 分页导航函数
 function nextPage() {
-  if (canGoToNextPage.value && currentPage.value < totalPages.value) {
+  if (currentPage.value < totalPages.value) {
     currentPage.value++
     window.scrollTo({ top: 0, behavior: 'smooth' })
   } else if (!isCurrentPageComplete.value) {
@@ -390,23 +377,16 @@ function prevPage() {
   if (currentPage.value > 1) {
     currentPage.value--
     window.scrollTo({ top: 0, behavior: 'smooth' })
+  } else
+  {
+    goBack()
   }
 }
 
 function goToPage(page: number) {
   if (page === currentPage.value) return
-  
-  if (page < currentPage.value) {
     currentPage.value = page
     window.scrollTo({ top: 0, behavior: 'smooth' })
-  } else {
-    if (isCurrentPageComplete.value) {
-      currentPage.value = page
-      window.scrollTo({ top: 0, behavior: 'smooth' })
-    } else {
-      $toast.warning(`请先完成第${currentPage.value}页的所有题目再跳转`, '提示')
-    }
-  }
 }
 
 // 退出确认
@@ -447,16 +427,16 @@ async function submitTest() {
         })
         
         if (data.value?.success) {
-          
-          
           if (typeof window !== 'undefined') {
             sessionStorage.removeItem(`test_${testId}_answers`)
             window.dispatchEvent(new CustomEvent('refreshProgress'))
+            window.dispatchEvent(new CustomEvent('newResult'))  // 新增：触发新结果事件
           }
           
           answerStore.clearAnswers()
 
           answerStore.setResult(data.value.data)
+
           $toast.success('测评提交成功！', '完成')
           await router.push('/result')
         }

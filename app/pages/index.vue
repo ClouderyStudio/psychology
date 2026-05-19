@@ -1,4 +1,3 @@
-<!-- pages/index.vue -->
 <template>
   <div class="min-h-screen" style="background-color: var(--bg);">
     <div class="container mx-auto px-4 py-8">
@@ -34,9 +33,43 @@
         </div>
         <div class="stat-item text-center p-4 rounded-xl" style="background-color: var(--card-bg); box-shadow: var(--shadow-sm);">
           <div class="stat-num text-3xl md:text-4xl font-bold mb-1" style="color: var(--primary);">
-            2-40
+            2-20
           </div>
           <div class="stat-label text-sm" style="color: var(--text-secondary);">分钟完成</div>
+        </div>
+      </div>
+
+      <!-- 最后一次结果卡片 -->
+      <div v-if="lastResult" class="last-result-card max-w-2xl mx-auto mb-8">
+        <div class="relative rounded-xl overflow-hidden transition-all duration-300 hover:transform hover:-translate-y-1"
+             style="background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%); box-shadow: var(--shadow-lg);">
+          <div class="absolute top-2 right-2">
+            <button @click="clearLastResult" 
+                    class="w-6 h-6 rounded-full flex items-center justify-center text-white/70 hover:text-white hover:bg-white/20 transition-colors"
+                    title="关闭">
+              ✕
+            </button>
+          </div>
+          <div class="p-5 text-white">
+            <div class="flex items-center gap-2 mb-2">
+              <span class="text-2xl">📊</span>
+              <span class="text-sm font-medium text-white/80">最近一次测评结果</span>
+            </div>
+            <div class="flex items-center justify-between flex-wrap gap-2">
+              <div>
+                <h3 class="text-xl font-bold">{{ lastResult.testTitle }}</h3>
+                <p class="text-sm text-white/80 mt-1">完成时间：{{ formatLastResultTime }}</p>
+              </div>
+              <div class="text-right">
+                <div class="text-3xl font-bold">{{ lastResultDisplayScore }}</div>
+                <div class="text-sm text-white/80">{{ lastResult.level }}</div>
+              </div>
+            </div>
+            <button @click="viewLastResult" 
+                    class="mt-3 w-full py-2 rounded-lg font-medium transition-all bg-white/20 hover:bg-white/30">
+              查看详细报告 →
+            </button>
+          </div>
         </div>
       </div>
 
@@ -75,7 +108,7 @@
           <!-- 卡片顶部色带 -->
           <div class="h-2" :style="{ backgroundColor: getCategoryColor(test.category) }"></div>
           
-          <!-- 卡片内容 - 使用 flex-grow 确保内容区域撑开 -->
+          <!-- 卡片内容 -->
           <div class="p-6 flex flex-col flex-grow" :style="{ backgroundColor: 'var(--card-bg)' }">
             <!-- 分类标签 -->
             <div class="flex items-start justify-between mb-3">
@@ -84,25 +117,21 @@
                 {{ getCategoryName(test.category) }}
               </span>
               <span class="duration-badge px-2 py-1 rounded text-xs"
-                    :style="{ backgroundColor: 'var(--' + test.category + '-light)', color: 'var(--' + test.category + ')' }">
+                    style="background-color: var(--primary-light); color: var(--primary);">
                 {{ test.duration }}
               </span>
             </div>
             
-            <!-- 标题 -->
             <h3 class="text-xl font-bold mb-1" style="color: var(--text);">{{ test.title }}</h3>
             
-            <!-- 英文副标题 -->
             <p class="text-xs mb-3" style="color: var(--text-muted);">
               {{ test.englishName }}
             </p>
             
-            <!-- 描述 - 固定最小高度，确保对齐 -->
             <p class="text-sm mb-4 leading-relaxed min-h-[60px]" style="color: var(--text-secondary);">
               {{ test.description }}
             </p>
             
-            <!-- 题目数量 -->
             <div class="flex items-center mt-auto justify-between mb-4 text-xs" style="color: var(--text-muted);">
               <span>📝 {{ test.questionsCount }} 题</span>
               <div>
@@ -113,7 +142,6 @@
               </div>
             </div>
             
-            <!-- 进度提示 - 固定高度，避免布局偏移 -->
             <div v-if="unfinishedTests[test.id]" class="min-h-[42px]">
               <div
                    class="mb-3 p-2 rounded-lg text-xs text-center"
@@ -122,8 +150,8 @@
               </div>
             </div>
             
-            <!-- 按钮区域 - 固定高度，确保所有卡片按钮高度一致 -->
-            <div class="flex gap-2 pt-2 min-h-[44px]">
+            <!-- 按钮区域 -->
+            <div class="flex gap-2 mt-auto pt-2">
               <button @click="startTest(test.id, false)" 
                       class="flex-1 py-2.5 rounded-lg font-semibold transition-all text-sm"
                       :style="{ backgroundColor: getButtonColor(test.category), color: 'white' }"
@@ -165,6 +193,35 @@
   </div>
 </template>
 
+<!--
+            <h3 class="text-xl font-bold mb-1" style="color: var(--text);">{{ test.title }}</h3>
+            
+            <p class="text-xs mb-3" style="color: var(--text-muted);">
+              {{ test.englishName }}
+            </p>
+            
+            <p class="text-sm mb-4 leading-relaxed min-h-[60px]" style="color: var(--text-secondary);">
+              {{ test.description }}
+            </p>
+            
+            <div class="flex items-center mt-auto justify-between mb-4 text-xs" style="color: var(--text-muted);">
+              <span>📝 {{ test.questionsCount }} 题</span>
+              <div>
+                <span v-for="tag in test.tags" :key="tag" class="tag px-2 py-1 rounded-full text-xs mr-2"
+                      :style="{ backgroundColor: 'var(--' + test.category + '-light)', color: 'var(--' + test.category + ')' }">
+                  {{ tag }}
+                </span>
+              </div>
+            </div>
+            
+            <div v-if="unfinishedTests[test.id]" class="min-h-[42px]">
+              <div
+                   class="mb-3 p-2 rounded-lg text-xs text-center"
+                   style="background-color: var(--warning-bg); color: var(--warning-text);">
+                📌 已完成 {{ unfinishedCounts[test.id] }}/{{ test.questionsCount }} 题
+              </div>
+            </div>
+-->
 <script setup lang="ts">
 import type { TestListItem } from '~/types/test'
 
@@ -398,13 +455,61 @@ function clearAllProgress() {
   })
 }
 
-// 监听存储事件和自定义事件
+// 获取最后一次结果
+const lastResult = ref<any>(null)
+
+// 加载最后一次结果
+const loadLastResult = () => {
+  const result = answerStore.getLastResult()
+  if (result) {
+    lastResult.value = result
+  }
+}
+
+// 格式化时间
+const formatLastResultTime = computed(() => {
+  if (!lastResult.value?.timestamp) return '未知'
+  const date = new Date(lastResult.value.timestamp)
+  return `${date.getMonth() + 1}/${date.getDate()} ${date.getHours().toString().padStart(2, '0')}:${date.getMinutes().toString().padStart(2, '0')}`
+})
+
+// 显示分数
+const lastResultDisplayScore = computed(() => {
+  const result = lastResult.value
+  if (!result) return '--'
+  if (result.testId === 'mbti') {
+    return result.level || '--'
+  }
+  return `${result.totalScore}/${result.maxScore}`
+})
+
+// 查看最后一次结果
+const viewLastResult = () => {
+  router.push('/result')
+}
+
+// 清除最后一次结果
+const clearLastResult = () => {
+  answerStore.clearLastResult()
+  lastResult.value = null
+  $toast.info('已清除历史记录', '提示')
+}
+
+// 监听存储事件，更新最后一次结果
+const refreshLastResult = () => {
+  loadLastResult()
+}
+
 onMounted(() => {
   refreshUnfinishedStatus()
+  loadLastResult()
   
   window.addEventListener('storage', (e) => {
     if (e.key && e.key.startsWith('test_') && e.key.endsWith('_answers')) {
       refreshUnfinishedStatus()
+    }
+    if (e.key === 'last_test_result') {
+      refreshLastResult()
     }
   })
   
@@ -415,14 +520,18 @@ onMounted(() => {
   window.addEventListener('refreshProgress', () => {
     refreshUnfinishedStatus()
   })
+  
+  window.addEventListener('newResult', () => {
+    refreshLastResult()
+  })
 })
 
 onUnmounted(() => {
   window.removeEventListener('storage', () => {})
   window.removeEventListener('clearAllProgress', () => {})
   window.removeEventListener('refreshProgress', () => {})
+  window.removeEventListener('newResult', () => {})
 })
-
 // 如果加载失败
 if (error.value) {
   console.error('加载测评列表失败', error.value)

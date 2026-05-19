@@ -4,28 +4,28 @@ interface AnswerState {
   answers: Record<number, number>
   currentTestId: string | null
   result: any | null
+  lastResult: any | null  // 新增：最后一次测评结果
 }
 
 export const useAnswerStore = defineStore('answer', {
   state: (): AnswerState => ({
     answers: {},
     currentTestId: null,
-    result: null
+    result: null,
+    lastResult: null
   }),
   
   actions: {
     setAnswer(questionId: number, value: number) {
-      // 直接设置答案
       this.answers[questionId] = value
       this.saveToSession()
     },
     
     clearAnswers() {
-      // 清空内存中的答案
       this.answers = {}
       this.currentTestId = null
       this.result = null
-      this.saveToSession()
+      // 不清除 lastResult
     },
     
     setCurrentTest(testId: string) {
@@ -38,11 +38,42 @@ export const useAnswerStore = defineStore('answer', {
     },
     
     setResult(result: any) {
+      console.log('Setting result:', result)
       this.result = result
+      // 同时保存为最后一次结果
+      this.lastResult = result
+      this.saveLastResultToSession(result)
     },
     
     getResult() {
       return this.result
+    },
+    
+    getLastResult() {
+      // 优先从内存获取
+      if (this.lastResult) {
+        return this.lastResult
+      }
+      // 尝试从 sessionStorage 加载
+      if (typeof window !== 'undefined') {
+        try {
+          const saved = sessionStorage.getItem('last_test_result')
+          if (saved) {
+            this.lastResult = JSON.parse(saved)
+            return this.lastResult
+          }
+        } catch (e) {
+          console.error('加载最后结果失败', e)
+        }
+      }
+      return null
+    },
+    
+    clearLastResult() {
+      this.lastResult = null
+      if (typeof window !== 'undefined') {
+        sessionStorage.removeItem('last_test_result')
+      }
     },
     
     getAnswers() {
@@ -53,14 +84,22 @@ export const useAnswerStore = defineStore('answer', {
       if (typeof window !== 'undefined' && this.currentTestId) {
         try {
           if (Object.keys(this.answers).length > 0) {
-            // 有答案，保存
             sessionStorage.setItem(`test_${this.currentTestId}_answers`, JSON.stringify(this.answers))
           } else {
-            // 没有答案，删除
             sessionStorage.removeItem(`test_${this.currentTestId}_answers`)
           }
         } catch (e) {
           console.error('保存进度失败', e)
+        }
+      }
+    },
+    
+    saveLastResultToSession(result: any) {
+      if (typeof window !== 'undefined' && result) {
+        try {
+          sessionStorage.setItem('last_test_result', JSON.stringify(result))
+        } catch (e) {
+          console.error('保存最后结果失败', e)
         }
       }
     },

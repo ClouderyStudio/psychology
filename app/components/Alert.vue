@@ -1,4 +1,3 @@
-<!-- components/Alert.vue -->
 <template>
   <Teleport to="body">
     <Transition name="alert-fade">
