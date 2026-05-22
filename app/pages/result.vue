@@ -233,15 +233,15 @@
             <button @click="retakeTest" 
                     class="flex-1 py-3 rounded-lg font-semibold transition-all"
                     :style="{ backgroundColor: 'var(--primary)', color: 'white', boxShadow: 'var(--shadow-sm)' }"
-                    @mouseenter="e => e.target.style.backgroundColor = 'var(--primary-dark)'"
-                    @mouseleave="e => e.target.style.backgroundColor = 'var(--primary)'">
+                    @mouseenter="setButtonBg($event, 'var(--primary-dark)')"
+                    @mouseleave="setButtonBg($event, 'var(--primary)')">
               重新测评
             </button>
             <button @click="goHome" 
                     class="flex-1 py-3 rounded-lg font-semibold transition-all"
                     style="background-color: var(--card-bg); color: var(--text-secondary); box-shadow: var(--shadow-sm);"
-                    @mouseenter="e => e.target.style.backgroundColor = 'var(--bg)'"
-                    @mouseleave="e => e.target.style.backgroundColor = 'var(--card-bg)'">
+                    @mouseenter="setButtonBg($event, 'var(--bg)')"
+                    @mouseleave="setButtonBg($event, 'var(--card-bg)')">
               返回首页
             </button>
           </div>
@@ -442,11 +442,18 @@ const getLevelColor = (level: string) => {
 }
 
 const isPreferenceSelected = (item: any, side: 'left' | 'right') => {
-  const firstLetters: Record<string, string[]> = {
+  const firstLetters: Record<'left' | 'right', string[]> = {
     left: ['E', 'S', 'T', 'J'],
     right: ['I', 'N', 'F', 'P']
   }
   return firstLetters[side].includes(item.selected)
+}
+
+const setButtonBg = (event: Event, color: string) => {
+  const target = event.currentTarget
+  if (target instanceof HTMLElement) {
+    target.style.backgroundColor = color
+  }
 }
 
 // 如果没有结果，重定向到首页

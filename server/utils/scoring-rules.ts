@@ -2,6 +2,10 @@ import { epqInterpretation, epqScales } from "./epq-questions"
 import { epqRscScales } from "./epq-rsc-questions"
 import { calculateDimensionScores, scl90Dimensions } from "./scl90-dimensions"
 
+type SCL90DimensionKey = keyof typeof scl90Dimensions
+type EPQScaleKey = keyof typeof epqScales
+type EPQRSCScaleKey = keyof typeof epqRscScales
+
 interface ScoringInput {
   testId: string
   answers: Record<number, number>
@@ -17,6 +21,10 @@ interface ScoringResult {
   mbtiReport?: Record<string, any>
   rawScore?: number
   standardizedScore?: number
+}
+
+function getAnswerValue(answers: Record<number, number>, id: number, fallback = 0): number {
+  return answers[id] ?? fallback
 }
 
 export function calculateScore(input: ScoringInput): ScoringResult {
@@ -128,11 +136,12 @@ function scorePSS(answers: Record<number, number>): ScoringResult {
   // PSS-10 反向计分题：4,5,7,8
   let totalScore = 0
   for (let i = 1; i <= 10; i++) {
+    const answer = getAnswerValue(answers, i)
     if ([4, 5, 7, 8].includes(i)) {
       // 反向计分: 0=4, 1=3, 2=2, 3=1, 4=0
-      totalScore += 4 - answers[i]
+      totalScore += 4 - answer
     } else {
-      totalScore += answers[i]
+      totalScore += answer
     }
   }
   
@@ -171,7 +180,7 @@ function scoreSCL90(answers: Record<number, number>): ScoringResult {
   const dimensionScores = calculateDimensionScores(answers)
   
   // 找出得分最高的三个维度
-  const sortedDimensions = Object.entries(dimensionScores)
+  const sortedDimensions = (Object.entries(dimensionScores) as Array<[SCL90DimensionKey, { total: number; average: number; level: string; description: string }]>)
     .sort((a, b) => b[1].average - a[1].average)
     .slice(0, 3)
   
@@ -256,12 +265,12 @@ ${generateDimensionReport(dimensionScores, sortedDimensions)}
 
 // 生成维度报告
 function generateDimensionReport(
-  dimensionScores: Record<string, { total: number; average: number; level: string; description: string }>,
-  topDimensions: [string, { average: number; level: string }][]
+  dimensionScores: Partial<Record<SCL90DimensionKey, { total: number; average: number; level: string; description: string }>>,
+  topDimensions: Array<[SCL90DimensionKey, { average: number; level: string }]>
 ): string {
   let report = '\n【各维度得分详情】\n\n'
   
-  const dimensionOrder = ['somatization', 'obsessive', 'interpersonal', 'depression', 'anxiety', 'hostility', 'phobic', 'paranoid', 'psychotic', 'additional']
+  const dimensionOrder: SCL90DimensionKey[] = ['somatization', 'obsessive', 'interpersonal', 'depression', 'anxiety', 'hostility', 'phobic', 'paranoid', 'psychotic', 'additional']
   
   for (const dimKey of dimensionOrder) {
     const dimInfo = scl90Dimensions[dimKey]
@@ -279,8 +288,7 @@ function generateDimensionReport(
   }
   
   report += '【重点关注维度】\n'
-  for (let i = 0; i < topDimensions.length; i++) {
-    const [dimKey, score] = topDimensions[i]
+  for (const [i, [dimKey, score]] of topDimensions.entries()) {
     const dimInfo = scl90Dimensions[dimKey]
     report += `${i + 1}. ${dimInfo?.icon || '📌'} ${dimInfo?.name || dimKey}：${score.average}分（${score.level}）\n`
   }
@@ -295,11 +303,12 @@ function scoreSDS(answers: Record<number, number>): ScoringResult {
   
   let rawScore = 0
   for (let i = 1; i <= 20; i++) {
+    const answer = getAnswerValue(answers, i)
     if (reverseItems.includes(i)) {
       // 反向计分：1→4, 2→3, 3→2, 4→1
-      rawScore += 5 - answers[i]
+      rawScore += 5 - answer
     } else {
-      rawScore += answers[i]
+      rawScore += answer
     }
   }
   
@@ -342,11 +351,12 @@ function scoreSAS(answers: Record<number, number>): ScoringResult {
   
   let rawScore = 0
   for (let i = 1; i <= 20; i++) {
+    const answer = getAnswerValue(answers, i)
     if (reverseItems.includes(i)) {
       // 反向计分：1→4, 2→3, 3→2, 4→1
-      rawScore += 5 - answers[i]
+      rawScore += 5 - answer
     } else {
-      rawScore += answers[i]
+      rawScore += answer
     }
   }
   
@@ -444,6 +454,7 @@ function scoreMBTI(answers: Record<number, number>): ScoringResult {
 
 type MBTILetter = 'E' | 'I' | 'S' | 'N' | 'T' | 'F' | 'J' | 'P'
 type MBTIFunctionCode = 'Ni' | 'Ne' | 'Si' | 'Se' | 'Ti' | 'Te' | 'Fi' | 'Fe'
+type MBTIFunctionStackTuple = [MBTIFunctionCode, MBTIFunctionCode, MBTIFunctionCode, MBTIFunctionCode]
 
 const mbtiFunctionLabels: Record<MBTIFunctionCode, string> = {
   Ni: '悟势',
@@ -467,7 +478,7 @@ const mbtiFunctionQuestions: Record<MBTIFunctionCode, string> = {
   Fe: '怎样让彼此更合情？'
 }
 
-const mbtiStacks: Record<string, MBTIFunctionCode[]> = {
+const mbtiStacks: Record<string, MBTIFunctionStackTuple> = {
   ISTJ: ['Si', 'Te', 'Fi', 'Ne'],
   ISFJ: ['Si', 'Fe', 'Ti', 'Ne'],
   INFJ: ['Ni', 'Fe', 'Ti', 'Se'],
@@ -485,6 +496,8 @@ const mbtiStacks: Record<string, MBTIFunctionCode[]> = {
   ENFJ: ['Fe', 'Ni', 'Se', 'Ti'],
   ENTJ: ['Te', 'Ni', 'Se', 'Fi']
 }
+
+const defaultMBTIStack: MBTIFunctionStackTuple = ['Ni', 'Te', 'Fi', 'Se']
 
 const oppositeFunction: Record<MBTIFunctionCode, MBTIFunctionCode> = {
   Ni: 'Ne',
@@ -574,8 +587,8 @@ function calculateMBTIDimensions(answers: Record<number, number>) {
 }
 
 function getMBTIFunctionStack(type: string) {
-  const natural = mbtiStacks[type] || mbtiStacks.INTJ
-  const compensatory = natural.map(fn => oppositeFunction[fn])
+  const natural: MBTIFunctionStackTuple = mbtiStacks[type] ?? defaultMBTIStack
+  const compensatory = natural.map(fn => oppositeFunction[fn]) as MBTIFunctionStackTuple
   return {
     natural,
     compensatory,
@@ -595,19 +608,19 @@ function getMBTIFunctionStack(type: string) {
 function buildFunctionScores(stack: ReturnType<typeof getMBTIFunctionStack>, dimensions: ReturnType<typeof calculateMBTIDimensions>) {
   const strengths = [dimensions.EI.strength, dimensions.SN.strength, dimensions.TF.strength, dimensions.JP.strength]
   const certainty = strengths.reduce((sum, value) => sum + value, 0) / Math.max(strengths.length, 1)
-  const naturalBase = [13.7, 13.4, 12.7, 11.4]
-  const compBase = [12.1, 11.4, 12.6, 12.7]
+  const naturalBase: [number, number, number, number] = [13.7, 13.4, 12.7, 11.4]
+  const compBase: [number, number, number, number] = [12.1, 11.4, 12.6, 12.7]
   const naturalRaw = stack.natural.map((fn, index) => ({
     code: fn,
     label: `${fn}-${mbtiFunctionLabels[fn]}`,
     name: mbtiFunctionLabels[fn],
-    percent: naturalBase[index] + certainty * (index < 2 ? 1.2 : 0.6)
+    percent: (naturalBase[index] ?? 0) + certainty * (index < 2 ? 1.2 : 0.6)
   }))
   const compensatoryRaw = stack.compensatory.map((fn, index) => ({
     code: fn,
     label: `${fn}-${mbtiFunctionLabels[fn]}`,
     name: mbtiFunctionLabels[fn],
-    percent: compBase[index] - certainty * (index < 2 ? 0.7 : 0.3)
+    percent: (compBase[index] ?? 0) - certainty * (index < 2 ? 0.7 : 0.3)
   }))
   const total = [...naturalRaw, ...compensatoryRaw].reduce((sum, item) => sum + item.percent, 0)
   const normalize = (item: typeof naturalRaw[number]) => ({
@@ -701,14 +714,15 @@ function buildMBTIPersonaMask(type: string, compensatory: Array<{ code: string; 
     name: `${maskType} 面具「${names[maskType]}」`,
     rarity: type === 'INTJ' ? '4.47%' : `${(3 + type.charCodeAt(0) % 5 + type.charCodeAt(3) % 4 / 10).toFixed(2)}%`,
     maskRatio: `${(10 + maskType.charCodeAt(0) % 8 + type.charCodeAt(2) % 7 / 10).toFixed(2)}%`,
-    temperament
+    temperament,
+    description: `${maskType}面具代表现阶段你用来适应环境、成就自己或保护自己的方式。它不必和人格底色完全一致，更像是成长经历在你身上留下的一套可调用策略。`
   }
 }
 
 function buildMBTIProfile(type: string, typeName: string, stack: ReturnType<typeof getMBTIFunctionStack>, mask: ReturnType<typeof buildMBTIPersonaMask>) {
-  const auxiliary = stack.roles[1]
-  const tertiary = stack.roles[2]
-  const inferior = stack.roles[3]
+  const auxiliary = stack.roles[1]!
+  const tertiary = stack.roles[2]!
+  const inferior = stack.roles[3]!
   return {
     about: `你呈现出${typeName}的核心轮廓：更容易被内在真实的兴趣、判断秩序和长期方向牵引。你未必总是外显地表现出某种固定样子，但在重要问题上，你通常会寻找自己真正认可的路径。`,
     execution: `${auxiliary.label}让你的想法不只是停留在脑中。它会推动你把偏好的判断方式转化为行动、安排、沟通或选择，让内在倾向和外部世界发生更稳定的连接。`,
@@ -729,7 +743,7 @@ function generateDifferentiatedMBTIReport(
   const natural = functionScores.natural.map(item => `${item.label}：${item.percent}%`).join('\n')
   const compensatory = functionScores.compensatory.map(item => `${item.label}：${item.percent}%`).join('\n')
   const preferenceText = preferences.map(item => `${item.title}\n${item.left} / ${item.right}\n当前倾向：${item.selected}`).join('\n\n')
-  const roles = mbtiStacks[type].map(fn => `${fn}${mbtiFunctionLabels[fn]}：${mbtiFunctionQuestions[fn]}`).join('\n')
+  const roles = (mbtiStacks[type] ?? defaultMBTIStack).map(fn => `${fn}${mbtiFunctionLabels[fn]}：${mbtiFunctionQuestions[fn]}`).join('\n')
 
   return `以下是基于差异化算法为你生成的人格九宫格
 ${nineGrid.join('\n')}
@@ -780,7 +794,7 @@ ${profile.hidden}
 你的人格构成
 ${roles}
 
-${mask.mask}`
+${mask.description}`
 }
 
 // MBTI 16种人格类型详细描述
@@ -1108,10 +1122,8 @@ function scoreTemperament(answers: Record<number, number>): ScoringResult {
   
   // 确定主要气质类型
   const sortedTypes = Object.entries(scores).sort((a, b) => b[1] - a[1])
-  const primaryType = sortedTypes[0][0]
-  const primaryScore = sortedTypes[0][1]
-  const secondaryType = sortedTypes[1][0]
-  const secondaryScore = sortedTypes[1][1]
+  const [primaryType, primaryScore] = sortedTypes[0] ?? ['choleric', 0]
+  const [secondaryType, secondaryScore] = sortedTypes[1] ?? ['sanguine', 0]
   const scoreDiff = primaryScore - secondaryScore
   
   // 判断气质类型
@@ -1305,7 +1317,7 @@ function scoreBDC(answers: Record<number, number>): ScoringResult {
   // 计算总分（所有题目得分相加）
   let totalScore = 0
   for (let i = 1; i <= 15; i++) {
-    totalScore += answers[i] || 0
+    totalScore += getAnswerValue(answers, i)
   }
   
   // 根据总分确定抑郁程度
@@ -1392,7 +1404,7 @@ function scoreEPQ(answers: Record<number, number>): ScoringResult {
   
   // 确定主要人格特征（T分最高的维度）
   const maxT = Math.max(tScores.E, tScores.N, tScores.P)
-  let primaryType = ''
+  let primaryType: EPQScaleKey = 'P'
   if (tScores.E === maxT) primaryType = 'E'
   else if (tScores.N === maxT) primaryType = 'N'
   else primaryType = 'P'
@@ -1619,7 +1631,7 @@ function scoreEPQRSC(answers: Record<number, number>): ScoringResult {
   
   // 确定主要人格特征
   const maxT = Math.max(tScores.E, tScores.N, tScores.P)
-  let primaryType = ''
+  let primaryType: EPQRSCScaleKey = 'P'
   if (tScores.E === maxT) primaryType = 'E'
   else if (tScores.N === maxT) primaryType = 'N'
   else primaryType = 'P'
@@ -1837,7 +1849,7 @@ function scoreEmotionalStability(answers: Record<number, number>): ScoringResult
   // 计算总分（每道题得分相加）
   let totalScore = 0
   for (let i = 1; i <= 30; i++) {
-    totalScore += answers[i] || 0
+    totalScore += getAnswerValue(answers, i)
   }
   
   // 根据总分确定情绪稳定程度
