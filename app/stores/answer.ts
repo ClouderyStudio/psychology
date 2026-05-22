@@ -38,11 +38,19 @@ export const useAnswerStore = defineStore('answer', {
     },
     
     setResult(result: any) {
-      console.log('Setting result:', result)
       this.result = result
-      // 同时保存为最后一次结果
+      // 保存为最后一次结果
       this.lastResult = result
       this.saveLastResultToSession(result)
+
+      // 保存到当前测评的结果
+      if (typeof window !== 'undefined' && result && result.testId) {
+        try {
+          sessionStorage.setItem(`test_${result.testId}_result`, JSON.stringify(result))
+        } catch (e) {
+          console.error('保存测评结果失败', e)
+        }
+      }
     },
     
     getResult() {
