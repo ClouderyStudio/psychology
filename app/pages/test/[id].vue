@@ -8,6 +8,49 @@
       
       <!-- 测评内容 -->
       <div v-else>
+        <!-- 开发模式调试菜单 -->
+        <div v-if="isDevMode" class="fixed bottom-4 right-4 z-50">
+          <button 
+            @click="showDebugMenu = !showDebugMenu"
+            class="w-10 h-10 rounded-full flex items-center justify-center shadow-lg"
+            style="background-color: var(--special); color: white;">
+            🐛
+          </button>
+          
+          <div v-if="showDebugMenu" 
+              class="absolute bottom-12 right-0 mb-2 w-48 rounded-lg shadow-lg overflow-hidden"
+              style="background-color: var(--card-bg);">
+            <div class="py-1">
+              <button @click="quickCompleteAll" 
+                      class="w-full px-4 py-2 text-left text-sm hover:bg-gray-100 transition-colors"
+                      style="color: var(--text);">
+                🚀 随机完成所有题目
+              </button>
+              <button @click="quickCompleteCurrentPage" 
+                      class="w-full px-4 py-2 text-left text-sm hover:bg-gray-100 transition-colors"
+                      style="color: var(--text);">
+                📄 随机完成当前页
+              </button>
+              <button @click="completeCurrentPageWithFirstOption" 
+                      class="w-full px-4 py-2 text-left text-sm hover:bg-gray-100 transition-colors"
+                      style="color: var(--text);">
+                🛜 当前页全选第一个
+              </button>
+              <button @click="completeCurrentPageWithLastOption" 
+                      class="w-full px-4 py-2 text-left text-sm hover:bg-gray-100 transition-colors"
+                      style="color: var(--text);">
+                🔚 当前页全选最后一个
+              </button>
+              <hr class="my-1" style="border-color: var(--primary-light);">
+              <button @click="clearAllAnswers" 
+                      class="w-full px-4 py-2 text-left text-sm hover:bg-gray-100 transition-colors"
+                      style="color: var(--warning-text);">
+                🗑️ 清除所有答案
+              </button>
+            </div>
+          </div>
+        </div>
+
         <!-- 进度条 -->
         <div class="mb-6">
           <div class="flex justify-between text-sm mb-2" style="color: var(--text-secondary);">
@@ -44,14 +87,6 @@
                     style="background-color: var(--warning-bg); color: var(--warning-text);"
                     title="清除所有答案">
               🗑️ 清除全部
-            </button>
-             <!-- 调试按钮：随机完成所有题目（仅开发环境） -->
-            <button v-if="isDevMode" 
-                    @click="quickCompleteAll" 
-                    class="text-xs px-2 py-1 rounded transition-colors"
-                    style="background-color: var(--special); color: white;"
-                    title="快速随机完成所有题目（调试用）">
-              🚀 快速完成
             </button>
           </div>
         </div>
@@ -499,5 +534,76 @@ const quickCompleteAll = () => {
       }
     }
   })
+}
+
+// 调试菜单状态
+const showDebugMenu = ref(false)
+
+// 快速完成当前页
+const quickCompleteCurrentPage = () => {
+  if (!isDevMode) return
+  
+  const newAnswers = { ...answers.value }
+  
+  for (const question of currentPageQuestions.value) {
+    const options = question.options
+    if (options && options.length > 0) {
+      const randomIndex = Math.floor(Math.random() * options.length)
+      newAnswers[question.id] = options[randomIndex].value
+    }
+  }
+  
+  answers.value = newAnswers
+  
+  Object.entries(newAnswers).forEach(([id, value]) => {
+    answerStore.setAnswer(parseInt(id), value)
+  })
+  
+  $toast.success(`已完成当前页 ${currentPageQuestions.value.length} 道题目`, '调试完成')
+  window.dispatchEvent(new CustomEvent('refreshProgress'))
+}
+
+// 完成当前页为特定选项（如全部选第一个）
+const completeCurrentPageWithFirstOption = () => {
+  if (!isDevMode) return
+  
+  const newAnswers = { ...answers.value }
+  
+  for (const question of currentPageQuestions.value) {
+    const options = question.options
+    if (options && options.length > 0) {
+      newAnswers[question.id] = options[0].value
+    }
+  }
+  
+  answers.value = newAnswers
+  
+  Object.entries(newAnswers).forEach(([id, value]) => {
+    answerStore.setAnswer(parseInt(id), value)
+  })
+  
+  $toast.success(`当前页已全部选第一个选项`, '调试完成')
+}
+
+// 完成当前页为最后一个选项
+const completeCurrentPageWithLastOption = () => {
+  if (!isDevMode) return
+  
+  const newAnswers = { ...answers.value }
+  
+  for (const question of currentPageQuestions.value) {
+    const options = question.options
+    if (options && options.length > 0) {
+      newAnswers[question.id] = options[options.length - 1].value
+    }
+  }
+  
+  answers.value = newAnswers
+  
+  Object.entries(newAnswers).forEach(([id, value]) => {
+    answerStore.setAnswer(parseInt(id), value)
+  })
+  
+  $toast.success(`当前页已全部选最后一个选项`, '调试完成')
 }
 </script>
