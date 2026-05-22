@@ -55,55 +55,63 @@
             <h2 class="text-2xl font-bold mb-4 flex items-center gap-2" style="color: var(--text);">
               <span>👥</span> 致谢
             </h2>
-            
-            <!-- 作者 -->
-            <div class="author-card p-4 rounded-lg mb-4" style="background-color: var(--primary-light);">
+
+            <div class="developer-card p-4 rounded-lg mb-4" style="background-color: var(--primary-light);">
               <div class="flex items-center gap-4">
                 <div class="w-16 h-16 rounded-full flex items-center justify-center text-3xl"
                      style="background-color: var(--primary); color: white;">
-                  <img src="https://q1.qlogo.cn/g?b=qq&nk=2675256772&s=100" alt="作者头像" class="w-full h-full rounded-full object-cover" />
+                  <img src="https://q1.qlogo.cn/g?b=qq&nk=2675256772&s=100" class="w-full h-full rounded-full object-cover" />
                 </div>
                 <div>
-                  <div class="flex items-center gap-2">
+                  <div class="flex items-center gap-2 flex-wrap">
                     <span class="text-xl font-bold" style="color: var(--text);">柒屹</span>
-                    <span class="text-xs px-2 py-1 rounded-full" style="background-color: var(--primary); color: white;">作者 & 开发者 (❤)</span>
+                    <span class="text-xs px-2 py-1 rounded-full" style="background-color: var(--primary); color: white;">❤ 作者 & 主开发者</span>
                   </div>
                   <p class="text-sm mt-1" style="color: var(--text-secondary);">
-                    全栈开发、UI设计、量表整合、技术架构
+                    全栈开发 · UI设计 · 量表整合 · 技术架构
                   </p>
-                  <div class="flex gap-2 mt-2">
-                    <a href="https://github.com/TulipQiyi" class="text-xs" style="color: var(--primary);">GitHub</a>
-                    <!--<a href="#" class="text-xs" style="color: var(--primary);">个人网站</a>-->
+                  <div class="flex gap-3 mt-2">
+                    <a href="https://github.com/TulipQiyi" class="text-xs" style="color: var(--special);">GitHub</a>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="developer-card p-4 rounded-lg mb-4" style="background-color: var(--bg);">
+              <div class="flex items-center gap-4">
+                <div class="w-16 h-16 rounded-full flex items-center justify-center text-3xl"
+                     style="background-color: var(--special); color: white;">
+                  <img src="https://q1.qlogo.cn/g?b=qq&nk=2457483710&s=100" class="w-full h-full rounded-full object-cover" />
+                </div>
+                <div>
+                  <div class="flex items-center gap-2 flex-wrap">
+                    <span class="text-xl font-bold" style="color: var(--text);">云竹</span>
+                    <span class="text-xs px-2 py-1 rounded-full" style="background-color: var(--special); color: white;">开发者</span>
+                  </div>
+                  <p class="text-sm mt-1" style="color: var(--text-secondary);">
+                    前端开发 · 量表内容 · 体验优化
+                  </p>
+                  <div class="flex gap-3 mt-2">
+                    <a href="https://github.com/yunzhu666" class="text-xs" style="color: var(--special);">GitHub</a>
                   </div>
                 </div>
               </div>
             </div>
             
-            <!-- 主要支持者 -->
-            <div class="supporters-grid grid grid-cols-1 md:grid-cols-2 gap-3">
-              <div class="supporter-card p-3 rounded-lg flex items-center gap-3" style="background-color: var(--bg);">
-                <div class="w-10 h-10 rounded-full flex items-center justify-center"
-                     style="background-color: var(--special-light);">
-                  <span class="text-lg">
-                    <img src="https://q1.qlogo.cn/g?b=qq&nk=2457483710&s=100" class="w-full h-full rounded-full object-cover" />
-                  </span>
+            <div class="supporter-card p-4 rounded-lg" style="background-color: var(--bg);">
+              <div class="flex items-center gap-4">
+                <div class="w-16 h-16 rounded-full flex items-center justify-center text-3xl"
+                     style="background-color: var(--personality); color: white;">
+                  <img src="https://q1.qlogo.cn/g?b=qq&nk=1770464015&s=100" class="w-full h-full rounded-full object-cover" />
                 </div>
                 <div>
-                  <div class="font-semibold" style="color: var(--text);">云竹</div>
-                  <div class="text-xs" style="color: var(--text-muted);">主要支持者 · 心理学内容顾问</div>
-                </div>
-              </div>
-              
-              <div class="supporter-card p-3 rounded-lg flex items-center gap-3" style="background-color: var(--bg);">
-                <div class="w-10 h-10 rounded-full flex items-center justify-center"
-                     style="background-color: var(--personality-light);">
-                  <span class="text-lg">
-                    <img src="https://q1.qlogo.cn/g?b=qq&nk=1770464015&s=100" class="w-full h-full rounded-full object-cover" />
-                  </span>
-                </div>
-                <div>
-                  <div class="font-semibold" style="color: var(--text);">Olivia</div>
-                  <div class="text-xs" style="color: var(--text-muted);">主要支持者 · 用户体验顾问 (❤)</div>
+                  <div class="flex items-center gap-2 flex-wrap">
+                    <span class="text-xl font-bold" style="color: var(--text);">Olivia</span>
+                    <span class="text-xs px-2 py-1 rounded-full" style="background-color: var(--personality); color: white;">❤ 主要支持者</span>
+                  </div>
+                  <p class="text-sm mt-1" style="color: var(--text-secondary);">
+                    用户体验代表 · 提供宝贵反馈 · 鼓励和支持
+                  </p>
                 </div>
               </div>
             </div>
