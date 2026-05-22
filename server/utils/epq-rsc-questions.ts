@@ -1,4 +1,3 @@
-// server/utils/epq-rsc-questions.ts
 export interface EPQRSCQuestion {
   id: number
   text: string

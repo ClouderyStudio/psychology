@@ -88,10 +88,36 @@
         <p class="text-xs mt-2" style="color: var(--text-muted);">
           本网站由 柒屹 在 云竹 和 Olivia 的帮助下开发和维护，数据由公开资源整理而来
         </p>
+        <!-- 构建时间 -->
+        <ClientOnly>
+          <p class="text-xs mt-3" style="color: var(--text-muted);">
+            构建时间：{{ buildTime }}
+          </p>
+        </ClientOnly>
       </div>
     </div>
   </footer>
 </template>
+
+<script setup lang="ts">
+const buildTime = ref('加载中...')
+
+try {
+  const { buildInfo } = await import('~/plugins/build-info.client')
+  buildTime.value = buildInfo.formattedTime
+} catch (e) {
+  const now = new Date()
+  buildTime.value = now.toLocaleString('zh-CN', {
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit',
+    hour12: false
+  })
+}
+</script>
 
 <style scoped>
 .footer-link {
