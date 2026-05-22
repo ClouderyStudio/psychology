@@ -131,6 +131,16 @@ export default defineEventHandler(() => {
       questionsCount: 30,
       tags: ['情绪', '心理韧性', '抗压能力'],
       category: 'special'
+    },
+    {
+      id: 'sixteenPF',
+      title: '卡特尔16种人格因素问卷',
+      englishName: 'Sixteen Personality Factor Questionnaire (16PF)',
+      description: '美国卡特尔教授编制，评估16种根源人格特质，广泛应用于心理咨询、职业指导等领域',
+      duration: '约30-45分钟',
+      questionsCount: 187,
+      tags: ['人格维度', '职业倾向', '专业测评'],
+      category: 'personality'
     }
   ]
   

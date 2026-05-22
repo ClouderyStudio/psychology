@@ -5,6 +5,7 @@ import { epqOptions, epqQuestions } from '~~/server/utils/epq-questions'
 import { epqRscOptions, epqRscQuestions } from '~~/server/utils/epq-rsc-questions'
 import { mbtiOptions, mbtiQuestions } from '~~/server/utils/mbti-questions'
 import { sccsOptions, sccsQuestions } from '~~/server/utils/sccs-questions'
+import { getOptionsForQuestion, sixteenPFQuestions } from '~~/server/utils/sixteenPF-questions'
 import { temperamentOptions, temperamentQuestions } from '~~/server/utils/temperament-questions'
 
 // 通用的评分选项常量
@@ -411,6 +412,22 @@ epq: {
   })),
   scoringRules: {
     type: 'emotional-stability'
+  }
+},
+sixteenPF: {
+  id: 'sixteenPF',
+  title: '卡特尔16种人格因素问卷',
+  description: '本测验共有187道题目，都是有关个人的兴趣与态度方面的问题。每个人对这些问题是会有不同看法的，回答自然也是不同的，因而对问题如何回答，并没有"对"与"错"之分，只是表明您对这些问题的态度。',
+  instructions: '请根据您的真实情况选择最符合的选项。每题通常有三个选项，请根据题目类型选择相应的答案。请尽量凭第一感觉作答，不要过多思考。共187题，大约需要30-45分钟。',
+  questions: sixteenPFQuestions.map(q => ({
+    id: q.id,
+    text: q.text,
+    options: getOptionsForQuestion(q),
+    factor: q.factor,
+    reversed: q.reverse
+  })),
+  scoringRules: {
+    type: 'sixteenPF'
   }
 }
   }
