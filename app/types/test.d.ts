@@ -60,6 +60,7 @@ export interface TestResult {
   rawScore?: number
   standardizedScore?: number
   dimensionScores?: SCL90DimensionScores | Record<string, any>
+  mbtiReport?: Record<string, any>
 }
 export interface TestListItem {
   id: string

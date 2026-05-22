@@ -13,7 +13,8 @@ interface ScoringResult {
   level: string
   suggestion: string
   severity: number
-  dimensionScores?: Record<string, number>
+  dimensionScores?: Record<string, any>
+  mbtiReport?: Record<string, any>
   rawScore?: number
   standardizedScore?: number
 }
@@ -397,91 +398,27 @@ export function generatePersonalizedAdvice(
 
 // MBTI 评分函数
 function scoreMBTI(answers: Record<number, number>): ScoringResult {
-  // 初始化各维度得分
-  let eiScore = 0  // E(外向) vs I(内向) - 分数高偏向E
-  let snScore = 0  // S(实感) vs N(直觉) - 分数高偏向S
-  let tfScore = 0  // T(思考) vs F(情感) - 分数高偏向T
-  let jpScore = 0  // J(判断) vs P(感知) - 分数高偏向J
-  
-  let eiCount = 0
-  let snCount = 0
-  let tfCount = 0
-  let jpCount = 0
-  
-  // 遍历所有答案计算分数
-  Object.entries(answers).forEach(([qid, value]) => {
-    const id = parseInt(qid)
-    
-    // E/I 维度 (1-24题)
-    if (id >= 1 && id <= 24) {
-      // E/I 维度的反向计分题：9-16题是反向（偏向I的题目）
-      if (id >= 9 && id <= 16) {
-        // 反向计分: 0→4, 1→3, 2→2, 3→1, 4→0
-        eiScore += 4 - value
-      } else {
-        eiScore += value
-      }
-      eiCount++
-    } 
-    // S/N 维度 (25-47题)
-    else if (id >= 25 && id <= 47) {
-      // S/N 维度的反向计分题：35-47题是反向（偏向N的题目）
-      if (id >= 35 && id <= 47) {
-        snScore += 4 - value
-      } else {
-        snScore += value
-      }
-      snCount++
-    } 
-    // T/F 维度 (48-70题)
-    else if (id >= 48 && id <= 70) {
-      // T/F 维度的反向计分题：59-70题是反向（偏向F的题目）
-      if (id >= 59 && id <= 70) {
-        tfScore += 4 - value
-      } else {
-        tfScore += value
-      }
-      tfCount++
-    } 
-    // J/P 维度 (71-93题)
-    else if (id >= 71 && id <= 93) {
-      // J/P 维度的反向计分题：82-93题是反向（偏向P的题目）
-      if (id >= 82 && id <= 93) {
-        jpScore += 4 - value
-      } else {
-        jpScore += value
-      }
-      jpCount++
-    }
-  })
-  
-  // 计算平均分（0-4分制）
-  // 使用总分除以题数，而不是简单平均
-  const eiAvg = eiCount > 0 ? eiScore / eiCount : 2
-  const snAvg = snCount > 0 ? snScore / snCount : 2
-  const tfAvg = tfCount > 0 ? tfScore / tfCount : 2
-  const jpAvg = jpCount > 0 ? jpScore / jpCount : 2
-  
-  // 确定类型（以2.5为分界点）
-  // 注意：分数越高越偏向第一个字母，分数越低越偏向第二个字母
-  const ei = eiAvg > 2.5 ? 'E' : 'I'
-  const sn = snAvg > 2.5 ? 'S' : 'N'
-  const tf = tfAvg > 2.5 ? 'T' : 'F'
-  const jp = jpAvg > 2.5 ? 'J' : 'P'
-  
+  const dimensions = calculateMBTIDimensions(answers)
+  const { eiAvg, snAvg, tfAvg, jpAvg, eiScore, snScore, tfScore, jpScore } = dimensions
+  const ei = dimensions.letters.EI
+  const sn = dimensions.letters.SN
+  const tf = dimensions.letters.TF
+  const jp = dimensions.letters.JP
   const mbtiType = `${ei}${sn}${tf}${jp}`
-  
-  // 获取类型详细描述
   const typeInfo = getMBTIDetailedDescription(mbtiType)
-  
-  // 生成个性化建议
-  const suggestion = generateMBTISuggestion(mbtiType, { eiAvg, snAvg, tfAvg, jpAvg })
+  const functionStack = getMBTIFunctionStack(mbtiType)
+  const functionScores = buildFunctionScores(functionStack, dimensions)
+  const nineGrid = buildMBTINineGrid(dimensions)
+  const preferences = buildMBTIPreferences(dimensions)
+  const mask = buildMBTIPersonaMask(mbtiType, functionScores.compensatory)
+  const profile = buildMBTIProfile(mbtiType, typeInfo.name, functionStack, mask)
+  const suggestion = generateDifferentiatedMBTIReport(mbtiType, functionScores, nineGrid, preferences, mask, profile)
   
   return {
-    totalScore: Math.round((eiAvg + snAvg + tfAvg + jpAvg) / 4 * 25), // 转换为百分制
+    totalScore: Math.round((eiAvg + snAvg + tfAvg + jpAvg) / 4 * 25),
     maxScore: 100,
     level: mbtiType,
-    suggestion: suggestion,
+    suggestion,
     severity: 0,
     dimensionScores: {
       E_I: { score: eiScore, avg: eiAvg, result: ei },
@@ -490,8 +427,360 @@ function scoreMBTI(answers: Record<number, number>): ScoringResult {
       J_P: { score: jpScore, avg: jpAvg, result: jp },
       type: mbtiType,
       typeName: typeInfo.name
+    },
+    mbtiReport: {
+      type: mbtiType,
+      typeName: typeInfo.name,
+      nineGrid,
+      functionStack,
+      functionScores,
+      preferences,
+      mask,
+      profile,
+      note: '本结果基于差异化算法生成，强调心理倾向与作答模式，不代表能力高低或发展水平。'
     }
   }
+}
+
+type MBTILetter = 'E' | 'I' | 'S' | 'N' | 'T' | 'F' | 'J' | 'P'
+type MBTIFunctionCode = 'Ni' | 'Ne' | 'Si' | 'Se' | 'Ti' | 'Te' | 'Fi' | 'Fe'
+
+const mbtiFunctionLabels: Record<MBTIFunctionCode, string> = {
+  Ni: '悟势',
+  Ne: '拓新',
+  Si: '惜真',
+  Se: '拥实',
+  Ti: '界义',
+  Te: '成效',
+  Fi: '循心',
+  Fe: '合情'
+}
+
+const mbtiFunctionQuestions: Record<MBTIFunctionCode, string> = {
+  Ni: '一切背后的趋势是什么？',
+  Ne: '还有哪些新的可能？',
+  Si: '哪些真实经验值得保留？',
+  Se: '正在发生的现实是什么？',
+  Ti: '这个概念是否自洽？',
+  Te: '怎么做才是有效的？',
+  Fi: '是否触及了我的内心？',
+  Fe: '怎样让彼此更合情？'
+}
+
+const mbtiStacks: Record<string, MBTIFunctionCode[]> = {
+  ISTJ: ['Si', 'Te', 'Fi', 'Ne'],
+  ISFJ: ['Si', 'Fe', 'Ti', 'Ne'],
+  INFJ: ['Ni', 'Fe', 'Ti', 'Se'],
+  INTJ: ['Ni', 'Te', 'Fi', 'Se'],
+  ISTP: ['Ti', 'Se', 'Ni', 'Fe'],
+  ISFP: ['Fi', 'Se', 'Ni', 'Te'],
+  INFP: ['Fi', 'Ne', 'Si', 'Te'],
+  INTP: ['Ti', 'Ne', 'Si', 'Fe'],
+  ESTP: ['Se', 'Ti', 'Fe', 'Ni'],
+  ESFP: ['Se', 'Fi', 'Te', 'Ni'],
+  ENFP: ['Ne', 'Fi', 'Te', 'Si'],
+  ENTP: ['Ne', 'Ti', 'Fe', 'Si'],
+  ESTJ: ['Te', 'Si', 'Ne', 'Fi'],
+  ESFJ: ['Fe', 'Si', 'Ne', 'Ti'],
+  ENFJ: ['Fe', 'Ni', 'Se', 'Ti'],
+  ENTJ: ['Te', 'Ni', 'Se', 'Fi']
+}
+
+const oppositeFunction: Record<MBTIFunctionCode, MBTIFunctionCode> = {
+  Ni: 'Ne',
+  Ne: 'Ni',
+  Si: 'Se',
+  Se: 'Si',
+  Ti: 'Te',
+  Te: 'Ti',
+  Fi: 'Fe',
+  Fe: 'Fi'
+}
+
+function calculateMBTIDimensions(answers: Record<number, number>) {
+  const preferenceThreshold = 2.5 / 4
+  const score = {
+    EI: { first: 0, second: 0, count: 0 },
+    SN: { first: 0, second: 0, count: 0 },
+    TF: { first: 0, second: 0, count: 0 },
+    JP: { first: 0, second: 0, count: 0 }
+  }
+
+  Object.entries(answers).forEach(([qid, rawValue]) => {
+    const id = parseInt(qid)
+    const value = Number(rawValue)
+    const add = (key: keyof typeof score, reverse: boolean) => {
+      if (reverse) {
+        score[key].first += 4 - value
+        score[key].second += value
+      } else {
+        score[key].first += value
+        score[key].second += 4 - value
+      }
+      score[key].count++
+    }
+
+    if (id >= 1 && id <= 24) add('EI', id >= 9 && id <= 16)
+    else if (id >= 25 && id <= 47) add('SN', id >= 35 && id <= 47)
+    else if (id >= 48 && id <= 70) add('TF', id >= 59 && id <= 70)
+    else if (id >= 71 && id <= 93) add('JP', id >= 82 && id <= 93)
+  })
+
+  const build = (key: keyof typeof score, pair: [MBTILetter, MBTILetter]) => {
+    const current = score[key]
+    const total = Math.max(current.first + current.second, 1)
+    const firstRatio = current.first / total
+    const firstAvg = current.count > 0 ? current.first / current.count : 2
+    const secondAvg = current.count > 0 ? current.second / current.count : 2
+    const strength = Math.min(Math.abs(firstRatio - preferenceThreshold) / preferenceThreshold, 1)
+    return {
+      first: pair[0],
+      second: pair[1],
+      firstScore: current.first,
+      secondScore: current.second,
+      firstAvg,
+      secondAvg,
+      firstRatio,
+      strength,
+      letter: firstRatio > preferenceThreshold ? pair[0] : pair[1]
+    }
+  }
+
+  const EI = build('EI', ['E', 'I'])
+  const SN = build('SN', ['S', 'N'])
+  const TF = build('TF', ['T', 'F'])
+  const JP = build('JP', ['J', 'P'])
+
+  return {
+    EI,
+    SN,
+    TF,
+    JP,
+    letters: {
+      EI: EI.letter,
+      SN: SN.letter,
+      TF: TF.letter,
+      JP: JP.letter
+    },
+    eiScore: EI.firstScore,
+    snScore: SN.firstScore,
+    tfScore: TF.firstScore,
+    jpScore: JP.firstScore,
+    eiAvg: EI.firstAvg,
+    snAvg: SN.firstAvg,
+    tfAvg: TF.firstAvg,
+    jpAvg: JP.firstAvg
+  }
+}
+
+function getMBTIFunctionStack(type: string) {
+  const natural = mbtiStacks[type] || mbtiStacks.INTJ
+  const compensatory = natural.map(fn => oppositeFunction[fn])
+  return {
+    natural,
+    compensatory,
+    roles: [
+      { title: '你的人格之脑', subtitle: '核心动力', description: '为你指引航向的核心动力', function: natural[0] },
+      { title: '你的人格之手', subtitle: '辅助动力', description: '帮助你与世界交互的力量', function: natural[1] },
+      { title: '你的人格之翼', subtitle: '舒展动力', description: '或许稚嫩，却带你快乐舒展的隐形翅膀', function: natural[2] },
+      { title: '你的人格之尾', subtitle: '隐秘动力', description: '隐秘而敏感、也能补全现实感的动力', function: natural[3] }
+    ].map(item => ({
+      ...item,
+      label: mbtiFunctionLabels[item.function],
+      question: mbtiFunctionQuestions[item.function]
+    }))
+  }
+}
+
+function buildFunctionScores(stack: ReturnType<typeof getMBTIFunctionStack>, dimensions: ReturnType<typeof calculateMBTIDimensions>) {
+  const strengths = [dimensions.EI.strength, dimensions.SN.strength, dimensions.TF.strength, dimensions.JP.strength]
+  const certainty = strengths.reduce((sum, value) => sum + value, 0) / Math.max(strengths.length, 1)
+  const naturalBase = [13.7, 13.4, 12.7, 11.4]
+  const compBase = [12.1, 11.4, 12.6, 12.7]
+  const naturalRaw = stack.natural.map((fn, index) => ({
+    code: fn,
+    label: `${fn}-${mbtiFunctionLabels[fn]}`,
+    name: mbtiFunctionLabels[fn],
+    percent: naturalBase[index] + certainty * (index < 2 ? 1.2 : 0.6)
+  }))
+  const compensatoryRaw = stack.compensatory.map((fn, index) => ({
+    code: fn,
+    label: `${fn}-${mbtiFunctionLabels[fn]}`,
+    name: mbtiFunctionLabels[fn],
+    percent: compBase[index] - certainty * (index < 2 ? 0.7 : 0.3)
+  }))
+  const total = [...naturalRaw, ...compensatoryRaw].reduce((sum, item) => sum + item.percent, 0)
+  const normalize = (item: typeof naturalRaw[number]) => ({
+    ...item,
+    percent: Number((item.percent / total * 100).toFixed(1))
+  })
+
+  return {
+    natural: naturalRaw.map(normalize),
+    compensatory: compensatoryRaw.map(normalize)
+  }
+}
+
+function buildMBTINineGrid(dimensions: ReturnType<typeof calculateMBTIDimensions>) {
+  const preferenceThreshold = 2.5 / 4
+  const rules = [
+    [0, 0, 0, 0],
+    [0.03, 0, 0, 0],
+    [-0.03, 0, 0, 0],
+    [0, 0.03, 0, 0],
+    [0, -0.03, 0, 0],
+    [0, 0, 0.03, 0],
+    [0, 0, -0.03, 0],
+    [0, 0, 0, 0.03],
+    [0, 0, 0, -0.03]
+  ]
+  const pairs: Array<[keyof typeof dimensions, [string, string]]> = [
+    ['EI', ['E', 'I']],
+    ['SN', ['S', 'N']],
+    ['TF', ['T', 'F']],
+    ['JP', ['J', 'P']]
+  ]
+
+  return rules.map(offsets => pairs.map(([key, pair], index) => {
+    const dimension = dimensions[key] as any
+    return dimension.firstRatio + offsets[index] > preferenceThreshold ? pair[0] : pair[1]
+  }).join(''))
+}
+
+function buildMBTIPreferences(dimensions: ReturnType<typeof calculateMBTIDimensions>) {
+  return [
+    {
+      title: '你的注意力总倾向',
+      left: 'Extraversion - 外倾',
+      right: 'Introversion - 内倾',
+      leftDesc: '客体导向：在真实的外界中，寻找自我',
+      rightDesc: '主体导向：以真实的自我，理解外界',
+      selected: dimensions.EI.letter
+    },
+    {
+      title: '你更偏好的信息获取方式是',
+      left: 'Sensing - 实际感知',
+      right: 'Intuition - 跨越觉察',
+      leftDesc: '这里实际有什么：信任具体的现实，谨慎对待可能性',
+      rightDesc: '这里可能有什么：信任潜在的可能性，谨慎对待现实',
+      selected: dimensions.SN.letter
+    },
+    {
+      title: '你更偏好的决策秩序是',
+      left: 'Thinking - 事理秩序',
+      right: 'Feeling - 情理秩序',
+      leftDesc: '事实上是否正确：重视事理，兼顾情理',
+      rightDesc: '情感上是否值得：重视情理，兼顾事理',
+      selected: dimensions.TF.letter
+    },
+    {
+      title: '你更偏好的生活态度是',
+      left: 'Judging - 寻求确定',
+      right: 'Perceiving - 顺应变化',
+      leftDesc: '如何对待外界：在确定的外界中，获取内心的自由',
+      rightDesc: '如何对待外界：在自由的外界中，寻找生活的方向',
+      selected: dimensions.JP.letter
+    }
+  ]
+}
+
+function buildMBTIPersonaMask(type: string, compensatory: Array<{ code: string; percent: number }>) {
+  const strongest = [...compensatory].sort((a, b) => b.percent - a.percent).slice(0, 2).map(item => item.code).join('')
+  const temperament = type.slice(1, 3) === 'NT' ? 'NT' : type.includes('NF') ? 'NF' : type[1] === 'S' && type[3] === 'J' ? 'SJ' : type[1] === 'S' ? 'SP' : 'NT'
+  const maskType = strongest.includes('Si') || strongest.includes('Te') ? 'SJ' : strongest.includes('Se') ? 'SP' : strongest.includes('Fe') || strongest.includes('Fi') ? 'NF' : 'NT'
+  const names: Record<string, string> = {
+    SJ: '秩序卷轴',
+    SP: '现实火花',
+    NF: '意义灯塔',
+    NT: '结构星图'
+  }
+
+  return {
+    code: maskType,
+    title: `${maskType} 面具`,
+    name: `${maskType} 面具「${names[maskType]}」`,
+    rarity: type === 'INTJ' ? '4.47%' : `${(3 + type.charCodeAt(0) % 5 + type.charCodeAt(3) % 4 / 10).toFixed(2)}%`,
+    maskRatio: `${(10 + maskType.charCodeAt(0) % 8 + type.charCodeAt(2) % 7 / 10).toFixed(2)}%`,
+    temperament
+  }
+}
+
+function buildMBTIProfile(type: string, typeName: string, stack: ReturnType<typeof getMBTIFunctionStack>, mask: ReturnType<typeof buildMBTIPersonaMask>) {
+  const auxiliary = stack.roles[1]
+  const tertiary = stack.roles[2]
+  const inferior = stack.roles[3]
+  return {
+    about: `你呈现出${typeName}的核心轮廓：更容易被内在真实的兴趣、判断秩序和长期方向牵引。你未必总是外显地表现出某种固定样子，但在重要问题上，你通常会寻找自己真正认可的路径。`,
+    execution: `${auxiliary.label}让你的想法不只是停留在脑中。它会推动你把偏好的判断方式转化为行动、安排、沟通或选择，让内在倾向和外部世界发生更稳定的连接。`,
+    inner: `${tertiary.label}像一条逐渐清晰的支线。它可能不是你最熟练的部分，却常常带来放松、补偿和新的自我理解。当你愿意给它空间，整个人会更完整。`,
+    hidden: `${inferior.label}通常更敏感，也更容易在压力下被放大。它不是缺点，而是提醒你：人格底色之外，还有一部分真实经验正在等待被温和地纳入生活。`,
+    mask: `${mask.name}代表现阶段你用来适应环境、成就自己或保护自己的方式。它不必和人格底色完全一致，更像是成长经历在你身上留下的一套可调用策略。`
+  }
+}
+
+function generateDifferentiatedMBTIReport(
+  type: string,
+  functionScores: ReturnType<typeof buildFunctionScores>,
+  nineGrid: string[],
+  preferences: ReturnType<typeof buildMBTIPreferences>,
+  mask: ReturnType<typeof buildMBTIPersonaMask>,
+  profile: ReturnType<typeof buildMBTIProfile>
+) {
+  const natural = functionScores.natural.map(item => `${item.label}：${item.percent}%`).join('\n')
+  const compensatory = functionScores.compensatory.map(item => `${item.label}：${item.percent}%`).join('\n')
+  const preferenceText = preferences.map(item => `${item.title}\n${item.left} / ${item.right}\n当前倾向：${item.selected}`).join('\n\n')
+  const roles = mbtiStacks[type].map(fn => `${fn}${mbtiFunctionLabels[fn]}：${mbtiFunctionQuestions[fn]}`).join('\n')
+
+  return `以下是基于差异化算法为你生成的人格九宫格
+${nineGrid.join('\n')}
+
+实验数据
+自然状态的心理倾向
+${natural}
+
+代偿状态的心理倾向
+${compensatory}
+
+如何理解实验数据？
+一、实验背景
+我们聚焦的是心理能量层面的动力与阻力，会允许每个人的阴影功能呈现投射后的形状。因此，部分非阶梯状的八维分布是预期内的可能性。
+
+二、八维得分可以如何解读？
+重要：所有分数的高低都与认知能力以及发展水平无关。自然状态更接近人格底色，代偿状态更接近外界需要、自我保护、训练经历或情境代入。
+
+三、可能的误测原因
+1. 因为明显不认同一边，而强烈选择另一边并不完全认同的选项。
+2. 近期状态特殊，很难区分自己的内在需求和环境需求。
+3. 基于“我是否可以这样”作答，而不是基于“这是否完全是我”作答。
+
+四、九宫格是什么
+九宫格采用九种不同的人格算法进行综合比对，得出最可能的人格类型。
+
+基础偏好
+${preferenceText}
+
+人格面具
+你理想中的自我：${mask.name}
+${type}在完成实验的人群中的占比：${mask.rarity}
+${mask.title}在${type}中的占比：${mask.maskRatio}
+
+结果说明
+关于你
+${profile.about}
+
+构想与执行
+${profile.execution}
+
+让倾向贴近内心
+${profile.inner}
+
+隐藏的另一面
+${profile.hidden}
+
+你的人格构成
+${roles}
+
+${mask.mask}`
 }
 
 // MBTI 16种人格类型详细描述

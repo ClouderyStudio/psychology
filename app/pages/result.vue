@@ -13,7 +13,126 @@
         
         <!-- 分数展示 -->
         <div class="p-8">
-          <div class="text-center mb-8">
+          <div v-if="isMBTI" class="space-y-6">
+            <section class="text-center">
+              <p class="text-sm mb-3" style="color: var(--text-secondary);">以下是基于差异化算法为你生成的人格九宫格</p>
+              <h1 class="text-5xl font-bold mb-2" style="color: var(--text);">{{ result.level }}</h1>
+              <p style="color: var(--text-secondary);">{{ mbtiReport?.typeName }}</p>
+            </section>
+
+            <section class="grid grid-cols-3 gap-2 max-w-sm mx-auto">
+              <div v-for="(type, index) in mbtiReport?.nineGrid || []"
+                   :key="`${type}-${index}`"
+                   class="text-center rounded-lg py-4 font-bold"
+                   :class="type === result.level ? 'text-white' : ''"
+                   :style="{ backgroundColor: type === result.level ? 'var(--personality)' : 'var(--bg)', color: type === result.level ? 'white' : 'var(--text)' }">
+                {{ type }}
+              </div>
+            </section>
+
+            <section class="rounded-lg p-5" style="background-color: var(--bg);">
+              <h3 class="font-bold text-lg mb-4" style="color: var(--text);">实验数据</h3>
+              <div class="grid md:grid-cols-2 gap-5">
+                <div>
+                  <h4 class="font-semibold mb-3" style="color: var(--text);">自然状态的心理倾向</h4>
+                  <div class="space-y-3">
+                    <div v-for="item in mbtiReport?.functionScores?.natural || []" :key="item.code">
+                      <div class="flex justify-between text-sm mb-1">
+                        <span style="color: var(--text);">{{ item.label }}</span>
+                        <span style="color: var(--text-secondary);">{{ item.percent }}%</span>
+                      </div>
+                      <div class="h-2 rounded-full" style="background-color: var(--primary-light);">
+                        <div class="h-2 rounded-full" :style="{ width: `${item.percent * 4}%`, backgroundColor: 'var(--personality)' }"></div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div>
+                  <h4 class="font-semibold mb-3" style="color: var(--text);">代偿状态的心理倾向</h4>
+                  <div class="space-y-3">
+                    <div v-for="item in mbtiReport?.functionScores?.compensatory || []" :key="item.code">
+                      <div class="flex justify-between text-sm mb-1">
+                        <span style="color: var(--text);">{{ item.label }}</span>
+                        <span style="color: var(--text-secondary);">{{ item.percent }}%</span>
+                      </div>
+                      <div class="h-2 rounded-full" style="background-color: var(--primary-light);">
+                        <div class="h-2 rounded-full" :style="{ width: `${item.percent * 4}%`, backgroundColor: 'var(--special)' }"></div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <p class="text-sm mt-4" style="color: var(--text-muted);">{{ mbtiReport?.note }}</p>
+            </section>
+
+            <section class="rounded-lg p-5" style="background-color: var(--primary-light);">
+              <h3 class="font-bold text-lg mb-4" style="color: var(--text);">基础偏好</h3>
+              <div class="space-y-4">
+                <div v-for="item in mbtiReport?.preferences || []" :key="item.title" class="rounded-lg p-4" style="background-color: var(--card-bg);">
+                  <div class="font-semibold mb-3" style="color: var(--text);">{{ item.title }}</div>
+                  <div class="grid md:grid-cols-2 gap-3">
+                    <div class="rounded-lg p-3" :style="{ border: isPreferenceSelected(item, 'left') ? '2px solid var(--personality)' : '1px solid var(--border)', backgroundColor: isPreferenceSelected(item, 'left') ? 'var(--primary-light)' : 'transparent' }">
+                      <div class="font-medium" style="color: var(--text);">{{ item.left }}</div>
+                      <p class="text-sm mt-1" style="color: var(--text-secondary);">{{ item.leftDesc }}</p>
+                    </div>
+                    <div class="rounded-lg p-3" :style="{ border: isPreferenceSelected(item, 'right') ? '2px solid var(--personality)' : '1px solid var(--border)', backgroundColor: isPreferenceSelected(item, 'right') ? 'var(--primary-light)' : 'transparent' }">
+                      <div class="font-medium" style="color: var(--text);">{{ item.right }}</div>
+                      <p class="text-sm mt-1" style="color: var(--text-secondary);">{{ item.rightDesc }}</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </section>
+
+            <section class="rounded-lg p-5" style="background-color: var(--bg);">
+              <h3 class="font-bold text-lg mb-3" style="color: var(--text);">人格面具</h3>
+              <div class="flex flex-col md:flex-row md:items-end md:justify-between gap-3">
+                <div>
+                  <div class="text-2xl font-bold" style="color: var(--text);">{{ mbtiReport?.mask?.name }}</div>
+                  <p class="mt-2" style="color: var(--text-secondary);">你理想中的自我</p>
+                </div>
+                <div class="grid grid-cols-2 gap-3 text-center">
+                  <div class="rounded-lg p-3" style="background-color: var(--card-bg);">
+                    <div class="text-xl font-bold" style="color: var(--text);">{{ mbtiReport?.mask?.rarity }}</div>
+                    <div class="text-xs" style="color: var(--text-muted);">{{ result.level }}占比</div>
+                  </div>
+                  <div class="rounded-lg p-3" style="background-color: var(--card-bg);">
+                    <div class="text-xl font-bold" style="color: var(--text);">{{ mbtiReport?.mask?.maskRatio }}</div>
+                    <div class="text-xs" style="color: var(--text-muted);">面具占比</div>
+                  </div>
+                </div>
+              </div>
+            </section>
+
+            <section class="rounded-lg p-5" style="background-color: var(--card-bg); border: 1px solid var(--border);">
+              <h3 class="font-bold text-lg mb-4" style="color: var(--text);">结果说明</h3>
+              <div class="space-y-4">
+                <div v-for="section in mbtiProfileSections" :key="section.title">
+                  <h4 class="font-semibold mb-1" style="color: var(--text);">{{ section.title }}</h4>
+                  <p style="color: var(--text-secondary);">{{ section.text }}</p>
+                </div>
+              </div>
+            </section>
+
+            <section class="rounded-lg p-5" style="background-color: var(--primary-light);">
+              <h3 class="font-bold text-lg mb-4" style="color: var(--text);">你的人格构成</h3>
+              <div class="grid md:grid-cols-2 gap-4">
+                <div v-for="role in mbtiReport?.functionStack?.roles || []" :key="role.title" class="rounded-lg p-4" style="background-color: var(--card-bg);">
+                  <p class="text-sm" style="color: var(--text-muted);">{{ role.title }} | {{ role.subtitle }}</p>
+                  <div class="text-2xl font-bold my-2" style="color: var(--text);">{{ role.label }}{{ role.function }}</div>
+                  <p class="text-sm mb-2" style="color: var(--text-secondary);">{{ role.description }}</p>
+                  <p class="text-sm font-medium" style="color: var(--personality);">它关心的是：{{ role.question }}</p>
+                </div>
+              </div>
+            </section>
+
+            <section class="rounded-lg p-5" style="background-color: var(--bg);">
+              <h3 class="font-bold text-lg mb-3" style="color: var(--text);">如何理解实验数据？</h3>
+              <p class="whitespace-pre-line" style="color: var(--text-secondary);">{{ mbtiUnderstanding }}</p>
+            </section>
+          </div>
+
+          <div v-if="!isMBTI" class="text-center mb-8">
             <div class="inline-block relative">
               <svg class="w-48 h-48">
                 <circle cx="96" cy="96" r="88" 
@@ -34,7 +153,7 @@
           </div>
           
           <!-- 等级标签 -->
-          <div class="text-center mb-6">
+          <div v-if="!isMBTI" class="text-center mb-6">
             <div class="inline-block px-6 py-2 rounded-full text-lg font-semibold"
                  :class="levelColorClass">
               {{ result.level }}
@@ -76,7 +195,7 @@
           </div>
           
           <!-- 建议内容 -->
-          <div class="rounded-lg p-6 mb-6" style="background-color: var(--primary-light);">
+          <div v-if="!isMBTI" class="rounded-lg p-6 mb-6" style="background-color: var(--primary-light);">
             <h3 class="font-bold text-lg mb-3 flex items-center" style="color: var(--text);">
               <span class="text-2xl mr-2">💡</span>
               专业建议
@@ -85,7 +204,7 @@
           </div>
           
           <!-- 严重程度指示器 -->
-          <div class="mb-8" v-if="!isSCL90">
+          <div class="mb-8" v-if="!isSCL90 && !isMBTI">
             <div class="flex justify-between text-sm mb-2" style="color: var(--text-secondary);">
               <span>严重程度</span>
               <span>{{ Math.round(severityPercent) }}%</span>
@@ -98,7 +217,7 @@
           </div>
           
           <!-- 资源链接 -->
-          <div class="rounded-lg p-4 mb-6"
+          <div v-if="!isMBTI" class="rounded-lg p-4 mb-6"
                style="background-color: var(--warning-bg); border-left: 4px solid var(--warning-border);">
             <h4 class="font-semibold mb-2" style="color: var(--text);">📞 需要帮助？</h4>
             <p class="text-sm" style="color: var(--warning-text);">
@@ -152,6 +271,40 @@ const result = computed(() => answerStore.getResult())
 
 // 判断是否为 SCL-90
 const isSCL90 = computed(() => result.value?.testId === 'scl90')
+
+// 判断是否为 MBTI
+const isMBTI = computed(() => result.value?.testId === 'mbti')
+
+const mbtiReport = computed(() => result.value?.mbtiReport || null)
+
+const mbtiProfileSections = computed(() => {
+  const profile = mbtiReport.value?.profile
+  if (!profile) return []
+  return [
+    { title: '关于你', text: profile.about },
+    { title: '构想与执行', text: profile.execution },
+    { title: '让远见贴近内心', text: profile.inner },
+    { title: '隐藏的另一面', text: profile.hidden },
+    { title: '面具与人格', text: profile.mask }
+  ]
+})
+
+const mbtiUnderstanding = `一、实验背景
+我们聚焦的是心理能量层面的动力与阻力，会允许每个人的阴影功能呈现“投射后的形状”。因此，部分非阶梯状的八维分布是预期内的可能性。
+
+二、八维得分可以如何解读？
+重要：所有分数的高低都与认知能力以及发展水平无关。自然状态更接近人格底色，代偿状态更接近外界需要、自我保护、训练经历或情境代入。
+
+三、可能的误测原因
+1. 因为明显不认同一边，而强烈选择了另一边并不完全认同的选项。
+2. 近期状态较为特殊，很难区分自己的内在需求和环境的需求。
+3. 基于“我是否可以这样”作答，而没有基于“这是否完全是我”来考虑。
+
+四、九宫格是什么
+九宫格采用九种不同的人格算法进行综合比对，得出最可能的人格类型。
+
+五、人格面具与人格的关系
+人格面具代表现阶段想成为的样子，它与真我人格以及八维分布之间没有必然联系，也可能随着心境与环境发生变化。`
 
 // 判断是否有维度分数
 const hasDimensionScores = computed(() => {
@@ -286,6 +439,14 @@ const getLevelColor = (level: string) => {
     '很高': '#ef4444'
   }
   return colors[level] || '#9ca3af'
+}
+
+const isPreferenceSelected = (item: any, side: 'left' | 'right') => {
+  const firstLetters: Record<string, string[]> = {
+    left: ['E', 'S', 'T', 'J'],
+    right: ['I', 'N', 'F', 'P']
+  }
+  return firstLetters[side].includes(item.selected)
 }
 
 // 如果没有结果，重定向到首页
