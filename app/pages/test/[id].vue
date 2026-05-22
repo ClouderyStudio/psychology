@@ -90,6 +90,66 @@
             </button>
           </div>
         </div>
+
+        <!-- 快速跳转区域 -->
+        <div v-if="totalPages > 5" class="flex flex-wrap items-center justify-center gap-3 mb-6 p-3 rounded-lg"
+             style="background-color: var(--card-bg); box-shadow: var(--shadow-sm);">
+          <span class="text-sm" style="color: var(--text-secondary);">快速跳转：</span>
+          
+          <!-- 页码按钮 -->
+          <div class="flex flex-wrap gap-1">
+            <button v-for="page in visiblePages" 
+                    :key="page"
+                    @click="goToPage(page)"
+                    class="min-w-[32px] h-8 rounded-md text-sm transition-all"
+                    :style="{
+                      'background-color': currentPage === page ? 'var(--primary)' : 'var(--card-bg)',
+                      'color': currentPage === page ? 'white' : 'var(--text-secondary)',
+                      'box-shadow': 'var(--shadow-sm)'
+                    }">
+              <template v-if="page === -1">...</template>
+              <template v-else>{{ page }}</template>
+            </button>
+          </div>
+          
+          <!-- 输入框跳转 -->
+          <div class="flex items-center gap-2 ml-2">
+            <span class="text-xs" style="color: var(--text-muted);">前往</span>
+            <input 
+              type="number" 
+              v-model.number="jumpPage" 
+              :min="1" 
+              :max="totalPages"
+              class="w-16 px-2 py-1 text-center rounded border text-sm"
+              style="background-color: var(--bg); border-color: var(--primary-light); color: var(--text);"
+              @keyup.enter="jumpToPage"
+            />
+            <span class="text-xs" style="color: var(--text-muted);">页</span>
+            <button 
+              @click="jumpToPage"
+              class="px-3 py-1 rounded text-xs transition-colors"
+              style="background-color: var(--primary); color: white;"
+              @mouseenter="e => e.target.style.backgroundColor = 'var(--primary-dark)'"
+              @mouseleave="e => e.target.style.backgroundColor = 'var(--primary)'">
+              GO
+            </button>
+          </div>
+        </div>
+        
+        <!-- 页码导航 -->
+        <div v-else class="flex justify-center gap-2 mb-6">
+          <button v-for="page in totalPages" 
+                  :key="page"
+                  @click="goToPage(page)"
+                  class="w-8 h-8 rounded-md text-sm transition-all"
+                  :style="{
+                    backgroundColor: currentPage === page ? 'var(--primary)' : 'var(--card-bg)',
+                    color: currentPage === page ? 'white' : 'var(--text-secondary)',
+                    boxShadow: currentPage === page ? 'var(--shadow-sm)' : 'none'
+                  }">
+            {{ page }}
+          </button>
+        </div>
         
         <!-- 测评信息 -->
         <div class="rounded-xl overflow-hidden mb-6" 
@@ -359,6 +419,7 @@ const clearAllAnswers = () => {
 // 初始化时加载已保存的答案
 onMounted(async () => {
   answerStore.clearLastResult()
+  jumpPage.value = currentPage.value
   isClient.value = true
   
   if (answerStore.currentTestId !== testId) {
@@ -419,11 +480,46 @@ function prevPage() {
   }
 }
 
-function goToPage(page: number) {
-  if (page === currentPage.value) return
-    currentPage.value = page
-    window.scrollTo({ top: 0, behavior: 'smooth' })
+// 跳转页码输入框
+const jumpPage = ref(1)
+
+// 跳转到指定页面的函数
+const jumpToPage = () => {
+  let targetPage = jumpPage.value
+  if (isNaN(targetPage)) targetPage = 1
+  targetPage = Math.max(1, Math.min(totalPages.value, targetPage))
+  
+  if (targetPage === currentPage.value) {
+    // 同一页，不做处理
+    return
+  }
+  
+  // 执行跳转
+  currentPage.value = targetPage
+  jumpPage.value = targetPage
+  window.scrollTo({ top: 0, behavior: 'smooth' })
 }
+
+const goToPage = (page: number) => {
+  if (page === -1) return
+  
+  if (page === currentPage.value) return
+  
+  if (page < currentPage.value) {
+    currentPage.value = page
+    jumpPage.value = page
+    window.scrollTo({ top: 0, behavior: 'smooth' })
+  } else {
+      currentPage.value = page
+      jumpPage.value = page
+      window.scrollTo({ top: 0, behavior: 'smooth' })
+  }
+}
+
+// 监听当前页变化，同步 jumpPage
+watch(currentPage, (newPage) => {
+  jumpPage.value = newPage
+})
 
 // 退出确认
 function goBack() {
