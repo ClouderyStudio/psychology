@@ -1,7 +1,7 @@
 import { epqInterpretation, epqScales } from "./epq-questions"
 import { epqRscScales } from "./epq-rsc-questions"
 import { calculateDimensionScores, scl90Dimensions } from "./scl90-dimensions"
-import { isReverseQuestion, sixteenPFFactors, sixteenPFQuestions } from "./sixteenPF-questions"
+import { isReverseQuestion, sixteenPFFactors, sixteenPFQuestions, getCorrectAnswer, getQuestionFactor } from "./sixteenPF-questions"
 
 type SCL90DimensionKey = keyof typeof scl90Dimensions
 type EPQScaleKey = keyof typeof epqScales
@@ -1961,7 +1961,7 @@ function scoreSixteenPF(answers: Record<number, number>): ScoringResult {
   const factorCounts: Record<string, number> = {}
   
   // 初始化所有因素
-  const factors = ['A', 'B', 'C', 'E', 'F', 'G', 'H', 'I', 'L', 'M', 'N', 'O', 'Q1', 'Q2', 'Q3', 'Q4']
+  const factors: string[] = ['A', 'B', 'C', 'E', 'F', 'G', 'H', 'I', 'L', 'M', 'N', 'O', 'Q1', 'Q2', 'Q3', 'Q4']
   factors.forEach(f => {
     factorScores[f] = 0
     factorCounts[f] = 0
@@ -1973,12 +1973,18 @@ function scoreSixteenPF(answers: Record<number, number>): ScoringResult {
     const factor = getQuestionFactor(id)
     if (factor && factors.includes(factor)) {
       let score = value
-      // 反向计分：0→2, 1→1, 2→0
-      if (isReverseQuestion(id)) {
-        score = 2 - value
+      if (factor === 'B') {
+        // 因素B为推理/能力题：答对得1分，答错得0分
+        const correctAnswer = getCorrectAnswer(id)
+        score = correctAnswer !== null && value === correctAnswer ? 1 : 0
+      } else {
+        // 其他因素：0-1-2计分，反向计分：0→2, 1→1, 2→0
+        if (isReverseQuestion(id)) {
+          score = 2 - value
+        }
       }
-      factorScores[factor] += score
-      factorCounts[factor]++
+      factorScores[factor]! += score
+      factorCounts[factor]!++
     }
   })
   
@@ -1988,9 +1994,9 @@ function scoreSixteenPF(answers: Record<number, number>): ScoringResult {
   
   for (const factor of factors) {
     const count = factorCounts[factor]
-    if (count > 0) {
-      const maxPossible = count * 2
-      const rawScore = factorScores[factor]
+    if (count && count > 0) {
+      const maxPossible = factor === 'B' ? count : count * 2
+      const rawScore = factorScores[factor]!
       rawScores[factor] = rawScore
       // 转换为10分制标准分
       let stdScore = Math.round((rawScore / maxPossible) * 9) + 1
@@ -2009,7 +2015,7 @@ function scoreSixteenPF(answers: Record<number, number>): ScoringResult {
   const suggestion = generateSixteenPFReport(standardScores, secondaryScores)
   
   // 确定主要人格特征（最高的3个因素）
-  const sortedFactors = [...factors].sort((a, b) => standardScores[b] - standardScores[a])
+  const sortedFactors = [...factors].sort((a, b) => (standardScores[b] ?? 0) - (standardScores[a] ?? 0))
   const topFactors = sortedFactors.slice(0, 3)
   
   return {
@@ -2022,13 +2028,16 @@ function scoreSixteenPF(answers: Record<number, number>): ScoringResult {
       factors: standardScores,
       rawScores: rawScores,
       secondaryFactors: secondaryScores,
-      topFactors: topFactors.map(f => ({
-        factor: f,
-        name: sixteenPFFactors[f as keyof typeof sixteenPFFactors].name,
-        score: standardScores[f],
-        highDesc: sixteenPFFactors[f as keyof typeof sixteenPFFactors].highDesc,
-        lowDesc: sixteenPFFactors[f as keyof typeof sixteenPFFactors].lowDesc
-      }))
+      topFactors: topFactors.map(f => {
+        const factorInfo = sixteenPFFactors[f as keyof typeof sixteenPFFactors]
+        return {
+          factor: f,
+          name: factorInfo.name,
+          score: standardScores[f] ?? 0,
+          highDesc: factorInfo.highDesc,
+          lowDesc: factorInfo.lowDesc
+        }
+      })
     }
   }
 }
@@ -2036,37 +2045,51 @@ function scoreSixteenPF(answers: Record<number, number>): ScoringResult {
 // 计算次级人格因素
 function calculateSecondaryFactors(scores: Record<string, number>): Record<string, { score: number; level: string; description: string }> {
   // 适应与焦虑性 X1 = [(38+2L+3O+4Q4) - (2C+2H+2Q3)]/10
-  const x1 = (38 + 2*scores['L'] + 3*scores['O'] + 4*scores['Q4'] - 2*scores['C'] - 2*scores['H'] - 2*scores['Q3']) / 10
+  const sL = scores['L'] ?? 5
+  const sO = scores['O'] ?? 5
+  const sQ4 = scores['Q4'] ?? 5
+  const sC = scores['C'] ?? 5
+  const sH = scores['H'] ?? 5
+  const sQ3 = scores['Q3'] ?? 5
+  const x1 = (38 + 2*sL + 3*sO + 4*sQ4 - 2*sC - 2*sH - 2*sQ3) / 10
   
   // 内向与外向性 X2 = [(2A+3E+4F+5H) - (2Q2+11)]/10
-  const x2 = (2*scores['A'] + 3*scores['E'] + 4*scores['F'] + 5*scores['H'] - 2*scores['Q2'] - 11) / 10
+  const sA = scores['A'] ?? 5
+  const sE = scores['E'] ?? 5
+  const sF = scores['F'] ?? 5
+  const sQ2 = scores['Q2'] ?? 5
+  const x2 = (2*sA + 3*sE + 4*sF + 5*sH - 2*sQ2 - 11) / 10
   
   // 感情用事与安详机警性 X3 = [(77+2C+2E+2F+2N) - (4A+6I+2M)]/10
-  const x3 = (77 + 2*scores['C'] + 2*scores['E'] + 2*scores['F'] + 2*scores['N'] - 4*scores['A'] - 6*scores['I'] - 2*scores['M']) / 10
+  const sN = scores['N'] ?? 5
+  const sI = scores['I'] ?? 5
+  const sM = scores['M'] ?? 5
+  const x3 = (77 + 2*sC + 2*sE + 2*sF + 2*sN - 4*sA - 6*sI - 2*sM) / 10
   
   // 怯懦与果断性 X4 = [(4E+3H+4Q3) - (3A+6G+2I+2O)]/10
-  const x4 = (4*scores['E'] + 3*scores['H'] + 4*scores['Q3'] - 3*scores['A'] - 6*scores['G'] - 2*scores['I'] - 2*scores['O']) / 10
+  const sG = scores['G'] ?? 5
+  const x4 = (4*sE + 3*sH + 4*sQ3 - 3*sA - 6*sG - 2*sI - 2*sO) / 10
   
   return {
-    X1: { 
-      score: Math.round(x1 * 10) / 10, 
-      level: x1 > 5.5 ? '高焦虑' : x1 < 4.5 ? '低焦虑' : '中等焦虑', 
-      description: x1 > 5.5 ? '容易焦虑紧张，对自己境遇常感不满。建议学习放松技巧，保持积极心态。' : '生活适应顺利，通常感觉心满意足。能够有效应对压力。' 
+    X1: {
+      score: Math.round(x1 * 10) / 10,
+      level: x1 > 5.5 ? '高焦虑' : x1 < 4.5 ? '低焦虑' : '中等焦虑',
+      description: x1 > 5.5 ? '容易焦虑紧张，对自己境遇常感不满。建议学习放松技巧，保持积极心态。' : '生活适应顺利，通常感觉心满意足。能够有效应对压力。'
     },
-    X2: { 
-      score: Math.round(x2 * 10) / 10, 
-      level: x2 > 5.5 ? '外向型' : x2 < 4.5 ? '内向型' : '中间型', 
-      description: x2 > 5.5 ? '善于交际、开朗大方。喜欢社交活动，容易与人建立联系。' : '羞怯审慎、拘谨不自然。更享受独处或小范围社交。' 
+    X2: {
+      score: Math.round(x2 * 10) / 10,
+      level: x2 > 5.5 ? '外向型' : x2 < 4.5 ? '内向型' : '中间型',
+      description: x2 > 5.5 ? '善于交际、开朗大方。喜欢社交活动，容易与人建立联系。' : '羞怯审慎、拘谨不自然。更享受独处或小范围社交。'
     },
-    X3: { 
-      score: Math.round(x3 * 10) / 10, 
-      level: x3 > 5.5 ? '安详机警型' : x3 < 4.5 ? '感情用事型' : '中间型', 
-      description: x3 > 5.5 ? '安详警觉、果断刚毅。决策时理性客观，不易受情绪影响。' : '情绪多困扰、敏感含蓄。决策时容易受感情影响。' 
+    X3: {
+      score: Math.round(x3 * 10) / 10,
+      level: x3 > 5.5 ? '安详机警型' : x3 < 4.5 ? '感情用事型' : '中间型',
+      description: x3 > 5.5 ? '安详警觉、果断刚毅。决策时理性客观，不易受情绪影响。' : '情绪多困扰、敏感含蓄。决策时容易受感情影响。'
     },
-    X4: { 
-      score: Math.round(x4 * 10) / 10, 
-      level: x4 > 5.5 ? '果断型' : x4 < 4.5 ? '怯懦型' : '中间型', 
-      description: x4 > 5.5 ? '果断独立、有主见。在团队中常担任领导角色。' : '顺从依赖、缺乏决断。倾向于听从他人安排。' 
+    X4: {
+      score: Math.round(x4 * 10) / 10,
+      level: x4 > 5.5 ? '果断型' : x4 < 4.5 ? '怯懦型' : '中间型',
+      description: x4 > 5.5 ? '果断独立、有主见。在团队中常担任领导角色。' : '顺从依赖、缺乏决断。倾向于听从他人安排。'
     }
   }
 }
@@ -2079,7 +2102,7 @@ function generateSixteenPFReport(scores: Record<string, number>, secondary: Reco
   const factorsList = ['A', 'B', 'C', 'E', 'F', 'G', 'H', 'I', 'L', 'M', 'N', 'O', 'Q1', 'Q2', 'Q3', 'Q4']
   
   for (const f of factorsList) {
-    const score = scores[f]
+    const score = scores[f] ?? 5
     const factor = sixteenPFFactors[f as keyof typeof sixteenPFFactors]
     const level = score >= 7 ? '高分' : score <= 4 ? '低分' : '中等'
     const desc = score >= 7 ? factor.highDesc : factor.lowDesc
@@ -2107,10 +2130,4 @@ function generateSixteenPFReport(scores: Record<string, number>, secondary: Reco
   report += '分数越高，越接近高分描述；分数越低，越接近低分描述。'
   
   return report
-}
-
-// 获取题目所属因素（辅助函数）
-function getQuestionFactor(id: number): string | null {
-  const question = sixteenPFQuestions.find(q => q.id === id)
-  return question?.factor || null
 }
