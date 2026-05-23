@@ -66,9 +66,9 @@ export default defineEventHandler(() => {
       id: 'mbti',
       title: 'MBTI 人格测试',
       englishName: 'Myers-Briggs Type Indicator',
-      description: '基于荣格心理学理论，评估16种人格类型，帮助了解性格倾向和偏好',
-      duration: '约12-15分钟',
-      questionsCount: 93,
+      description: '基于荣格心理学理论，结合情境假设与日常问题，评估16种人格类型以及内在/外在性格差异',
+      duration: '约15-18分钟',
+      questionsCount: 109,
       tags: ['人格类型', '职业倾向', '性格分析'],
       category: 'personality'
     },

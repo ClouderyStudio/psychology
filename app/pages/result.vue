@@ -90,6 +90,66 @@
               </section>
 
               <section class="rounded-lg p-5" style="background-color: var(--bg);">
+                <div class="flex flex-col md:flex-row md:items-start md:justify-between gap-4 mb-5">
+                  <div>
+                    <h3 class="font-bold text-lg mb-2" style="color: var(--text);">内在与外在性格</h3>
+                    <p style="color: var(--text-secondary);">{{ mbtiReport?.innerOuterProfile?.summary }}</p>
+                  </div>
+                  <div class="text-center rounded-lg p-3 min-w-28" style="background-color: var(--card-bg);">
+                    <div class="text-2xl font-bold" style="color: var(--personality);">{{ mbtiReport?.innerOuterProfile?.consistency }}%</div>
+                    <div class="text-xs" style="color: var(--text-muted);">{{ mbtiReport?.innerOuterProfile?.status }}</div>
+                  </div>
+                </div>
+
+                <div class="grid md:grid-cols-2 gap-3 mb-5">
+                  <div class="rounded-lg p-4" style="background-color: var(--card-bg);">
+                    <p class="text-sm mb-1" style="color: var(--text-muted);">内在性格</p>
+                    <div class="text-3xl font-bold" style="color: var(--text);">{{ mbtiReport?.innerOuterProfile?.innerType }}</div>
+                    <p class="text-sm mt-1" style="color: var(--text-secondary);">{{ mbtiReport?.innerOuterProfile?.innerTypeName }}</p>
+                  </div>
+                  <div class="rounded-lg p-4" style="background-color: var(--card-bg);">
+                    <p class="text-sm mb-1" style="color: var(--text-muted);">外在表现</p>
+                    <div class="text-3xl font-bold" style="color: var(--text);">{{ mbtiReport?.innerOuterProfile?.outerType }}</div>
+                    <p class="text-sm mt-1" style="color: var(--text-secondary);">{{ mbtiReport?.innerOuterProfile?.outerTypeName }}</p>
+                  </div>
+                </div>
+
+                <div class="space-y-3">
+                  <div v-for="item in mbtiReport?.innerOuterProfile?.dimensions || []" :key="item.key" class="rounded-lg p-4" style="background-color: var(--card-bg);">
+                    <div class="flex items-center justify-between gap-3 mb-3">
+                      <div>
+                        <div class="font-semibold" style="color: var(--text);">{{ item.title }}</div>
+                        <p class="text-xs" style="color: var(--text-muted);">{{ item.left }} / {{ item.right }}</p>
+                      </div>
+                      <span class="text-xs px-2 py-1 rounded-full" :style="{ backgroundColor: item.aligned ? 'var(--primary-light)' : 'var(--warning-bg)', color: item.aligned ? 'var(--personality)' : 'var(--warning-text)' }">
+                        {{ item.aligned ? '一致' : '有差异' }}
+                      </span>
+                    </div>
+                    <div class="grid md:grid-cols-2 gap-3">
+                      <div>
+                        <div class="flex justify-between text-sm mb-1">
+                          <span style="color: var(--text-secondary);">内在 {{ item.innerLetter }}</span>
+                          <span style="color: var(--text-muted);">{{ item.innerPercent }}%</span>
+                        </div>
+                        <div class="h-2 rounded-full" style="background-color: var(--primary-light);">
+                          <div class="h-2 rounded-full" :style="{ width: `${item.innerPercent}%`, backgroundColor: 'var(--personality)' }"></div>
+                        </div>
+                      </div>
+                      <div>
+                        <div class="flex justify-between text-sm mb-1">
+                          <span style="color: var(--text-secondary);">外在 {{ item.outerLetter }}</span>
+                          <span style="color: var(--text-muted);">{{ item.outerPercent }}%</span>
+                        </div>
+                        <div class="h-2 rounded-full" style="background-color: var(--primary-light);">
+                          <div class="h-2 rounded-full" :style="{ width: `${item.outerPercent}%`, backgroundColor: 'var(--special)' }"></div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </section>
+
+              <section class="rounded-lg p-5" style="background-color: var(--bg);">
                 <h3 class="font-bold text-lg mb-3" style="color: var(--text);">人格面具</h3>
                 <div class="flex flex-col md:flex-row md:items-end md:justify-between gap-3">
                   <div>

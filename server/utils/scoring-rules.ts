@@ -1,5 +1,6 @@
 import { epqInterpretation, epqScales } from "./epq-questions"
 import { epqRscScales } from "./epq-rsc-questions"
+import { mbtiQuestions } from "./mbti-questions"
 import { calculateDimensionScores, scl90Dimensions } from "./scl90-dimensions"
 import { isReverseQuestion, sixteenPFFactors, sixteenPFQuestions, getCorrectAnswer, getQuestionFactor } from "./sixteenPF-questions"
 
@@ -423,9 +424,10 @@ function scoreMBTI(answers: Record<number, number>): ScoringResult {
   const functionScores = buildFunctionScores(functionStack, dimensions)
   const nineGrid = buildMBTINineGrid(dimensions)
   const preferences = buildMBTIPreferences(dimensions)
+  const innerOuterProfile = buildMBTIInnerOuterProfile(dimensions)
   const mask = buildMBTIPersonaMask(mbtiType, functionScores.compensatory)
   const profile = buildMBTIProfile(mbtiType, typeInfo.name, functionStack, mask)
-  const suggestion = generateDifferentiatedMBTIReport(mbtiType, functionScores, nineGrid, preferences, mask, profile)
+  const suggestion = generateDifferentiatedMBTIReport(mbtiType, functionScores, nineGrid, preferences, innerOuterProfile, mask, profile)
   
   return {
     totalScore: Math.round((eiAvg + snAvg + tfAvg + jpAvg) / 4 * 25),
@@ -438,6 +440,7 @@ function scoreMBTI(answers: Record<number, number>): ScoringResult {
       S_N: { score: snScore, avg: snAvg, result: sn },
       T_F: { score: tfScore, avg: tfAvg, result: tf },
       J_P: { score: jpScore, avg: jpAvg, result: jp },
+      innerOuter: innerOuterProfile,
       type: mbtiType,
       typeName: typeInfo.name
     },
@@ -448,6 +451,7 @@ function scoreMBTI(answers: Record<number, number>): ScoringResult {
       functionStack,
       functionScores,
       preferences,
+      innerOuterProfile,
       mask,
       profile,
       note: '本结果基于差异化算法生成，强调心理倾向与作答模式，不代表能力高低或发展水平。'
@@ -456,6 +460,7 @@ function scoreMBTI(answers: Record<number, number>): ScoringResult {
 }
 
 type MBTILetter = 'E' | 'I' | 'S' | 'N' | 'T' | 'F' | 'J' | 'P'
+type MBTIDimensionKey = 'EI' | 'SN' | 'TF' | 'JP'
 type MBTIFunctionCode = 'Ni' | 'Ne' | 'Si' | 'Se' | 'Ti' | 'Te' | 'Fi' | 'Fe'
 type MBTIFunctionStackTuple = [MBTIFunctionCode, MBTIFunctionCode, MBTIFunctionCode, MBTIFunctionCode]
 
@@ -513,6 +518,14 @@ const oppositeFunction: Record<MBTIFunctionCode, MBTIFunctionCode> = {
   Fe: 'Fi'
 }
 
+const mbtiQuestionMap = new Map(mbtiQuestions.map(question => [question.id, question]))
+const mbtiDimensionPairs: Record<MBTIDimensionKey, [MBTILetter, MBTILetter]> = {
+  EI: ['E', 'I'],
+  SN: ['S', 'N'],
+  TF: ['T', 'F'],
+  JP: ['J', 'P']
+}
+
 function calculateMBTIDimensions(answers: Record<number, number>) {
   const preferenceThreshold = 2.5 / 4
   const score = {
@@ -521,29 +534,44 @@ function calculateMBTIDimensions(answers: Record<number, number>) {
     TF: { first: 0, second: 0, count: 0 },
     JP: { first: 0, second: 0, count: 0 }
   }
+  const layerScore = {
+    inner: {
+      EI: { first: 0, second: 0, count: 0 },
+      SN: { first: 0, second: 0, count: 0 },
+      TF: { first: 0, second: 0, count: 0 },
+      JP: { first: 0, second: 0, count: 0 }
+    },
+    outer: {
+      EI: { first: 0, second: 0, count: 0 },
+      SN: { first: 0, second: 0, count: 0 },
+      TF: { first: 0, second: 0, count: 0 },
+      JP: { first: 0, second: 0, count: 0 }
+    }
+  }
+  const add = (target: typeof score, key: MBTIDimensionKey, value: number, reverse: boolean) => {
+    if (reverse) {
+      target[key].first += 4 - value
+      target[key].second += value
+    } else {
+      target[key].first += value
+      target[key].second += 4 - value
+    }
+    target[key].count++
+  }
 
   Object.entries(answers).forEach(([qid, rawValue]) => {
     const id = parseInt(qid)
-    const value = Number(rawValue)
-    const add = (key: keyof typeof score, reverse: boolean) => {
-      if (reverse) {
-        score[key].first += 4 - value
-        score[key].second += value
-      } else {
-        score[key].first += value
-        score[key].second += 4 - value
-      }
-      score[key].count++
-    }
+    const question = mbtiQuestionMap.get(id)
+    if (!question) return
 
-    if (id >= 1 && id <= 24) add('EI', id >= 9 && id <= 16)
-    else if (id >= 25 && id <= 47) add('SN', id >= 35 && id <= 47)
-    else if (id >= 48 && id <= 70) add('TF', id >= 59 && id <= 70)
-    else if (id >= 71 && id <= 93) add('JP', id >= 82 && id <= 93)
+    const value = Math.max(0, Math.min(4, Number(rawValue)))
+    add(score, question.dimension, value, question.reverse)
+    if (question.layer) {
+      add(layerScore[question.layer], question.dimension, value, question.reverse)
+    }
   })
 
-  const build = (key: keyof typeof score, pair: [MBTILetter, MBTILetter]) => {
-    const current = score[key]
+  const build = (current: { first: number; second: number; count: number }, pair: [MBTILetter, MBTILetter]) => {
     const total = Math.max(current.first + current.second, 1)
     const firstRatio = current.first / total
     const firstAvg = current.count > 0 ? current.first / current.count : 2
@@ -557,15 +585,32 @@ function calculateMBTIDimensions(answers: Record<number, number>) {
       firstAvg,
       secondAvg,
       firstRatio,
+      secondRatio: 1 - firstRatio,
       strength,
+      count: current.count,
       letter: firstRatio > preferenceThreshold ? pair[0] : pair[1]
     }
   }
 
-  const EI = build('EI', ['E', 'I'])
-  const SN = build('SN', ['S', 'N'])
-  const TF = build('TF', ['T', 'F'])
-  const JP = build('JP', ['J', 'P'])
+  const EI = build(score.EI, mbtiDimensionPairs.EI)
+  const SN = build(score.SN, mbtiDimensionPairs.SN)
+  const TF = build(score.TF, mbtiDimensionPairs.TF)
+  const JP = build(score.JP, mbtiDimensionPairs.JP)
+  const buildLayer = (layer: keyof typeof layerScore) => {
+    const current = layerScore[layer]
+    const dimensions = {
+      EI: build(current.EI, mbtiDimensionPairs.EI),
+      SN: build(current.SN, mbtiDimensionPairs.SN),
+      TF: build(current.TF, mbtiDimensionPairs.TF),
+      JP: build(current.JP, mbtiDimensionPairs.JP)
+    }
+
+    return {
+      ...dimensions,
+      type: `${dimensions.EI.letter}${dimensions.SN.letter}${dimensions.TF.letter}${dimensions.JP.letter}`,
+      questionCount: Object.values(current).reduce((sum, item) => sum + item.count, 0)
+    }
+  }
 
   return {
     EI,
@@ -585,7 +630,11 @@ function calculateMBTIDimensions(answers: Record<number, number>) {
     eiAvg: EI.firstAvg,
     snAvg: SN.firstAvg,
     tfAvg: TF.firstAvg,
-    jpAvg: JP.firstAvg
+    jpAvg: JP.firstAvg,
+    layers: {
+      inner: buildLayer('inner'),
+      outer: buildLayer('outer')
+    }
   }
 }
 
@@ -700,6 +749,63 @@ function buildMBTIPreferences(dimensions: ReturnType<typeof calculateMBTIDimensi
   ]
 }
 
+function buildMBTIInnerOuterProfile(dimensions: ReturnType<typeof calculateMBTIDimensions>) {
+  const labels: Record<MBTIDimensionKey, { title: string; left: string; right: string }> = {
+    EI: { title: '能量与表达', left: 'E 外倾', right: 'I 内倾' },
+    SN: { title: '信息与观察', left: 'S 实感', right: 'N 直觉' },
+    TF: { title: '判断与取舍', left: 'T 思考', right: 'F 情感' },
+    JP: { title: '节奏与安排', left: 'J 判断', right: 'P 感知' }
+  }
+  const keys: MBTIDimensionKey[] = ['EI', 'SN', 'TF', 'JP']
+  const buildDimensionRows = () => keys.map(key => {
+    const inner = dimensions.layers.inner[key]
+    const outer = dimensions.layers.outer[key]
+    const innerPercent = Number(((inner.letter === inner.first ? inner.firstRatio : inner.secondRatio) * 100).toFixed(1))
+    const outerPercent = Number(((outer.letter === outer.first ? outer.firstRatio : outer.secondRatio) * 100).toFixed(1))
+
+    return {
+      key,
+      title: labels[key].title,
+      left: labels[key].left,
+      right: labels[key].right,
+      innerLetter: inner.letter,
+      outerLetter: outer.letter,
+      innerPercent,
+      outerPercent,
+      gap: Math.abs(innerPercent - outerPercent),
+      aligned: inner.letter === outer.letter
+    }
+  })
+
+  const innerType = dimensions.layers.inner.type
+  const outerType = dimensions.layers.outer.type
+  const alignedCount = keys.filter(key => dimensions.layers.inner[key].letter === dimensions.layers.outer[key].letter).length
+  const consistency = Number((alignedCount / keys.length * 100).toFixed(1))
+  const status = innerType === outerType
+    ? '内在偏好与外在表现较一致'
+    : alignedCount >= 2
+      ? '内在偏好与外在表现有部分差异'
+      : '内在偏好与外在表现差异较明显'
+  const summary = innerType === outerType
+    ? `你的内在性格和外在表现都更接近 ${innerType}，说明你在私人状态与日常互动中的偏好相对稳定。`
+    : `你的内在性格更接近 ${innerType}，外在表现更接近 ${outerType}。这通常表示你会根据环境要求调整表达方式，但内心真正舒服的节奏未必完全相同。`
+
+  return {
+    innerType,
+    innerTypeName: getMBTIDetailedDescription(innerType).name,
+    outerType,
+    outerTypeName: getMBTIDetailedDescription(outerType).name,
+    consistency,
+    status,
+    summary,
+    questionCount: {
+      inner: dimensions.layers.inner.questionCount,
+      outer: dimensions.layers.outer.questionCount
+    },
+    dimensions: buildDimensionRows()
+  }
+}
+
 function buildMBTIPersonaMask(type: string, compensatory: Array<{ code: string; percent: number }>) {
   const strongest = [...compensatory].sort((a, b) => b.percent - a.percent).slice(0, 2).map(item => item.code).join('')
   const temperament = type.slice(1, 3) === 'NT' ? 'NT' : type.includes('NF') ? 'NF' : type[1] === 'S' && type[3] === 'J' ? 'SJ' : type[1] === 'S' ? 'SP' : 'NT'
@@ -740,12 +846,16 @@ function generateDifferentiatedMBTIReport(
   functionScores: ReturnType<typeof buildFunctionScores>,
   nineGrid: string[],
   preferences: ReturnType<typeof buildMBTIPreferences>,
+  innerOuterProfile: ReturnType<typeof buildMBTIInnerOuterProfile>,
   mask: ReturnType<typeof buildMBTIPersonaMask>,
   profile: ReturnType<typeof buildMBTIProfile>
 ) {
   const natural = functionScores.natural.map(item => `${item.label}：${item.percent}%`).join('\n')
   const compensatory = functionScores.compensatory.map(item => `${item.label}：${item.percent}%`).join('\n')
   const preferenceText = preferences.map(item => `${item.title}\n${item.left} / ${item.right}\n当前倾向：${item.selected}`).join('\n\n')
+  const innerOuterText = innerOuterProfile.dimensions
+    .map(item => `${item.title}：内在 ${item.innerLetter}（${item.innerPercent}%） / 外在 ${item.outerLetter}（${item.outerPercent}%）`)
+    .join('\n')
   const roles = (mbtiStacks[type] ?? defaultMBTIStack).map(fn => `${fn}${mbtiFunctionLabels[fn]}：${mbtiFunctionQuestions[fn]}`).join('\n')
 
   return `以下是基于差异化算法为你生成的人格九宫格
@@ -775,6 +885,13 @@ ${compensatory}
 
 基础偏好
 ${preferenceText}
+
+内在与外在性格
+内在性格：${innerOuterProfile.innerType}（${innerOuterProfile.innerTypeName}）
+外在表现：${innerOuterProfile.outerType}（${innerOuterProfile.outerTypeName}）
+一致度：${innerOuterProfile.consistency}%
+${innerOuterProfile.summary}
+${innerOuterText}
 
 人格面具
 你理想中的自我：${mask.name}

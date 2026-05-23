@@ -3,9 +3,11 @@ export interface MBTIQuestion {
   text: string
   dimension: 'EI' | 'SN' | 'TF' | 'JP'
   reverse: boolean // true 表示反向计分
+  layer?: 'inner' | 'outer'
+  questionType?: 'baseline' | 'scenario' | 'daily'
 }
 
-// MBTI 93 道题目
+// MBTI 109 道题目
 export const mbtiQuestions: MBTIQuestion[] = [
   // ========== E/I 维度 (外向/内向) - 共 24 题 ==========
   { id: 1, text: '我喜欢成为人群中的焦点', dimension: 'EI', reverse: false },
@@ -106,7 +108,25 @@ export const mbtiQuestions: MBTIQuestion[] = [
   { id: 90, text: '我适应能力强', dimension: 'JP', reverse: true },
   { id: 91, text: '我会同时进行多个项目', dimension: 'JP', reverse: true },
   { id: 92, text: '我喜欢截止日期前的冲刺', dimension: 'JP', reverse: true },
-  { id: 93, text: '我享受当下的体验', dimension: 'JP', reverse: true }
+  { id: 93, text: '我享受当下的体验', dimension: 'JP', reverse: true },
+
+  // ========== 情境假设与日常问题：用于补充统计内在/外在性格 - 共 16 题 ==========
+  { id: 94, text: '如果临时被安排在小组汇报中开场，我通常能迅速进入表达状态', dimension: 'EI', reverse: false, layer: 'outer', questionType: 'scenario' },
+  { id: 95, text: '结束一天的事务后，我更想留出一段不被打扰的时间整理自己', dimension: 'EI', reverse: true, layer: 'inner', questionType: 'daily' },
+  { id: 96, text: '如果朋友临时邀请我参加陌生人的聚会，我通常会先评估这是否消耗精力', dimension: 'EI', reverse: true, layer: 'outer', questionType: 'scenario' },
+  { id: 97, text: '当想法还没完全成形时，说出来常会让我越讲越清楚', dimension: 'EI', reverse: false, layer: 'inner', questionType: 'daily' },
+  { id: 98, text: '面对陌生城市出行，我会先确认路线、时间和具体地点', dimension: 'SN', reverse: false, layer: 'outer', questionType: 'scenario' },
+  { id: 99, text: '我常在普通事件里联想到未来趋势、隐含意义或新的可能', dimension: 'SN', reverse: true, layer: 'inner', questionType: 'daily' },
+  { id: 100, text: '做重要选择时，亲眼可见的数据和经验比灵感更让我安心', dimension: 'SN', reverse: false, layer: 'inner', questionType: 'scenario' },
+  { id: 101, text: '日常聊天中，我喜欢提出一些跳出常规的可能性', dimension: 'SN', reverse: true, layer: 'outer', questionType: 'daily' },
+  { id: 102, text: '团队意见冲突时，我会先厘清规则、责任和事实', dimension: 'TF', reverse: false, layer: 'outer', questionType: 'scenario' },
+  { id: 103, text: '做决定后，我仍会反复感受这个选择是否照顾到了重要的人', dimension: 'TF', reverse: true, layer: 'inner', questionType: 'daily' },
+  { id: 104, text: '需要给负面反馈时，我会优先考虑对方能否接受', dimension: 'TF', reverse: true, layer: 'outer', questionType: 'scenario' },
+  { id: 105, text: '我习惯在心里把问题拆成原因、证据和结论', dimension: 'TF', reverse: false, layer: 'inner', questionType: 'daily' },
+  { id: 106, text: '出门旅行前，我倾向于提前订好关键行程和备选方案', dimension: 'JP', reverse: false, layer: 'outer', questionType: 'scenario' },
+  { id: 107, text: '即使手上有计划，我内心也希望保留临时改变的空间', dimension: 'JP', reverse: true, layer: 'inner', questionType: 'daily' },
+  { id: 108, text: '如果计划突然变化，我通常会先观察新机会，而不是急着恢复原计划', dimension: 'JP', reverse: true, layer: 'outer', questionType: 'scenario' },
+  { id: 109, text: '我会通过整理清单、日程或环境让自己心里更安定', dimension: 'JP', reverse: false, layer: 'inner', questionType: 'daily' }
 ]
 
 // 选项配置
