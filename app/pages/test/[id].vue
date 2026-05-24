@@ -269,7 +269,11 @@ const QUESTIONS_PER_PAGE = 10
 
 // 获取题库数据
 const { data: response, error } = await useFetch(`/api/tests/${testId}`)
-const test = computed(() => response.value?.data)
+const test = computed(() => {
+  const data = response.value?.data
+  console.log('API 返回数据:', data)
+  return Array.isArray(data) ? null : data
+})
 
 // 使用 Pinia 存储答案
 const answers = ref<Record<number, number>>({})

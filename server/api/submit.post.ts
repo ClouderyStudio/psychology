@@ -1,4 +1,4 @@
-import { calculateScore, generatePersonalizedAdvice } from '../utils/scoring-rules'
+import { calculateScore, generatePersonalizedAdvice } from '../utils/score'
 
 export default defineEventHandler(async (event) => {
   const body = await readBody(event)

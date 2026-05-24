@@ -90,7 +90,7 @@ export default defineEventHandler(() => {
       duration: '约10-15分钟',
       questionsCount: 60,
       tags: ['气质类型', '天生倾向', '行为风格'],
-      category: 'special'
+      category: 'personality'
     },
     {
       id: 'bdc',
@@ -141,6 +141,26 @@ export default defineEventHandler(() => {
       questionsCount: 187,
       tags: ['人格维度', '职业倾向', '专业测评'],
       category: 'personality'
+    },
+    {
+      id: 'bpns',
+      title: '基本心理需求满足量表',
+      englishName: 'Basic Psychological Need Satisfaction Scale (BPNS)',
+      description: '基于自我决定理论，评估自主需求、胜任需求和归属需求的满足程度',
+      duration: '约3-5分钟',
+      questionsCount: 21,
+      tags: ['心理需求', '自我决定', '幸福感'],
+      category: 'special'
+    },
+    {
+      id: 'ipip-eis',
+      title: '情绪智力量表',
+      englishName: 'Emotional Intelligence Scale (IPIP-EIS)',
+      description: '基于国际人格项目库开发的情绪智力测量工具，评估情绪知觉、表达、管理和共情等能力',
+      duration: '约8-12分钟',
+      questionsCount: 64,
+      category: 'special',
+      tags: ['情绪智力', '情绪管理', '共情能力']
     }
   ]
   

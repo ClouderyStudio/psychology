@@ -231,7 +231,7 @@
             </div>
 
             <!-- 分数指示器 -->
-            <div v-if="isSymptom" class="text-center mb-8">
+            <div v-if="canScore" class="text-center mb-8">
               <div class="inline-block relative">
                 <svg class="w-48 h-48">
                   <circle cx="96" cy="96" r="88" 
@@ -253,7 +253,7 @@
             
             <!-- 等级标签 -->
             <div v-if="!isMBTI" class="text-center mb-6">
-              <div v-if="!isSymptom" class="text-2xl font-semibold mb-2" style="color: var(--text);">你的测评结果是:</div>
+              <div v-if="!canScore" class="text-2xl font-semibold mb-2" style="color: var(--text);">你的测评结果是:</div>
 
               <div class="inline-block px-6 py-2 rounded-full text-lg font-semibold"
                   :class="levelColorClass">
@@ -305,7 +305,7 @@
             </div>
             
             <!-- 严重程度指示器 -->
-            <div class="mb-8" v-if="isSymptom">
+            <div class="mb-8" v-if="canScore">
               <div class="flex justify-between text-sm mb-2" style="color: var(--text-secondary);">
                 <span>严重程度</span>
                 <span>{{ Math.round(severityPercent) }}%</span>
@@ -372,8 +372,8 @@ const answerStore = useAnswerStore()
 const result = ref<any>(null)
 const isLoading = ref(true)
 
-// 判断是否为 症状筛查 测试
-const isSymptom = ref(false)
+// 判断应该计分
+const canScore = ref(false)
 
 // 加载结果的方法
 const loadResult = async () => {
@@ -404,9 +404,9 @@ const loadResult = async () => {
     const { data } = await useFetch('/api/tests/list')
     const testList = (data.value as any)?.data || []
     const found = testList.find((el: any) => el.id === testId)
-    isSymptom.value = found ? found.category === 'symptom' : false
+    canScore.value = found ? found.category === 'symptom' || found.category === 'special' : false
   } catch (e) {
-    isSymptom.value = false
+    canScore.value = false
   }
 
   isLoading.value = false

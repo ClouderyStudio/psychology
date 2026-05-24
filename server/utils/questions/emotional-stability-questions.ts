@@ -10,7 +10,7 @@ export const emotionalStabilityOptions = [
   { value: 0, label: '否' }
 ]
 
-// 30道情绪稳定性测试题目[citation:1]
+// 30道情绪稳定性测试题目
 export const emotionalStabilityQuestions: EmotionalStabilityQuestion[] = [
   { id: 1, text: '我从未患过梦游症（即睡着时起来走路）' },
   { id: 2, text: '我从未因病而休假半年以上时间' },
@@ -44,7 +44,7 @@ export const emotionalStabilityQuestions: EmotionalStabilityQuestion[] = [
   { id: 30, text: '最近一个月里，我几次服用镇静剂或安眠药' }
 ]
 
-// 情绪稳定性评分标准[citation:1]
+// 情绪稳定性评分标准
 export const stabilityLevels = [
   { min: 0, max: 11, level: '不稳定', description: '情绪过敏，内心困扰，心情波动大' },
   { min: 12, max: 23, level: '不太稳定', description: '情绪经常波动，内心有困扰' },
