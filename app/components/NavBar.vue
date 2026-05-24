@@ -14,7 +14,7 @@
             心灵驿站
           </span>
           <span class="font-semibold text-lg sm:hidden" style="color: var(--text);">
-            心理测评
+            心灵驿站
           </span>
         </div>
         
