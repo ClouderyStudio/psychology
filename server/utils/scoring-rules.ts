@@ -1,7 +1,8 @@
 import { epqInterpretation, epqScales } from "./epq-questions"
 import { epqRscScales } from "./epq-rsc-questions"
+import { mbtiQuestions } from "./mbti-questions"
 import { calculateDimensionScores, scl90Dimensions } from "./scl90-dimensions"
-import { isReverseQuestion, sixteenPFFactors, sixteenPFQuestions } from "./sixteenPF-questions"
+import { isReverseQuestion, sixteenPFFactors, sixteenPFQuestions, getCorrectAnswer, getQuestionFactor } from "./sixteenPF-questions"
 
 type SCL90DimensionKey = keyof typeof scl90Dimensions
 type EPQScaleKey = keyof typeof epqScales
@@ -423,9 +424,10 @@ function scoreMBTI(answers: Record<number, number>): ScoringResult {
   const functionScores = buildFunctionScores(functionStack, dimensions)
   const nineGrid = buildMBTINineGrid(dimensions)
   const preferences = buildMBTIPreferences(dimensions)
+  const innerOuterProfile = buildMBTIInnerOuterProfile(dimensions)
   const mask = buildMBTIPersonaMask(mbtiType, functionScores.compensatory)
   const profile = buildMBTIProfile(mbtiType, typeInfo.name, functionStack, mask)
-  const suggestion = generateDifferentiatedMBTIReport(mbtiType, functionScores, nineGrid, preferences, mask, profile)
+  const suggestion = generateDifferentiatedMBTIReport(mbtiType, functionScores, nineGrid, preferences, innerOuterProfile, mask, profile)
   
   return {
     totalScore: Math.round((eiAvg + snAvg + tfAvg + jpAvg) / 4 * 25),
@@ -438,6 +440,7 @@ function scoreMBTI(answers: Record<number, number>): ScoringResult {
       S_N: { score: snScore, avg: snAvg, result: sn },
       T_F: { score: tfScore, avg: tfAvg, result: tf },
       J_P: { score: jpScore, avg: jpAvg, result: jp },
+      innerOuter: innerOuterProfile,
       type: mbtiType,
       typeName: typeInfo.name
     },
@@ -448,6 +451,7 @@ function scoreMBTI(answers: Record<number, number>): ScoringResult {
       functionStack,
       functionScores,
       preferences,
+      innerOuterProfile,
       mask,
       profile,
       note: '本结果基于差异化算法生成，强调心理倾向与作答模式，不代表能力高低或发展水平。'
@@ -456,6 +460,7 @@ function scoreMBTI(answers: Record<number, number>): ScoringResult {
 }
 
 type MBTILetter = 'E' | 'I' | 'S' | 'N' | 'T' | 'F' | 'J' | 'P'
+type MBTIDimensionKey = 'EI' | 'SN' | 'TF' | 'JP'
 type MBTIFunctionCode = 'Ni' | 'Ne' | 'Si' | 'Se' | 'Ti' | 'Te' | 'Fi' | 'Fe'
 type MBTIFunctionStackTuple = [MBTIFunctionCode, MBTIFunctionCode, MBTIFunctionCode, MBTIFunctionCode]
 
@@ -513,6 +518,14 @@ const oppositeFunction: Record<MBTIFunctionCode, MBTIFunctionCode> = {
   Fe: 'Fi'
 }
 
+const mbtiQuestionMap = new Map(mbtiQuestions.map(question => [question.id, question]))
+const mbtiDimensionPairs: Record<MBTIDimensionKey, [MBTILetter, MBTILetter]> = {
+  EI: ['E', 'I'],
+  SN: ['S', 'N'],
+  TF: ['T', 'F'],
+  JP: ['J', 'P']
+}
+
 function calculateMBTIDimensions(answers: Record<number, number>) {
   const preferenceThreshold = 2.5 / 4
   const score = {
@@ -521,29 +534,44 @@ function calculateMBTIDimensions(answers: Record<number, number>) {
     TF: { first: 0, second: 0, count: 0 },
     JP: { first: 0, second: 0, count: 0 }
   }
+  const layerScore = {
+    inner: {
+      EI: { first: 0, second: 0, count: 0 },
+      SN: { first: 0, second: 0, count: 0 },
+      TF: { first: 0, second: 0, count: 0 },
+      JP: { first: 0, second: 0, count: 0 }
+    },
+    outer: {
+      EI: { first: 0, second: 0, count: 0 },
+      SN: { first: 0, second: 0, count: 0 },
+      TF: { first: 0, second: 0, count: 0 },
+      JP: { first: 0, second: 0, count: 0 }
+    }
+  }
+  const add = (target: typeof score, key: MBTIDimensionKey, value: number, reverse: boolean) => {
+    if (reverse) {
+      target[key].first += 4 - value
+      target[key].second += value
+    } else {
+      target[key].first += value
+      target[key].second += 4 - value
+    }
+    target[key].count++
+  }
 
   Object.entries(answers).forEach(([qid, rawValue]) => {
     const id = parseInt(qid)
-    const value = Number(rawValue)
-    const add = (key: keyof typeof score, reverse: boolean) => {
-      if (reverse) {
-        score[key].first += 4 - value
-        score[key].second += value
-      } else {
-        score[key].first += value
-        score[key].second += 4 - value
-      }
-      score[key].count++
-    }
+    const question = mbtiQuestionMap.get(id)
+    if (!question) return
 
-    if (id >= 1 && id <= 24) add('EI', id >= 9 && id <= 16)
-    else if (id >= 25 && id <= 47) add('SN', id >= 35 && id <= 47)
-    else if (id >= 48 && id <= 70) add('TF', id >= 59 && id <= 70)
-    else if (id >= 71 && id <= 93) add('JP', id >= 82 && id <= 93)
+    const value = Math.max(0, Math.min(4, Number(rawValue)))
+    add(score, question.dimension, value, question.reverse)
+    if (question.layer) {
+      add(layerScore[question.layer], question.dimension, value, question.reverse)
+    }
   })
 
-  const build = (key: keyof typeof score, pair: [MBTILetter, MBTILetter]) => {
-    const current = score[key]
+  const build = (current: { first: number; second: number; count: number }, pair: [MBTILetter, MBTILetter]) => {
     const total = Math.max(current.first + current.second, 1)
     const firstRatio = current.first / total
     const firstAvg = current.count > 0 ? current.first / current.count : 2
@@ -557,15 +585,32 @@ function calculateMBTIDimensions(answers: Record<number, number>) {
       firstAvg,
       secondAvg,
       firstRatio,
+      secondRatio: 1 - firstRatio,
       strength,
+      count: current.count,
       letter: firstRatio > preferenceThreshold ? pair[0] : pair[1]
     }
   }
 
-  const EI = build('EI', ['E', 'I'])
-  const SN = build('SN', ['S', 'N'])
-  const TF = build('TF', ['T', 'F'])
-  const JP = build('JP', ['J', 'P'])
+  const EI = build(score.EI, mbtiDimensionPairs.EI)
+  const SN = build(score.SN, mbtiDimensionPairs.SN)
+  const TF = build(score.TF, mbtiDimensionPairs.TF)
+  const JP = build(score.JP, mbtiDimensionPairs.JP)
+  const buildLayer = (layer: keyof typeof layerScore) => {
+    const current = layerScore[layer]
+    const dimensions = {
+      EI: build(current.EI, mbtiDimensionPairs.EI),
+      SN: build(current.SN, mbtiDimensionPairs.SN),
+      TF: build(current.TF, mbtiDimensionPairs.TF),
+      JP: build(current.JP, mbtiDimensionPairs.JP)
+    }
+
+    return {
+      ...dimensions,
+      type: `${dimensions.EI.letter}${dimensions.SN.letter}${dimensions.TF.letter}${dimensions.JP.letter}`,
+      questionCount: Object.values(current).reduce((sum, item) => sum + item.count, 0)
+    }
+  }
 
   return {
     EI,
@@ -585,7 +630,11 @@ function calculateMBTIDimensions(answers: Record<number, number>) {
     eiAvg: EI.firstAvg,
     snAvg: SN.firstAvg,
     tfAvg: TF.firstAvg,
-    jpAvg: JP.firstAvg
+    jpAvg: JP.firstAvg,
+    layers: {
+      inner: buildLayer('inner'),
+      outer: buildLayer('outer')
+    }
   }
 }
 
@@ -700,6 +749,63 @@ function buildMBTIPreferences(dimensions: ReturnType<typeof calculateMBTIDimensi
   ]
 }
 
+function buildMBTIInnerOuterProfile(dimensions: ReturnType<typeof calculateMBTIDimensions>) {
+  const labels: Record<MBTIDimensionKey, { title: string; left: string; right: string }> = {
+    EI: { title: '能量与表达', left: 'E 外倾', right: 'I 内倾' },
+    SN: { title: '信息与观察', left: 'S 实感', right: 'N 直觉' },
+    TF: { title: '判断与取舍', left: 'T 思考', right: 'F 情感' },
+    JP: { title: '节奏与安排', left: 'J 判断', right: 'P 感知' }
+  }
+  const keys: MBTIDimensionKey[] = ['EI', 'SN', 'TF', 'JP']
+  const buildDimensionRows = () => keys.map(key => {
+    const inner = dimensions.layers.inner[key]
+    const outer = dimensions.layers.outer[key]
+    const innerPercent = Number(((inner.letter === inner.first ? inner.firstRatio : inner.secondRatio) * 100).toFixed(1))
+    const outerPercent = Number(((outer.letter === outer.first ? outer.firstRatio : outer.secondRatio) * 100).toFixed(1))
+
+    return {
+      key,
+      title: labels[key].title,
+      left: labels[key].left,
+      right: labels[key].right,
+      innerLetter: inner.letter,
+      outerLetter: outer.letter,
+      innerPercent,
+      outerPercent,
+      gap: Math.abs(innerPercent - outerPercent),
+      aligned: inner.letter === outer.letter
+    }
+  })
+
+  const innerType = dimensions.layers.inner.type
+  const outerType = dimensions.layers.outer.type
+  const alignedCount = keys.filter(key => dimensions.layers.inner[key].letter === dimensions.layers.outer[key].letter).length
+  const consistency = Number((alignedCount / keys.length * 100).toFixed(1))
+  const status = innerType === outerType
+    ? '内在偏好与外在表现较一致'
+    : alignedCount >= 2
+      ? '内在偏好与外在表现有部分差异'
+      : '内在偏好与外在表现差异较明显'
+  const summary = innerType === outerType
+    ? `你的内在性格和外在表现都更接近 ${innerType}，说明你在私人状态与日常互动中的偏好相对稳定。`
+    : `你的内在性格更接近 ${innerType}，外在表现更接近 ${outerType}。这通常表示你会根据环境要求调整表达方式，但内心真正舒服的节奏未必完全相同。`
+
+  return {
+    innerType,
+    innerTypeName: getMBTIDetailedDescription(innerType).name,
+    outerType,
+    outerTypeName: getMBTIDetailedDescription(outerType).name,
+    consistency,
+    status,
+    summary,
+    questionCount: {
+      inner: dimensions.layers.inner.questionCount,
+      outer: dimensions.layers.outer.questionCount
+    },
+    dimensions: buildDimensionRows()
+  }
+}
+
 function buildMBTIPersonaMask(type: string, compensatory: Array<{ code: string; percent: number }>) {
   const strongest = [...compensatory].sort((a, b) => b.percent - a.percent).slice(0, 2).map(item => item.code).join('')
   const temperament = type.slice(1, 3) === 'NT' ? 'NT' : type.includes('NF') ? 'NF' : type[1] === 'S' && type[3] === 'J' ? 'SJ' : type[1] === 'S' ? 'SP' : 'NT'
@@ -740,12 +846,16 @@ function generateDifferentiatedMBTIReport(
   functionScores: ReturnType<typeof buildFunctionScores>,
   nineGrid: string[],
   preferences: ReturnType<typeof buildMBTIPreferences>,
+  innerOuterProfile: ReturnType<typeof buildMBTIInnerOuterProfile>,
   mask: ReturnType<typeof buildMBTIPersonaMask>,
   profile: ReturnType<typeof buildMBTIProfile>
 ) {
   const natural = functionScores.natural.map(item => `${item.label}：${item.percent}%`).join('\n')
   const compensatory = functionScores.compensatory.map(item => `${item.label}：${item.percent}%`).join('\n')
   const preferenceText = preferences.map(item => `${item.title}\n${item.left} / ${item.right}\n当前倾向：${item.selected}`).join('\n\n')
+  const innerOuterText = innerOuterProfile.dimensions
+    .map(item => `${item.title}：内在 ${item.innerLetter}（${item.innerPercent}%） / 外在 ${item.outerLetter}（${item.outerPercent}%）`)
+    .join('\n')
   const roles = (mbtiStacks[type] ?? defaultMBTIStack).map(fn => `${fn}${mbtiFunctionLabels[fn]}：${mbtiFunctionQuestions[fn]}`).join('\n')
 
   return `以下是基于差异化算法为你生成的人格九宫格
@@ -775,6 +885,13 @@ ${compensatory}
 
 基础偏好
 ${preferenceText}
+
+内在与外在性格
+内在性格：${innerOuterProfile.innerType}（${innerOuterProfile.innerTypeName}）
+外在表现：${innerOuterProfile.outerType}（${innerOuterProfile.outerTypeName}）
+一致度：${innerOuterProfile.consistency}%
+${innerOuterProfile.summary}
+${innerOuterText}
 
 人格面具
 你理想中的自我：${mask.name}
@@ -1961,7 +2078,7 @@ function scoreSixteenPF(answers: Record<number, number>): ScoringResult {
   const factorCounts: Record<string, number> = {}
   
   // 初始化所有因素
-  const factors = ['A', 'B', 'C', 'E', 'F', 'G', 'H', 'I', 'L', 'M', 'N', 'O', 'Q1', 'Q2', 'Q3', 'Q4']
+  const factors: string[] = ['A', 'B', 'C', 'E', 'F', 'G', 'H', 'I', 'L', 'M', 'N', 'O', 'Q1', 'Q2', 'Q3', 'Q4']
   factors.forEach(f => {
     factorScores[f] = 0
     factorCounts[f] = 0
@@ -1973,12 +2090,18 @@ function scoreSixteenPF(answers: Record<number, number>): ScoringResult {
     const factor = getQuestionFactor(id)
     if (factor && factors.includes(factor)) {
       let score = value
-      // 反向计分：0→2, 1→1, 2→0
-      if (isReverseQuestion(id)) {
-        score = 2 - value
+      if (factor === 'B') {
+        // 因素B为推理/能力题：答对得1分，答错得0分
+        const correctAnswer = getCorrectAnswer(id)
+        score = correctAnswer !== null && value === correctAnswer ? 1 : 0
+      } else {
+        // 其他因素：0-1-2计分，反向计分：0→2, 1→1, 2→0
+        if (isReverseQuestion(id)) {
+          score = 2 - value
+        }
       }
-      factorScores[factor] += score
-      factorCounts[factor]++
+      factorScores[factor]! += score
+      factorCounts[factor]!++
     }
   })
   
@@ -1988,9 +2111,9 @@ function scoreSixteenPF(answers: Record<number, number>): ScoringResult {
   
   for (const factor of factors) {
     const count = factorCounts[factor]
-    if (count > 0) {
-      const maxPossible = count * 2
-      const rawScore = factorScores[factor]
+    if (count && count > 0) {
+      const maxPossible = factor === 'B' ? count : count * 2
+      const rawScore = factorScores[factor]!
       rawScores[factor] = rawScore
       // 转换为10分制标准分
       let stdScore = Math.round((rawScore / maxPossible) * 9) + 1
@@ -2009,7 +2132,7 @@ function scoreSixteenPF(answers: Record<number, number>): ScoringResult {
   const suggestion = generateSixteenPFReport(standardScores, secondaryScores)
   
   // 确定主要人格特征（最高的3个因素）
-  const sortedFactors = [...factors].sort((a, b) => standardScores[b] - standardScores[a])
+  const sortedFactors = [...factors].sort((a, b) => (standardScores[b] ?? 0) - (standardScores[a] ?? 0))
   const topFactors = sortedFactors.slice(0, 3)
   
   return {
@@ -2022,13 +2145,16 @@ function scoreSixteenPF(answers: Record<number, number>): ScoringResult {
       factors: standardScores,
       rawScores: rawScores,
       secondaryFactors: secondaryScores,
-      topFactors: topFactors.map(f => ({
-        factor: f,
-        name: sixteenPFFactors[f as keyof typeof sixteenPFFactors].name,
-        score: standardScores[f],
-        highDesc: sixteenPFFactors[f as keyof typeof sixteenPFFactors].highDesc,
-        lowDesc: sixteenPFFactors[f as keyof typeof sixteenPFFactors].lowDesc
-      }))
+      topFactors: topFactors.map(f => {
+        const factorInfo = sixteenPFFactors[f as keyof typeof sixteenPFFactors]
+        return {
+          factor: f,
+          name: factorInfo.name,
+          score: standardScores[f] ?? 0,
+          highDesc: factorInfo.highDesc,
+          lowDesc: factorInfo.lowDesc
+        }
+      })
     }
   }
 }
@@ -2036,37 +2162,51 @@ function scoreSixteenPF(answers: Record<number, number>): ScoringResult {
 // 计算次级人格因素
 function calculateSecondaryFactors(scores: Record<string, number>): Record<string, { score: number; level: string; description: string }> {
   // 适应与焦虑性 X1 = [(38+2L+3O+4Q4) - (2C+2H+2Q3)]/10
-  const x1 = (38 + 2*scores['L'] + 3*scores['O'] + 4*scores['Q4'] - 2*scores['C'] - 2*scores['H'] - 2*scores['Q3']) / 10
+  const sL = scores['L'] ?? 5
+  const sO = scores['O'] ?? 5
+  const sQ4 = scores['Q4'] ?? 5
+  const sC = scores['C'] ?? 5
+  const sH = scores['H'] ?? 5
+  const sQ3 = scores['Q3'] ?? 5
+  const x1 = (38 + 2*sL + 3*sO + 4*sQ4 - 2*sC - 2*sH - 2*sQ3) / 10
   
   // 内向与外向性 X2 = [(2A+3E+4F+5H) - (2Q2+11)]/10
-  const x2 = (2*scores['A'] + 3*scores['E'] + 4*scores['F'] + 5*scores['H'] - 2*scores['Q2'] - 11) / 10
+  const sA = scores['A'] ?? 5
+  const sE = scores['E'] ?? 5
+  const sF = scores['F'] ?? 5
+  const sQ2 = scores['Q2'] ?? 5
+  const x2 = (2*sA + 3*sE + 4*sF + 5*sH - 2*sQ2 - 11) / 10
   
   // 感情用事与安详机警性 X3 = [(77+2C+2E+2F+2N) - (4A+6I+2M)]/10
-  const x3 = (77 + 2*scores['C'] + 2*scores['E'] + 2*scores['F'] + 2*scores['N'] - 4*scores['A'] - 6*scores['I'] - 2*scores['M']) / 10
+  const sN = scores['N'] ?? 5
+  const sI = scores['I'] ?? 5
+  const sM = scores['M'] ?? 5
+  const x3 = (77 + 2*sC + 2*sE + 2*sF + 2*sN - 4*sA - 6*sI - 2*sM) / 10
   
   // 怯懦与果断性 X4 = [(4E+3H+4Q3) - (3A+6G+2I+2O)]/10
-  const x4 = (4*scores['E'] + 3*scores['H'] + 4*scores['Q3'] - 3*scores['A'] - 6*scores['G'] - 2*scores['I'] - 2*scores['O']) / 10
+  const sG = scores['G'] ?? 5
+  const x4 = (4*sE + 3*sH + 4*sQ3 - 3*sA - 6*sG - 2*sI - 2*sO) / 10
   
   return {
-    X1: { 
-      score: Math.round(x1 * 10) / 10, 
-      level: x1 > 5.5 ? '高焦虑' : x1 < 4.5 ? '低焦虑' : '中等焦虑', 
-      description: x1 > 5.5 ? '容易焦虑紧张，对自己境遇常感不满。建议学习放松技巧，保持积极心态。' : '生活适应顺利，通常感觉心满意足。能够有效应对压力。' 
+    X1: {
+      score: Math.round(x1 * 10) / 10,
+      level: x1 > 5.5 ? '高焦虑' : x1 < 4.5 ? '低焦虑' : '中等焦虑',
+      description: x1 > 5.5 ? '容易焦虑紧张，对自己境遇常感不满。建议学习放松技巧，保持积极心态。' : '生活适应顺利，通常感觉心满意足。能够有效应对压力。'
     },
-    X2: { 
-      score: Math.round(x2 * 10) / 10, 
-      level: x2 > 5.5 ? '外向型' : x2 < 4.5 ? '内向型' : '中间型', 
-      description: x2 > 5.5 ? '善于交际、开朗大方。喜欢社交活动，容易与人建立联系。' : '羞怯审慎、拘谨不自然。更享受独处或小范围社交。' 
+    X2: {
+      score: Math.round(x2 * 10) / 10,
+      level: x2 > 5.5 ? '外向型' : x2 < 4.5 ? '内向型' : '中间型',
+      description: x2 > 5.5 ? '善于交际、开朗大方。喜欢社交活动，容易与人建立联系。' : '羞怯审慎、拘谨不自然。更享受独处或小范围社交。'
     },
-    X3: { 
-      score: Math.round(x3 * 10) / 10, 
-      level: x3 > 5.5 ? '安详机警型' : x3 < 4.5 ? '感情用事型' : '中间型', 
-      description: x3 > 5.5 ? '安详警觉、果断刚毅。决策时理性客观，不易受情绪影响。' : '情绪多困扰、敏感含蓄。决策时容易受感情影响。' 
+    X3: {
+      score: Math.round(x3 * 10) / 10,
+      level: x3 > 5.5 ? '安详机警型' : x3 < 4.5 ? '感情用事型' : '中间型',
+      description: x3 > 5.5 ? '安详警觉、果断刚毅。决策时理性客观，不易受情绪影响。' : '情绪多困扰、敏感含蓄。决策时容易受感情影响。'
     },
-    X4: { 
-      score: Math.round(x4 * 10) / 10, 
-      level: x4 > 5.5 ? '果断型' : x4 < 4.5 ? '怯懦型' : '中间型', 
-      description: x4 > 5.5 ? '果断独立、有主见。在团队中常担任领导角色。' : '顺从依赖、缺乏决断。倾向于听从他人安排。' 
+    X4: {
+      score: Math.round(x4 * 10) / 10,
+      level: x4 > 5.5 ? '果断型' : x4 < 4.5 ? '怯懦型' : '中间型',
+      description: x4 > 5.5 ? '果断独立、有主见。在团队中常担任领导角色。' : '顺从依赖、缺乏决断。倾向于听从他人安排。'
     }
   }
 }
@@ -2079,7 +2219,7 @@ function generateSixteenPFReport(scores: Record<string, number>, secondary: Reco
   const factorsList = ['A', 'B', 'C', 'E', 'F', 'G', 'H', 'I', 'L', 'M', 'N', 'O', 'Q1', 'Q2', 'Q3', 'Q4']
   
   for (const f of factorsList) {
-    const score = scores[f]
+    const score = scores[f] ?? 5
     const factor = sixteenPFFactors[f as keyof typeof sixteenPFFactors]
     const level = score >= 7 ? '高分' : score <= 4 ? '低分' : '中等'
     const desc = score >= 7 ? factor.highDesc : factor.lowDesc
@@ -2107,10 +2247,4 @@ function generateSixteenPFReport(scores: Record<string, number>, secondary: Reco
   report += '分数越高，越接近高分描述；分数越低，越接近低分描述。'
   
   return report
-}
-
-// 获取题目所属因素（辅助函数）
-function getQuestionFactor(id: number): string | null {
-  const question = sixteenPFQuestions.find(q => q.id === id)
-  return question?.factor || null
 }

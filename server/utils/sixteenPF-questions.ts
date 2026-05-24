@@ -5,11 +5,11 @@ export const sixteenPFOptionsNormal = [
   { value: 2, label: 'C. 否' }
 ]
 
-// 16PF 选项类型2：智力/逻辑判断题
+// 16PF 选项类型2：智力/逻辑判断题（因素B使用，每个题目有自定义选项）
 export const sixteenPFOptionsLogic = [
-  { value: 0, label: 'A. 是' },
-  { value: 1, label: 'B. 有时是' },
-  { value: 2, label: 'C. 否' }
+  { value: 0, label: 'A. 第一个' },
+  { value: 1, label: 'B. 第二个' },
+  { value: 2, label: 'C. 第三个' }
 ]
 
 // 16PF 选项类型3：选择题（两个相反选项）
@@ -51,7 +51,7 @@ export const sixteenPFQuestions = [
   // 第1-2题：效度量表题（不计分）- 使用普通选项
   { id: 1, text: '我很明了本测验的说明', factor: null, reverse: false, optionType: 'normal' },
   { id: 2, text: '我对本测验的每一个问题，都能做到诚实地回答', factor: null, reverse: false, optionType: 'normal' },
-  
+
   // 因素A: 乐群性 (10题) - 使用普通选项
   { id: 3, text: '如果我有机会的话，我愿意到一个繁华的城市去旅行', factor: 'A', reverse: false, optionType: 'normal' },
   { id: 4, text: '在社交场合中，我谈吐自然', factor: 'A', reverse: false, optionType: 'normal' },
@@ -61,24 +61,115 @@ export const sixteenPFQuestions = [
   { id: 8, text: '我宁可做一个社团的工作者', factor: 'A', reverse: false, optionType: 'normal' },
   { id: 9, text: '在集会中，我谈吐自如', factor: 'A', reverse: false, optionType: 'normal' },
   { id: 10, text: '我愿意负责人事组的工作', factor: 'A', reverse: false, optionType: 'normal' },
-  { id: 11, text: '在社交场合我谈吐自然', factor: 'A', reverse: false, optionType: 'normal' },
-  { id: 12, text: '我乐于参加大规模的集会', factor: 'A', reverse: false, optionType: 'normal' },
-  
-  // 因素B: 聪慧性 (13题) - 使用逻辑/智力题选项
-  { id: 13, text: '下列三个字中哪个字与其他两个字属于不同类别：狗、石、牛', factor: 'B', reverse: false, optionType: 'choice' },
-  { id: 14, text: '如果我能重新做人，我要把生活安排得和以前不同', factor: 'B', reverse: false, optionType: 'choice' },
-  { id: 15, text: '下列数字中哪个与其他不同类：4、8、11', factor: 'B', reverse: false, optionType: 'choice' },
-  { id: 16, text: '我总是把是非、善恶作为判断标准', factor: 'B', reverse: false, optionType: 'normal' },
-  { id: 17, text: '我对于人或物的兴趣都很容易改变', factor: 'B', reverse: false, optionType: 'normal' },
-  { id: 18, text: '我常会无端的自言自语', factor: 'B', reverse: false, optionType: 'normal' },
-  { id: 19, text: '无论工作、饮食或旅游，我总很从容不迫', factor: 'B', reverse: false, optionType: 'normal' },
-  { id: 20, text: '我很少用幻想来寻求刺激', factor: 'B', reverse: false, optionType: 'normal' },
-  { id: 21, text: '我更喜欢思考过去的事情', factor: 'B', reverse: false, optionType: 'normal' },
-  { id: 22, text: '我的思想似乎走在了时代前面', factor: 'B', reverse: false, optionType: 'normal' },
-  { id: 23, text: '我宁愿看一部动人的小说而不愿看侦探故事', factor: 'B', reverse: false, optionType: 'choice' },
-  { id: 24, text: '我有时会怀疑别人是否对我的言语真正有兴趣', factor: 'B', reverse: false, optionType: 'normal' },
-  { id: 25, text: '我能很流畅地表达自己的观点', factor: 'B', reverse: false, optionType: 'normal' },
-  
+  { id: 11, text: '我喜欢和很多人一起聊天说笑', factor: 'A', reverse: false, optionType: 'normal' },
+  { id: 12, text: '我乐于结交新朋友', factor: 'A', reverse: false, optionType: 'normal' },
+
+  // 因素B: 聪慧性 (13题) - 使用 logic 类型，每题自定义选项
+  { id: 13, text: '下列三个字中哪个字与其他两个字属于不同类别：狗、石、牛',
+    factor: 'B', reverse: false, optionType: 'logic',
+    options: [
+      { value: 0, label: 'A. 狗' },
+      { value: 1, label: 'B. 石' },
+      { value: 2, label: 'C. 牛' }
+    ],
+    correctAnswer: 1 },
+  { id: 14, text: '下列数字中哪个与其他不同类：2、6、9',
+    factor: 'B', reverse: false, optionType: 'logic',
+    options: [
+      { value: 0, label: 'A. 2' },
+      { value: 1, label: 'B. 6' },
+      { value: 2, label: 'C. 9' }
+    ],
+    correctAnswer: 2 },
+  { id: 15, text: '下列数字中哪个与其他不同类：4、8、11',
+    factor: 'B', reverse: false, optionType: 'logic',
+    options: [
+      { value: 0, label: 'A. 4' },
+      { value: 1, label: 'B. 8' },
+      { value: 2, label: 'C. 11' }
+    ],
+    correctAnswer: 2 },
+  { id: 16, text: '医生对病人如同教师对：',
+    factor: 'B', reverse: false, optionType: 'logic',
+    options: [
+      { value: 0, label: 'A. 学校' },
+      { value: 1, label: 'B. 学生' },
+      { value: 2, label: 'C. 书本' }
+    ],
+    correctAnswer: 1 },
+  { id: 17, text: '下列数列中缺失的数字是什么：2、4、8、16、?',
+    factor: 'B', reverse: false, optionType: 'logic',
+    options: [
+      { value: 0, label: 'A. 24' },
+      { value: 1, label: 'B. 30' },
+      { value: 2, label: 'C. 32' }
+    ],
+    correctAnswer: 2 },
+  { id: 18, text: '下列图形中哪个与其他不同类：三角形、正方形、圆形',
+    factor: 'B', reverse: false, optionType: 'logic',
+    options: [
+      { value: 0, label: 'A. 三角形' },
+      { value: 1, label: 'B. 正方形' },
+      { value: 2, label: 'C. 圆形' }
+    ],
+    correctAnswer: 2 },
+  { id: 19, text: '下列数列中空缺的数字是什么：1、1、2、3、5、8、?',
+    factor: 'B', reverse: false, optionType: 'logic',
+    options: [
+      { value: 0, label: 'A. 10' },
+      { value: 1, label: 'B. 12' },
+      { value: 2, label: 'C. 13' }
+    ],
+    correctAnswer: 2 },
+  { id: 20, text: '鸟对天空如同鱼对：',
+    factor: 'B', reverse: false, optionType: 'logic',
+    options: [
+      { value: 0, label: 'A. 河流' },
+      { value: 1, label: 'B. 大海' },
+      { value: 2, label: 'C. 水' }
+    ],
+    correctAnswer: 2 },
+  { id: 21, text: '甲比乙高，乙比丙高，那么：',
+    factor: 'B', reverse: false, optionType: 'logic',
+    options: [
+      { value: 0, label: 'A. 甲比丙矮' },
+      { value: 1, label: 'B. 甲和丙一样高' },
+      { value: 2, label: 'C. 甲比丙高' }
+    ],
+    correctAnswer: 2 },
+  { id: 22, text: '下列词语中，哪组是反义词关系：',
+    factor: 'B', reverse: false, optionType: 'logic',
+    options: [
+      { value: 0, label: 'A. 前进—前进' },
+      { value: 1, label: 'B. 前进—停止' },
+      { value: 2, label: 'C. 前进—快跑' }
+    ],
+    correctAnswer: 1 },
+  { id: 23, text: '下列词语中哪个与其他不同类：高兴、悲伤、桌子、愤怒',
+    factor: 'B', reverse: false, optionType: 'logic',
+    options: [
+      { value: 0, label: 'A. 高兴' },
+      { value: 1, label: 'B. 悲伤' },
+      { value: 2, label: 'C. 桌子' }
+    ],
+    correctAnswer: 2 },
+  { id: 24, text: '下列数字中哪个与其他不同类：9、16、25、36、40',
+    factor: 'B', reverse: false, optionType: 'logic',
+    options: [
+      { value: 0, label: 'A. 9' },
+      { value: 1, label: 'B. 16' },
+      { value: 2, label: 'C. 40' }
+    ],
+    correctAnswer: 2 },
+  { id: 25, text: '苹果、香蕉、橘子属于同一类，下列哪项与它们同类：',
+    factor: 'B', reverse: false, optionType: 'logic',
+    options: [
+      { value: 0, label: 'A. 桌子' },
+      { value: 1, label: 'B. 葡萄' },
+      { value: 2, label: 'C. 书本' }
+    ],
+    correctAnswer: 1 },
+
   // 因素C: 稳定性 (13题) - 使用普通选项
   { id: 26, text: '我时常会无缘无故地感到情绪低落', factor: 'C', reverse: true, optionType: 'normal' },
   { id: 27, text: '我能很好地控制自己的情绪', factor: 'C', reverse: false, optionType: 'normal' },
@@ -93,7 +184,7 @@ export const sixteenPFQuestions = [
   { id: 36, text: '我很容易受到惊吓', factor: 'C', reverse: true, optionType: 'normal' },
   { id: 37, text: '我在压力下能正常工作', factor: 'C', reverse: false, optionType: 'normal' },
   { id: 38, text: '我时常感到精疲力竭', factor: 'C', reverse: true, optionType: 'normal' },
-  
+
   // 因素E: 恃强性 (13题) - 使用选择/普通选项
   { id: 39, text: '在争论中，我更喜欢坚持自己的观点还是妥协', factor: 'E', reverse: false, optionType: 'choice' },
   { id: 40, text: '我习惯于听从他人的指挥', factor: 'E', reverse: true, optionType: 'normal' },
@@ -108,7 +199,7 @@ export const sixteenPFQuestions = [
   { id: 49, text: '我不喜欢与人竞争', factor: 'E', reverse: true, optionType: 'normal' },
   { id: 50, text: '我喜欢挑战权威', factor: 'E', reverse: false, optionType: 'normal' },
   { id: 51, text: '我会为了达到目的而坚持到底', factor: 'E', reverse: false, optionType: 'normal' },
-  
+
   // 因素F: 兴奋性 (13题) - 使用普通/频率选项
   { id: 52, text: '我喜欢热闹的聚会', factor: 'F', reverse: false, optionType: 'normal' },
   { id: 53, text: '我通常很严肃', factor: 'F', reverse: true, optionType: 'normal' },
@@ -123,7 +214,7 @@ export const sixteenPFQuestions = [
   { id: 62, text: '我很少主动与人交谈', factor: 'F', reverse: true, optionType: 'normal' },
   { id: 63, text: '我喜欢即兴发挥', factor: 'F', reverse: false, optionType: 'normal' },
   { id: 64, text: '我说话时声音较大', factor: 'F', reverse: false, optionType: 'normal' },
-  
+
   // 因素G: 有恒性 (13题)
   { id: 65, text: '我会坚持完成已经开始的计划', factor: 'G', reverse: false, optionType: 'normal' },
   { id: 66, text: '我有时会半途而废', factor: 'G', reverse: true, optionType: 'normal' },
@@ -138,7 +229,7 @@ export const sixteenPFQuestions = [
   { id: 75, text: '我做事很踏实', factor: 'G', reverse: false, optionType: 'normal' },
   { id: 76, text: '我有时会马虎应付', factor: 'G', reverse: true, optionType: 'normal' },
   { id: 77, text: '我喜欢把事情做完', factor: 'G', reverse: false, optionType: 'normal' },
-  
+
   // 因素H: 敢为性 (11题)
   { id: 78, text: '我敢于在公众场合发言', factor: 'H', reverse: false, optionType: 'normal' },
   { id: 79, text: '我容易害羞', factor: 'H', reverse: true, optionType: 'normal' },
@@ -151,7 +242,7 @@ export const sixteenPFQuestions = [
   { id: 86, text: '我喜欢挑战', factor: 'H', reverse: false, optionType: 'normal' },
   { id: 87, text: '我容易脸红', factor: 'H', reverse: true, optionType: 'normal' },
   { id: 88, text: '我愿意承担风险', factor: 'H', reverse: false, optionType: 'normal' },
-  
+
   // 因素I: 敏感性 (12题)
   { id: 89, text: '我容易被他人的故事感动', factor: 'I', reverse: false, optionType: 'normal' },
   { id: 90, text: '我很理性', factor: 'I', reverse: true, optionType: 'normal' },
@@ -165,7 +256,7 @@ export const sixteenPFQuestions = [
   { id: 98, text: '我倾向于用逻辑思考', factor: 'I', reverse: true, optionType: 'normal' },
   { id: 99, text: '我容易被美好的事物打动', factor: 'I', reverse: false, optionType: 'normal' },
   { id: 100, text: '我很客观', factor: 'I', reverse: true, optionType: 'normal' },
-  
+
   // 因素L: 怀疑性 (10题)
   { id: 101, text: '我容易相信别人', factor: 'L', reverse: true, optionType: 'normal' },
   { id: 102, text: '我怀疑别人的动机', factor: 'L', reverse: false, optionType: 'normal' },
@@ -177,7 +268,7 @@ export const sixteenPFQuestions = [
   { id: 108, text: '我善于合作', factor: 'L', reverse: true, optionType: 'normal' },
   { id: 109, text: '我觉得有竞争对手', factor: 'L', reverse: false, optionType: 'normal' },
   { id: 110, text: '我愿意与人分享', factor: 'L', reverse: true, optionType: 'normal' },
-  
+
   // 因素M: 幻想性 (11题)
   { id: 111, text: '我喜欢幻想', factor: 'M', reverse: false, optionType: 'normal' },
   { id: 112, text: '我很现实', factor: 'M', reverse: true, optionType: 'normal' },
@@ -190,7 +281,7 @@ export const sixteenPFQuestions = [
   { id: 119, text: '我容易被新奇的事物吸引', factor: 'M', reverse: false, optionType: 'normal' },
   { id: 120, text: '我按常规办事', factor: 'M', reverse: true, optionType: 'normal' },
   { id: 121, text: '我喜欢思考抽象问题', factor: 'M', reverse: false, optionType: 'normal' },
-  
+
   // 因素N: 世故性 (10题)
   { id: 122, text: '我善于察言观色', factor: 'N', reverse: false, optionType: 'normal' },
   { id: 123, text: '我很直率', factor: 'N', reverse: true, optionType: 'normal' },
@@ -202,7 +293,7 @@ export const sixteenPFQuestions = [
   { id: 129, text: '我容易轻信他人', factor: 'N', reverse: true, optionType: 'normal' },
   { id: 130, text: '我懂得人情世故', factor: 'N', reverse: false, optionType: 'normal' },
   { id: 131, text: '我不擅长交际', factor: 'N', reverse: true, optionType: 'normal' },
-  
+
   // 因素O: 忧虑性 (12题)
   { id: 132, text: '我经常担心未来', factor: 'O', reverse: false, optionType: 'frequency' },
   { id: 133, text: '我很少感到忧虑', factor: 'O', reverse: true, optionType: 'normal' },
@@ -216,7 +307,7 @@ export const sixteenPFQuestions = [
   { id: 141, text: '我很自信', factor: 'O', reverse: true, optionType: 'normal' },
   { id: 142, text: '我担心别人的看法', factor: 'O', reverse: false, optionType: 'normal' },
   { id: 143, text: '我坦然面对错误', factor: 'O', reverse: true, optionType: 'normal' },
-  
+
   // 因素Q1: 实验性 (12题)
   { id: 144, text: '我喜欢尝试新方法', factor: 'Q1', reverse: false, optionType: 'normal' },
   { id: 145, text: '我尊重传统', factor: 'Q1', reverse: true, optionType: 'normal' },
@@ -230,7 +321,7 @@ export const sixteenPFQuestions = [
   { id: 153, text: '我尊重权威', factor: 'Q1', reverse: true, optionType: 'normal' },
   { id: 154, text: '我乐于学习新事物', factor: 'Q1', reverse: false, optionType: 'normal' },
   { id: 155, text: '我安于现状', factor: 'Q1', reverse: true, optionType: 'normal' },
-  
+
   // 因素Q2: 独立性 (11题)
   { id: 156, text: '我喜欢自己做决定', factor: 'Q2', reverse: false, optionType: 'normal' },
   { id: 157, text: '我喜欢团队合作', factor: 'Q2', reverse: true, optionType: 'normal' },
@@ -243,7 +334,7 @@ export const sixteenPFQuestions = [
   { id: 164, text: '我能承担个人责任', factor: 'Q2', reverse: false, optionType: 'normal' },
   { id: 165, text: '我随大流', factor: 'Q2', reverse: true, optionType: 'normal' },
   { id: 166, text: '我有主见', factor: 'Q2', reverse: false, optionType: 'normal' },
-  
+
   // 因素Q3: 自律性 (11题)
   { id: 167, text: '我能约束自己', factor: 'Q3', reverse: false, optionType: 'normal' },
   { id: 168, text: '我容易放纵自己', factor: 'Q3', reverse: true, optionType: 'normal' },
@@ -256,7 +347,7 @@ export const sixteenPFQuestions = [
   { id: 175, text: '我注重形象', factor: 'Q3', reverse: false, optionType: 'normal' },
   { id: 176, text: '我不拘小节', factor: 'Q3', reverse: true, optionType: 'normal' },
   { id: 177, text: '我自律性强', factor: 'Q3', reverse: false, optionType: 'normal' },
-  
+
   // 因素Q4: 紧张性 (10题)
   { id: 178, text: '我经常感到紧张', factor: 'Q4', reverse: false, optionType: 'frequency' },
   { id: 179, text: '我很放松', factor: 'Q4', reverse: true, optionType: 'normal' },
@@ -270,8 +361,12 @@ export const sixteenPFQuestions = [
   { id: 187, text: '我能轻松应对压力', factor: 'Q4', reverse: true, optionType: 'normal' }
 ]
 
-// 获取题目对应的选项类型
+// 获取题目对应的选项类型（支持自定义选项）
 export function getOptionsForQuestion(question: typeof sixteenPFQuestions[0]) {
+  // 如果题目定义了自定义选项，优先使用
+  if ('options' in question && question.options) {
+    return question.options
+  }
   if (question.optionType === 'choice') {
     return sixteenPFOptionsChoice
   } else if (question.optionType === 'frequency') {
@@ -293,4 +388,11 @@ export function getQuestionFactor(id: number): string | null {
 export function isReverseQuestion(id: number): boolean {
   const question = sixteenPFQuestions.find(q => q.id === id)
   return question?.reverse || false
+}
+
+// 获取推理题（因素B）的正确答案
+export function getCorrectAnswer(id: number): number | null {
+  const question = sixteenPFQuestions.find(q => q.id === id)
+  const q = question as typeof sixteenPFQuestions[0] & { correctAnswer?: number }
+  return q?.correctAnswer ?? null
 }

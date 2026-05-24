@@ -310,8 +310,8 @@ export default defineEventHandler(async (event) => {
     mbti: {
     id: 'mbti',
     title: 'MBTI 人格测试',
-    description: '本测试基于荣格的心理类型理论，帮助您了解自己在四个维度上的偏好。',
-    instructions: '请根据您的真实情况和第一反应选择最符合的选项。每个题目没有对错之分，请选择最贴近您日常行为的描述。共93题，大约需要12-15分钟。',
+    description: '本测试基于荣格的心理类型理论，结合情境假设与日常问题，帮助您了解自己在四个维度上的偏好以及内在/外在性格差异。',
+    instructions: '请根据您的真实情况和第一反应选择最符合的选项。每个题目没有对错之分，请选择最贴近您日常行为和情境反应的描述。共109题，大约需要15-18分钟。',
     questions: mbtiQuestions.map(q => ({
       id: q.id,
       text: q.text,
