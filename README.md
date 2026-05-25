@@ -1,75 +1,204 @@
-# Nuxt Minimal Starter
+<div align="center">
 
-Look at the [Nuxt documentation](https://nuxt.com/docs/getting-started/introduction) to learn more.
+<h1>心灵驿站</h1>
 
-## Setup
+![License](https://img.shields.io/badge/license-AGPL--3.0-blue.svg)
+![Nuxt](https://img.shields.io/badge/Nuxt-4.4.5-00DC82?logo=nuxt.js)
+![Vue](https://img.shields.io/badge/Vue-3.5.34-4FC08D?logo=vue.js)
+![TypeScript](https://img.shields.io/badge/TypeScript-5.3.0-3178C6?logo=typescript)
+![Tailwind CSS](https://img.shields.io/badge/Tailwind-4.3.0-06B6D4?logo=tailwindcss)
 
-Make sure to install dependencies:
+**[在线体验](https://pt.cldery.com)** | **[更新日志](https://github.com/ClouderyStudio/psychology/commits/main/)** | **[反馈建议](https://github.com/ClouderyStudio/psychology/issues)**
+
+一个基于 Nuxt 3 开发的**专业心理健康测评平台**，提供多种标准化的心理测评量表，帮助用户了解自己的心理状态。
+
+</div>
+
+---
+
+## 📋 项目简介
+
+心灵驿站是一个开源的、注重隐私保护的心理测评工具集。平台采用**纯前端本地存储**方案，所有测评数据仅保存在用户浏览器中，**不会上传到任何服务器**，确保用户隐私安全。
+
+### ✨ 核心特性
+
+| 特性                | 说明                                  |
+| ------------------- | ------------------------------------- |
+| 🔒 **隐私优先**     | 所有数据本地存储，不上传服务器        |
+| 📊 **专业量表**     | 收录多种国际通用心理测评量表          |
+| 🎨 **舒适界面**     | 温暖配色 + 多种优质字体，阅读体验友好 |
+| 📱 **响应式设计**   | 完美适配手机、平板、电脑              |
+| ⚡ **答题进度保存** | 自动保存答题进度，刷新/退出不丢失     |
+| 📈 **可视化报告**   | 测评结果图表化展示，结果一目了然      |
+
+---
+
+## 🧠 收录量表
+
+### 症状筛查类
+
+| 量表                     | 题数 | 说明                             |
+| ------------------------ | ---- | -------------------------------- |
+| **PHQ-9 抑郁筛查量表**   | 9题  | 评估过去两周内的抑郁症状严重程度 |
+| **GAD-7 焦虑筛查量表**   | 7题  | 评估广泛性焦虑症状的严重程度     |
+| **SCL-90 症状自评量表**  | 90题 | 全面评估9个维度的心理症状        |
+| **SDS 抑郁自评量表**     | 20题 | 标准化抑郁症状自评工具           |
+| **SAS 焦虑自评量表**     | 20题 | 标准化焦虑症状自评工具           |
+| **BDC 伯恩斯抑郁症清单** | 15题 | 快速评估抑郁情绪程度             |
+
+### 人格性格类
+
+| 量表                    | 题数  | 说明                         |
+| ----------------------- | ----- | ---------------------------- |
+| **MBTI 人格测试**       | 109题 | 评估16种人格类型             |
+| **气质类型测试**        | 60题  | 评估胆汁质、多血质等四种气质 |
+| **16PF 卡特尔人格问卷** | 187题 | 评估16种人格特质             |
+| **EPQ 艾森克人格问卷**  | 88题  | 评估内外向、神经质等维度     |
+| **EPQ-RSC 简式量表**    | 48题  | 艾森克人格问卷中国简版       |
+
+### 专项量表类
+
+| 量表                          | 题数 | 说明                       |
+| ----------------------------- | ---- | -------------------------- |
+| **PSS 压力感知量表**          | 10题 | 评估过去一个月的压力水平   |
+| **BPNS 基本心理需求满足量表** | 21题 | 评估自主、胜任、归属需求   |
+| **IPIP-EIS 情绪智力量表**     | 64题 | 评估情绪智力的7个维度      |
+| **情绪稳定性测试**            | 30题 | 评估情绪稳定程度和抗压能力 |
+| **SCCS 自我和谐量表**         | 35题 | 评估自我与经验的关系       |
+
+---
+
+## 🛠️ 技术栈
+
+| 技术             | 说明                       |
+| ---------------- | -------------------------- |
+| **Nuxt.js 4**    | Vue.js 全栈框架            |
+| **Vue 3**        | 渐进式 JavaScript 框架     |
+| **TypeScript**   | 类型安全的 JavaScript 超集 |
+| **Tailwind CSS** | 实用优先的 CSS 框架        |
+| **Pinia**        | Vue 状态管理               |
+| **Nitro**        | 高性能服务端引擎           |
+
+### 字体设计
+
+- **HarmonyOS Sans**：正文字体，无级字重，优雅可读
+- **Recursive Mono**：等宽字体，代码友好
+
+---
+
+## 🚀 快速开始
+
+### 环境要求
+
+- Node.js 20.0 或更高版本
+- npm / yarn / pnpm (我们更推荐 **pnpm**)
+
+### 安装步骤
 
 ```bash
-# npm
-npm install
+# 1. 克隆项目
+git clone https://github.com/ClouderyStudio/psychology.git
+cd psychology
 
-# pnpm
-pnpm install
+# 2. 安装依赖
+pnpm i
 
-# yarn
-yarn install
-
-# bun
-bun install
-```
-
-## Development Server
-
-Start the development server on `http://localhost:3000`:
-
-```bash
-# npm
-npm run dev
-
-# pnpm
+# 3. 启动开发服务器
 pnpm dev
 
-# yarn
-yarn dev
-
-# bun
-bun run dev
-```
-
-## Production
-
-Build the application for production:
-
-```bash
-# npm
-npm run build
-
-# pnpm
+# 4. 构建生产版本
 pnpm build
-
-# yarn
-yarn build
-
-# bun
-bun run build
-```
-
-Locally preview production build:
-
-```bash
-# npm
-npm run preview
-
-# pnpm
 pnpm preview
-
-# yarn
-yarn preview
-
-# bun
-bun run preview
 ```
 
-Check out the [deployment documentation](https://nuxt.com/docs/getting-started/deployment) for more information.
+### 开发命令
+
+| 命令                       | 说明           |
+| -------------------------- | -------------- |
+| `pnpm dev`                 | 启动开发服务器 |
+| `pnpm build`               | 构建生产版本   |
+| `pnpm generate`            | 生成静态站点   |
+| `pnpm preview`             | 预览生产构建   |
+| `pnpm generate-build-time` | 生成构建时间   |
+
+---
+
+## 📁 项目结构
+
+```
+psychology/
+├── app/
+|   ├── assets/              # 静态资源
+|   ├── components/          # Vue 组件
+|   ├── composables/         # 组合式函数
+|   ├── pages/               # 页面
+|   │   ├── index.vue        # 首页（量表列表）
+|   │   ├── about.vue        # 关于页面
+|   │   ├── resources.vue    # 心理资源
+|   │   ├── test/[id].vue    # 答题页面
+|   │   └── result.vue       # 结果页面
+|   ├── plugins/             # 插件
+|   ├── stores/              # Pinia 状态管理
+|   └── types/               # TypeScript 类型定义
+├── server/                  # 服务端
+│   ├── api/                 # API 路由
+│   └── utils/               # 工具函数（评分规则、题库）
+├── public/                  # 公共资源
+└── scripts/                 # 脚本
+
+```
+
+---
+
+## 📄 开源协议
+
+本项目采用 **AGPL-3.0 许可证**。
+
+### 📌 友情提示
+
+- ✅ 个人学习、非营利组织、公益项目**完全免费使用**
+- ✅ 欢迎基于本项目进行二次开发，但修改后**必须开源**并保留版权信息
+- ✅ 如果你将本项目用于**网络服务**（如 SaaS 平台），**必须公开服务端源码**
+- 📧 如有商业合作需求，欢迎联系：**admin@cldery.com**
+
+> AGPL-3.0 是一个“强传染性”的开源协议，旨在保护开源生态的健康发展。
+> 选择这个协议，是希望这份劳动成果能被共享而非垄断。
+
+---
+
+## 👥 贡献者
+
+| 角色           | 姓名   | 贡献                                 |
+| -------------- | ------ | ------------------------------------ |
+| **开发者**     | 柒屹   | 全栈开发、UI设计、量表整合、技术架构 |
+| **开发者**     | 云竹   | 全栈开发、量表内容、体验优化         |
+| **主要支持者** | Olivia | 主要用户体验顾问                     |
+
+欢迎提交 Issue 和 Pull Request！
+
+---
+
+## 🙏 致谢
+
+- 量表内容参考自专业心理学文献和公开资料
+- 字体来自 Google Fonts 和 HarmonyOS 开源字体
+- 感谢所有为本项目提供支持和建议的朋友
+
+---
+
+## 📞 紧急求助
+
+如果您有自伤、伤人的念头，或感到无法应对当前困境，请立即拨打：
+
+| 热线                           | 号码         | 说明                             |
+| ------------------------------ | ------------ | -------------------------------- |
+| **希望24热线**                 | 400-161-9995 | 全国心理危机干预热线，24小时服务 |
+| **北京心理危机研究与干预中心** | 010-82951332 | 专业心理危机干预服务             |
+
+---
+
+<div align="center">
+
+**用 ❤️ 打造 · 为心理健康贡献力量 · 云术工作室**
+
+</div>
