@@ -1,19 +1,18 @@
 <template>
   <div class="min-h-screen py-12" style="background-color: var(--bg);">
     <div class="container mx-auto px-4 max-w-4xl">
-      <div class="rounded-2xl overflow-hidden" 
-           style="background-color: var(--card-bg); box-shadow: var(--shadow-lg);">
-        
+      <div class="rounded-2xl overflow-hidden" style="background-color: var(--card-bg); box-shadow: var(--shadow-lg);">
+
         <!-- 头部 -->
         <div class="p-8 text-center" style="background-color: var(--primary); color: white;">
           <div class="inline-flex items-center justify-center w-20 h-20 rounded-full mb-4"
-               style="background-color: rgba(255,255,255,0.2);">
+            style="background-color: rgba(255,255,255,0.2);">
             <span class="text-4xl">🧠</span>
           </div>
           <h1 class="text-3xl font-bold mb-2">关于我们</h1>
           <p style="color: rgba(255,255,255,0.9);">专业的心理健康测评平台</p>
         </div>
-        
+
         <!-- 内容 -->
         <div class="p-8 space-y-6">
           <!-- 我们的使命 -->
@@ -26,7 +25,7 @@
               及时发现潜在的心理健康问题，并引导用户寻求适当的帮助。
             </p>
           </div>
-          
+
           <!-- 专业量表 -->
           <div>
             <h2 class="text-2xl font-bold mb-3 flex items-center gap-2" style="color: var(--text);">
@@ -38,7 +37,7 @@
               均由专业心理学团队审核和维护。
             </p>
           </div>
-          
+
           <!-- 隐私保护 -->
           <div>
             <h2 class="text-2xl font-bold mb-3 flex items-center gap-2" style="color: var(--text);">
@@ -49,8 +48,8 @@
               不会上传到服务器，确保您的心理健康信息完全由您自己掌控。
             </p>
           </div>
-          
-           <!-- 作者与贡献者 -->
+
+          <!-- 作者与贡献者 -->
           <div>
             <h2 class="text-2xl font-bold mb-4 flex items-center gap-2" style="color: var(--text);">
               <span>👥</span> 致谢
@@ -59,13 +58,15 @@
             <div class="developer-card p-4 rounded-lg mb-4" style="background-color: var(--primary-light);">
               <div class="flex items-center gap-4">
                 <div class="w-16 h-16 rounded-full flex items-center justify-center text-3xl"
-                     style="background-color: var(--primary); color: white;">
-                  <img src="https://q1.qlogo.cn/g?b=qq&nk=2675256772&s=100" class="w-full h-full rounded-full object-cover" />
+                  style="background-color: var(--primary); color: white;">
+                  <img src="https://q1.qlogo.cn/g?b=qq&nk=2675256772&s=100"
+                    class="w-full h-full rounded-full object-cover" />
                 </div>
                 <div>
                   <div class="flex items-center gap-2 flex-wrap">
                     <span class="text-xl font-bold" style="color: var(--text);">柒屹</span>
-                    <span class="text-xs px-2 py-1 rounded-full" style="background-color: var(--primary); color: white;">❤ 作者 & 主开发者</span>
+                    <span class="text-xs px-2 py-1 rounded-full"
+                      style="background-color: var(--primary); color: white;">❤ 作者 & 主开发者</span>
                   </div>
                   <p class="text-sm mt-1" style="color: var(--text-secondary);">
                     全栈开发 · UI设计 · 量表整合 · 技术架构
@@ -80,13 +81,15 @@
             <div class="developer-card p-4 rounded-lg mb-4" style="background-color: var(--bg);">
               <div class="flex items-center gap-4">
                 <div class="w-16 h-16 rounded-full flex items-center justify-center text-3xl"
-                     style="background-color: var(--special); color: white;">
-                  <img src="https://q1.qlogo.cn/g?b=qq&nk=2457483710&s=100" class="w-full h-full rounded-full object-cover" />
+                  style="background-color: var(--special); color: white;">
+                  <img src="https://q1.qlogo.cn/g?b=qq&nk=2457483710&s=100"
+                    class="w-full h-full rounded-full object-cover" />
                 </div>
                 <div>
                   <div class="flex items-center gap-2 flex-wrap">
                     <span class="text-xl font-bold" style="color: var(--text);">云竹</span>
-                    <span class="text-xs px-2 py-1 rounded-full" style="background-color: var(--special); color: white;">开发者</span>
+                    <span class="text-xs px-2 py-1 rounded-full"
+                      style="background-color: var(--special); color: white;">开发者</span>
                   </div>
                   <p class="text-sm mt-1" style="color: var(--text-secondary);">
                     前端开发 · 量表内容 · 体验优化
@@ -97,17 +100,19 @@
                 </div>
               </div>
             </div>
-            
+
             <div class="supporter-card p-4 rounded-lg" style="background-color: var(--bg);">
               <div class="flex items-center gap-4">
                 <div class="w-16 h-16 rounded-full flex items-center justify-center text-3xl"
-                     style="background-color: var(--personality); color: white;">
-                  <img src="https://q1.qlogo.cn/g?b=qq&nk=1770464015&s=100" class="w-full h-full rounded-full object-cover" />
+                  style="background-color: var(--personality); color: white;">
+                  <img src="https://q1.qlogo.cn/g?b=qq&nk=1770464015&s=100"
+                    class="w-full h-full rounded-full object-cover" />
                 </div>
                 <div>
                   <div class="flex items-center gap-2 flex-wrap">
                     <span class="text-xl font-bold" style="color: var(--text);">Olivia</span>
-                    <span class="text-xs px-2 py-1 rounded-full" style="background-color: var(--personality); color: white;">❤ 主要支持者</span>
+                    <span class="text-xs px-2 py-1 rounded-full"
+                      style="background-color: var(--personality); color: white;">❤ 主要支持者</span>
                   </div>
                   <p class="text-sm mt-1" style="color: var(--text-secondary);">
                     用户体验代表 · 提供宝贵反馈 · 鼓励和支持
@@ -115,7 +120,7 @@
                 </div>
               </div>
             </div>
-            
+
             <div class="mt-3 text-center text-xs" style="color: var(--text-muted);">
               感谢其他所有为本平台提供支持和建议的朋友们
             </div>
@@ -183,7 +188,7 @@
               </div>
             </div>
           </div>
-          
+
           <!-- 字体设计 -->
           <div>
             <h2 class="text-2xl font-bold mb-4 flex items-center gap-2" style="color: var(--text);">
@@ -197,16 +202,18 @@
                     <span class="text-xl">📝</span>
                     <span class="font-semibold" style="color: var(--text);">HarmonyOS Sans</span>
                   </div>
-                  <span class="text-xs px-2 py-1 rounded" style="background-color: var(--primary-light); color: var(--primary);">正文字体</span>
+                  <span class="text-xs px-2 py-1 rounded"
+                    style="background-color: var(--primary-light); color: var(--primary);">正文字体</span>
                 </div>
-                <p class="text-sm" style="color: var(--text-secondary);" :style="{ fontFamily: 'HarmonyOS Sans, sans-serif' }">
+                <p class="text-sm" style="color: var(--text-secondary);"
+                  :style="{ fontFamily: 'HarmonyOS Sans, sans-serif' }">
                   这是一段使用 HarmonyOS Sans 字体的示例文字。HarmonyOS Sans 是华为开发的无级字重可变字体，具有优雅的造型和优秀的可读性，适合长时间阅读。
                 </p>
                 <div class="mt-2 text-xs" style="color: var(--text-muted);">
                   字体特点：无级字重、优化曲线、国际化支持
                 </div>
               </div>
-              
+
               <!-- Recursive Mono -->
               <div class="font-card p-4 rounded-lg" style="background-color: var(--bg);">
                 <div class="flex items-center justify-between mb-2">
@@ -214,11 +221,12 @@
                     <span class="text-xl">⌨️</span>
                     <span class="font-semibold" style="color: var(--text);">Recursive Mono</span>
                   </div>
-                  <span class="text-xs px-2 py-1 rounded" style="background-color: var(--primary-light); color: var(--primary);">等宽字体</span>
+                  <span class="text-xs px-2 py-1 rounded"
+                    style="background-color: var(--primary-light); color: var(--primary);">等宽字体</span>
                 </div>
                 <p class="text-sm" style="color: var(--text-secondary);">
-                  Recursive Mono is a variable font that combines monospace and proportional styles. 
-                  <br/>
+                  Recursive Mono is a variable font that combines monospace and proportional styles.
+                  <br />
                   代码示例：const mbtiType = calculateMBTI(answers);
                 </p>
                 <div class="mt-2 text-xs" style="color: var(--text-muted);">
@@ -227,7 +235,7 @@
               </div>
             </div>
           </div>
-          
+
           <!-- 特色功能 -->
           <div>
             <h2 class="text-2xl font-bold mb-3 flex items-center gap-2" style="color: var(--text);">
@@ -264,7 +272,7 @@
               </div>
             </div>
           </div>
-          
+
           <!-- 免责声明 -->
           <div class="p-4 rounded-lg" style="background-color: var(--warning-bg);">
             <h3 class="font-semibold mb-2 flex items-center gap-2" style="color: var(--text);">
@@ -275,9 +283,10 @@
               如果您感到明显的心理困扰，请及时寻求专业心理咨询师或医生的帮助。
             </p>
           </div>
-          
+
           <!-- 紧急求助 -->
-          <div class="p-4 rounded-lg" style="background-color: var(--warning-bg); border-left: 4px solid var(--warning-border);">
+          <div class="p-4 rounded-lg"
+            style="background-color: var(--warning-bg); border-left: 4px solid var(--warning-border);">
             <h3 class="font-semibold mb-2 flex items-center gap-2" style="color: var(--text);">
               <span>📞</span> 紧急求助
             </h3>

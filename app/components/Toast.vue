@@ -49,9 +49,9 @@ const addToast = (options: {
     duration,
     startTime: Date.now()
   }
-  
+
   toasts.value.push(toast)
-  
+
   // 设置自动移除
   const timer = setTimeout(() => {
     removeToast(id)
@@ -88,7 +88,7 @@ onMounted(() => {
       }
     })
   }, 100)
-  
+
   onUnmounted(() => {
     clearInterval(interval)
   })
@@ -225,6 +225,7 @@ defineExpose({
     opacity: 0;
     transform: translateX(100%);
   }
+
   to {
     opacity: 1;
     transform: translateX(0);

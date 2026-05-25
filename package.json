@@ -10,10 +10,11 @@
     "postinstall": "nuxt prepare",
     "generate-build-time": "node scripts/generate-build-time.cjs"
   },
-  "packageManager": "pnpm@11.2.2",
+  "packageManager": "pnpm@11.3.0",
   "dependencies": {
     "@pinia/nuxt": "^0.11.3",
     "@tailwindcss/postcss": "^4.3.0",
+    "nprogress": "^0.2.0",
     "nuxt": "^4.4.5",
     "pinia": "^3.0.4",
     "tailwindcss": "^4.3.0",
@@ -21,6 +22,7 @@
     "vue-router": "^5.0.6"
   },
   "devDependencies": {
-    "@types/node": "^25.8.0"
+    "@types/node": "^25.8.0",
+    "@types/nprogress": "^0.2.3"
   }
 }
