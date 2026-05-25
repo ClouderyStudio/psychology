@@ -1,13 +1,14 @@
 import { ScoringResult } from "../score";
 
 // 气质类型评分函数
-export function scoreTemperament(answers: Record<number, number>): ScoringResult {
+export function scoreTemperament(
+  answers: Record<number, number>,
+): ScoringResult {
   // 初始化各维度分数
   let cholericScore = 0; // 胆汁质
   let sanguineScore = 0; // 多血质
   let phlegmaticScore = 0; // 粘液质
   let melancholicScore = 0; // 抑郁质
-
 
   // 各维度题目数量
   let cholericCount = 0;
@@ -17,13 +18,21 @@ export function scoreTemperament(answers: Record<number, number>): ScoringResult
 
   // 题目维度映射（基于题目ID和维度类型）
   // 胆汁质题号: 2,6,9,14,17,21,27,31,36,38,42,48,50,54,58
-  const cholericItems = [2, 6, 9, 14, 17, 21, 27, 31, 36, 38, 42, 48, 50, 54, 58];
+  const cholericItems = [
+    2, 6, 9, 14, 17, 21, 27, 31, 36, 38, 42, 48, 50, 54, 58,
+  ];
   // 多血质题号: 4,8,11,16,19,23,25,29,34,40,44,46,52,56,60
-  const sanguineItems = [4, 8, 11, 16, 19, 23, 25, 29, 34, 40, 44, 46, 52, 56, 60];
+  const sanguineItems = [
+    4, 8, 11, 16, 19, 23, 25, 29, 34, 40, 44, 46, 52, 56, 60,
+  ];
   // 粘液质题号: 1,7,10,13,18,22,26,30,33,39,43,45,49,55,57
-  const phlegmaticItems = [1, 7, 10, 13, 18, 22, 26, 30, 33, 39, 43, 45, 49, 55, 57];
+  const phlegmaticItems = [
+    1, 7, 10, 13, 18, 22, 26, 30, 33, 39, 43, 45, 49, 55, 57,
+  ];
   // 抑郁质题号: 3,5,12,15,20,24,28,32,35,37,41,47,51,53,59
-  const melancholicItems = [3, 5, 12, 15, 20, 24, 28, 32, 35, 37, 41, 47, 51, 53, 59];
+  const melancholicItems = [
+    3, 5, 12, 15, 20, 24, 28, 32, 35, 37, 41, 47, 51, 53, 59,
+  ];
 
   // 遍历所有答案计算分数
   Object.entries(answers).forEach(([qid, value]) => {
@@ -49,18 +58,18 @@ export function scoreTemperament(answers: Record<number, number>): ScoringResult
     choleric: cholericScore,
     sanguine: sanguineScore,
     phlegmatic: phlegmaticScore,
-    melancholic: melancholicScore
+    melancholic: melancholicScore,
   };
 
   // 确定主要气质类型
   const sortedTypes = Object.entries(scores).sort((a, b) => b[1] - a[1]);
-  const [primaryType, primaryScore] = sortedTypes[0] ?? ['choleric', 0];
-  const [secondaryType, secondaryScore] = sortedTypes[1] ?? ['sanguine', 0];
+  const [primaryType, primaryScore] = sortedTypes[0] ?? ["choleric", 0];
+  const [secondaryType, secondaryScore] = sortedTypes[1] ?? ["sanguine", 0];
   const scoreDiff = primaryScore - secondaryScore;
 
   // 判断气质类型
-  let temperamentType = '';
-  let temperamentDesc = '';
+  let temperamentType = "";
+  let temperamentDesc = "";
 
   if (scoreDiff >= 4) {
     // 单一气质类型
@@ -69,24 +78,31 @@ export function scoreTemperament(answers: Record<number, number>): ScoringResult
   } else if (scoreDiff >= 0) {
     // 混合气质类型
     temperamentType = `${getTemperamentName(primaryType)}-${getTemperamentName(secondaryType)}混合型`;
-    temperamentDesc = getMixedTemperamentDescription(primaryType, secondaryType);
+    temperamentDesc = getMixedTemperamentDescription(
+      primaryType,
+      secondaryType,
+    );
   } else {
     temperamentType = getTemperamentName(primaryType);
     temperamentDesc = getTemperamentDescription(primaryType, false);
   }
 
   // 判断典型性
-  let typicalLevel = '';
+  let typicalLevel = "";
   if (primaryScore > 20) {
-    typicalLevel = '典型';
+    typicalLevel = "典型";
   } else if (primaryScore >= 10) {
-    typicalLevel = '一般';
+    typicalLevel = "一般";
   } else {
-    typicalLevel = '倾向';
+    typicalLevel = "倾向";
   }
 
   // 生成详细建议
-  const suggestion = generateTemperamentSuggestion(scores, temperamentType, typicalLevel);
+  const suggestion = generateTemperamentSuggestion(
+    scores,
+    temperamentType,
+    typicalLevel,
+  );
 
   return {
     totalScore: primaryScore,
@@ -95,35 +111,55 @@ export function scoreTemperament(answers: Record<number, number>): ScoringResult
     suggestion: suggestion,
     severity: 0,
     dimensionScores: {
-      choleric: { score: cholericScore, name: '胆汁质', icon: '🔥', desc: getTemperamentShortDesc('choleric') },
-      sanguine: { score: sanguineScore, name: '多血质', icon: '💧', desc: getTemperamentShortDesc('sanguine') },
-      phlegmatic: { score: phlegmaticScore, name: '粘液质', icon: '🌱', desc: getTemperamentShortDesc('phlegmatic') },
-      melancholic: { score: melancholicScore, name: '抑郁质', icon: '🌙', desc: getTemperamentShortDesc('melancholic') },
+      choleric: {
+        score: cholericScore,
+        name: "胆汁质",
+        icon: "🔥",
+        desc: getTemperamentShortDesc("choleric"),
+      },
+      sanguine: {
+        score: sanguineScore,
+        name: "多血质",
+        icon: "💧",
+        desc: getTemperamentShortDesc("sanguine"),
+      },
+      phlegmatic: {
+        score: phlegmaticScore,
+        name: "粘液质",
+        icon: "🌱",
+        desc: getTemperamentShortDesc("phlegmatic"),
+      },
+      melancholic: {
+        score: melancholicScore,
+        name: "抑郁质",
+        icon: "🌙",
+        desc: getTemperamentShortDesc("melancholic"),
+      },
       primaryType: primaryType,
       secondaryType: secondaryType,
-      typicalLevel: typicalLevel
-    }
+      typicalLevel: typicalLevel,
+    },
   };
 }
 // 获取气质类型名称
 function getTemperamentName(type: string): string {
   const names: Record<string, string> = {
-    choleric: '胆汁质',
-    sanguine: '多血质',
-    phlegmatic: '粘液质',
-    melancholic: '抑郁质'
+    choleric: "胆汁质",
+    sanguine: "多血质",
+    phlegmatic: "粘液质",
+    melancholic: "抑郁质",
   };
   return names[type] || type;
 }
 // 获取气质类型简要描述
 function getTemperamentShortDesc(type: string): string {
   const descs: Record<string, string> = {
-    choleric: '精力旺盛、热情直率、易冲动',
-    sanguine: '活泼好动、善于交际、反应快',
-    phlegmatic: '安静稳重、耐心细致、有自制力',
-    melancholic: '敏感细腻、思考深入、情绪体验深刻'
+    choleric: "精力旺盛、热情直率、易冲动",
+    sanguine: "活泼好动、善于交际、反应快",
+    phlegmatic: "安静稳重、耐心细致、有自制力",
+    melancholic: "敏感细腻、思考深入、情绪体验深刻",
   };
-  return descs[type] || '';
+  return descs[type] || "";
 }
 // 获取气质类型详细描述
 function getTemperamentDescription(type: string, isTypical: boolean): string {
@@ -140,7 +176,7 @@ function getTemperamentDescription(type: string, isTypical: boolean): string {
 • 具有挑战性和竞争性的环境
 • 如：企业家、运动员、军人、外科医生
 
-${isTypical ? '【发展建议】\n• 学习情绪管理，培养耐心\n• 做事前多思考，避免冲动决策\n• 发挥热情和行动力的优势' : ''}`,
+${isTypical ? "【发展建议】\n• 学习情绪管理，培养耐心\n• 做事前多思考，避免冲动决策\n• 发挥热情和行动力的优势" : ""}`,
 
     sanguine: `【多血质特点】
 • 活泼好动，反应灵敏，善于交际
@@ -154,7 +190,7 @@ ${isTypical ? '【发展建议】\n• 学习情绪管理，培养耐心\n• �
 • 变化多样的工作环境
 • 如：销售、公关、教师、导游、主持人
 
-${isTypical ? '【发展建议】\n• 培养专注力，做事有始有终\n• 深化专业知识，避免浅尝辄止\n• 发挥社交优势和适应能力' : ''}`,
+${isTypical ? "【发展建议】\n• 培养专注力，做事有始有终\n• 深化专业知识，避免浅尝辄止\n• 发挥社交优势和适应能力" : ""}`,
 
     phlegmatic: `【粘液质特点】
 • 安静稳重，反应沉稳，情绪不易外露
@@ -168,7 +204,7 @@ ${isTypical ? '【发展建议】\n• 培养专注力，做事有始有终\n•
 • 规律性强的环境
 • 如：会计、图书管理员、科研人员、工程师
 
-${isTypical ? '【发展建议】\n• 适当培养灵活性，接受新事物\n• 提高决策速度，避免过度犹豫\n• 发挥稳重和持久的优势' : ''}`,
+${isTypical ? "【发展建议】\n• 适当培养灵活性，接受新事物\n• 提高决策速度，避免过度犹豫\n• 发挥稳重和持久的优势" : ""}`,
 
     melancholic: `【抑郁质特点】
 • 情感体验深刻、持久，内心世界丰富
@@ -182,9 +218,9 @@ ${isTypical ? '【发展建议】\n• 适当培养灵活性，接受新事物\n
 • 安静独立的工作环境
 • 如：艺术家、作家、心理咨询师、设计师
 
-${isTypical ? '【发展建议】\n• 学会调节情绪，培养乐观心态\n• 增强自信心，减少过度思虑\n• 发挥敏感和创造力的优势' : ''}`
+${isTypical ? "【发展建议】\n• 学会调节情绪，培养乐观心态\n• 增强自信心，减少过度思虑\n• 发挥敏感和创造力的优势" : ""}`,
   };
-  return descriptions[type] || '';
+  return descriptions[type] || "";
 }
 // 获取混合气质类型描述
 function getMixedTemperamentDescription(type1: string, type2: string): string {
@@ -207,7 +243,7 @@ function getMixedTemperamentDescription(type1: string, type2: string): string {
 function generateTemperamentSuggestion(
   scores: Record<string, number>,
   type: string,
-  typicalLevel: string
+  typicalLevel: string,
 ): string {
   let suggestion = `【气质类型分析结果】
 

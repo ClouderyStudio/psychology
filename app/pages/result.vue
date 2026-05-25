@@ -6,16 +6,16 @@
           <div class="text-2xl" style="color: var(--text-secondary);">加载中...</div>
         </div>
 
-        <div v-else-if="result" class="rounded-2xl overflow-hidden" 
-            style="background-color: var(--card-bg); box-shadow: var(--shadow-xl);">
-          
+        <div v-else-if="result" class="rounded-2xl overflow-hidden"
+          style="background-color: var(--card-bg); box-shadow: var(--shadow-xl);">
+
           <!-- 结果头部 -->
           <div class="p-8 text-center" :style="{ backgroundColor: getHeaderColor() }">
             <h2 class="text-3xl font-bold mb-2 text-white">测评结果</h2>
             <p class="text-white/90">{{ result.testTitle }}</p>
             <p class="text-sm mt-2 text-white/70">测评时间：{{ formattedTime }}</p>
           </div>
-          
+
           <!-- 分数展示 -->
           <div class="p-8">
             <div v-if="isMBTI" class="mbti-report space-y-6">
@@ -49,10 +49,8 @@
                   </div>
                 </div>
                 <div class="mbti-type-strip">
-                  <div v-for="(type, index) in mbtiReport?.nineGrid || []"
-                      :key="`${type}-${index}`"
-                      class="mbti-type-pill"
-                      :class="{ 'is-active': type === result.level }">
+                  <div v-for="(type, index) in mbtiReport?.nineGrid || []" :key="`${type}-${index}`"
+                    class="mbti-type-pill" :class="{ 'is-active': type === result.level }">
                     {{ type }}
                   </div>
                 </div>
@@ -137,24 +135,30 @@
                 <div class="grid md:grid-cols-2 gap-3 mb-5">
                   <div class="mbti-identity-box">
                     <p class="text-sm mb-1" style="color: var(--text-muted);">内在性格</p>
-                    <div class="text-3xl font-bold" style="color: var(--text);">{{ mbtiReport?.innerOuterProfile?.innerType }}</div>
-                    <p class="text-sm mt-1" style="color: var(--text-secondary);">{{ mbtiReport?.innerOuterProfile?.innerTypeName }}</p>
+                    <div class="text-3xl font-bold" style="color: var(--text);">{{
+                      mbtiReport?.innerOuterProfile?.innerType }}</div>
+                    <p class="text-sm mt-1" style="color: var(--text-secondary);">{{
+                      mbtiReport?.innerOuterProfile?.innerTypeName }}</p>
                   </div>
                   <div class="mbti-identity-box">
                     <p class="text-sm mb-1" style="color: var(--text-muted);">外在表现</p>
-                    <div class="text-3xl font-bold" style="color: var(--text);">{{ mbtiReport?.innerOuterProfile?.outerType }}</div>
-                    <p class="text-sm mt-1" style="color: var(--text-secondary);">{{ mbtiReport?.innerOuterProfile?.outerTypeName }}</p>
+                    <div class="text-3xl font-bold" style="color: var(--text);">{{
+                      mbtiReport?.innerOuterProfile?.outerType }}</div>
+                    <p class="text-sm mt-1" style="color: var(--text-secondary);">{{
+                      mbtiReport?.innerOuterProfile?.outerTypeName }}</p>
                   </div>
                 </div>
 
                 <div class="space-y-3">
-                  <div v-for="item in mbtiReport?.innerOuterProfile?.dimensions || []" :key="item.key" class="mbti-inner-row">
+                  <div v-for="item in mbtiReport?.innerOuterProfile?.dimensions || []" :key="item.key"
+                    class="mbti-inner-row">
                     <div class="flex items-center justify-between gap-3 mb-3">
                       <div>
                         <div class="font-semibold" style="color: var(--text);">{{ item.title }}</div>
                         <p class="text-xs" style="color: var(--text-muted);">{{ item.left }} / {{ item.right }}</p>
                       </div>
-                      <span class="text-xs px-2 py-1 rounded-full" :style="{ backgroundColor: item.aligned ? 'var(--primary-light)' : 'var(--warning-bg)', color: item.aligned ? 'var(--personality)' : 'var(--warning-text)' }">
+                      <span class="text-xs px-2 py-1 rounded-full"
+                        :style="{ backgroundColor: item.aligned ? 'var(--primary-light)' : 'var(--warning-bg)', color: item.aligned ? 'var(--personality)' : 'var(--warning-text)' }">
                         {{ item.aligned ? '一致' : '有差异' }}
                       </span>
                     </div>
@@ -217,7 +221,8 @@
                 <div class="grid md:grid-cols-2 gap-4">
                   <div v-for="role in mbtiReport?.functionStack?.roles || []" :key="role.title" class="mbti-role-box">
                     <p class="text-sm" style="color: var(--text-muted);">{{ role.title }} | {{ role.subtitle }}</p>
-                    <div class="text-2xl font-bold my-2" style="color: var(--text);">{{ role.label }}{{ role.function }}</div>
+                    <div class="text-2xl font-bold my-2" style="color: var(--text);">{{ role.label }}{{ role.function }}
+                    </div>
                     <p class="text-sm mb-2" style="color: var(--text-secondary);">{{ role.description }}</p>
                     <p class="text-sm font-medium" style="color: var(--personality);">它关心的是：{{ role.question }}</p>
                   </div>
@@ -234,15 +239,10 @@
             <div v-if="canScore" class="text-center mb-8">
               <div class="inline-block relative">
                 <svg class="w-48 h-48">
-                  <circle cx="96" cy="96" r="88" 
-                          stroke="var(--primary-light)" stroke-width="12" fill="none"/>
-                  <circle cx="96" cy="96" r="88" 
-                          :stroke="severityColor"
-                          stroke-width="12" fill="none"
-                          :stroke-dasharray="`${circumference} ${circumference}`"
-                          :stroke-dashoffset="strokeDashoffset"
-                          transform="rotate(-90 96 96)"
-                          class="transition-all duration-1000"/>
+                  <circle cx="96" cy="96" r="88" stroke="var(--primary-light)" stroke-width="12" fill="none" />
+                  <circle cx="96" cy="96" r="88" :stroke="severityColor" stroke-width="12" fill="none"
+                    :stroke-dasharray="`${circumference} ${circumference}`" :stroke-dashoffset="strokeDashoffset"
+                    transform="rotate(-90 96 96)" class="transition-all duration-1000" />
                 </svg>
                 <div class="absolute inset-0 flex flex-col items-center justify-center">
                   <span class="text-5xl font-bold" style="color: var(--text);">{{ displayScore }}</span>
@@ -250,36 +250,33 @@
                 </div>
               </div>
             </div>
-            
+
             <!-- 等级标签 -->
             <div v-if="!isMBTI" class="text-center mb-6">
               <div v-if="!canScore" class="text-2xl font-semibold mb-2" style="color: var(--text);">你的测评结果是:</div>
 
-              <div class="inline-block px-6 py-2 rounded-full text-lg font-semibold"
-                  :class="levelColorClass">
+              <div class="inline-block px-6 py-2 rounded-full text-lg font-semibold" :class="levelColorClass">
                 {{ result.level }}
               </div>
             </div>
-            
+
             <!-- SCL-90 维度详情 -->
-            <div v-if="isSCL90 && hasDimensionScores" 
-                class="mt-6 p-4 rounded-lg"
-                style="background-color: var(--bg);">
+            <div v-if="isSCL90 && hasDimensionScores" class="mt-6 p-4 rounded-lg" style="background-color: var(--bg);">
               <h3 class="font-bold text-lg mb-4 flex items-center" style="color: var(--text);">
                 <span class="text-2xl mr-2">📊</span>
                 SCL-90 各维度评分详情
               </h3>
               <div class="space-y-3">
-                <div v-for="dim in scl90DimensionList" :key="dim.key"
-                    class="p-3 rounded-lg"
-                    :style="{ backgroundColor: 'var(--card-bg)' }">
+                <div v-for="dim in scl90DimensionList" :key="dim.key" class="p-3 rounded-lg"
+                  :style="{ backgroundColor: 'var(--card-bg)' }">
                   <div class="flex justify-between items-center mb-2">
                     <div class="flex items-center gap-2">
                       <span>{{ dim.icon }}</span>
                       <span class="font-medium" style="color: var(--text);">{{ dim.name }}</span>
                     </div>
                     <div class="flex items-center gap-2">
-                      <span class="text-sm" style="color: var(--text-secondary);">均分: {{ getDimAverage(dim.key) }}</span>
+                      <span class="text-sm" style="color: var(--text-secondary);">均分: {{ getDimAverage(dim.key)
+                        }}</span>
                       <span class="text-xs px-2 py-1 rounded-full" :class="getLevelClass(getDimLevel(dim.key))">
                         {{ getDimLevel(dim.key) }}
                       </span>
@@ -287,14 +284,14 @@
                   </div>
                   <div class="w-full rounded-full h-2" style="background-color: var(--primary-light);">
                     <div class="rounded-full h-2 transition-all duration-500"
-                        :style="{ width: getDimPercentage(dim.key) + '%', backgroundColor: getLevelColor(getDimLevel(dim.key)) }">
+                      :style="{ width: getDimPercentage(dim.key) + '%', backgroundColor: getLevelColor(getDimLevel(dim.key)) }">
                     </div>
                   </div>
                   <p class="text-xs mt-2" style="color: var(--text-muted);">{{ getDimDescription(dim.key) }}</p>
                 </div>
               </div>
             </div>
-            
+
             <!-- 建议内容 -->
             <div v-if="!isMBTI" class="rounded-lg p-6 mb-6" style="background-color: var(--primary-light);">
               <h3 class="font-bold text-lg mb-3 flex items-center" style="color: var(--text);">
@@ -303,7 +300,7 @@
               </h3>
               <p class="whitespace-pre-line" style="color: var(--text-secondary);">{{ result.suggestion }}</p>
             </div>
-            
+
             <!-- 严重程度指示器 -->
             <div class="mb-8" v-if="canScore">
               <div class="flex justify-between text-sm mb-2" style="color: var(--text-secondary);">
@@ -311,15 +308,14 @@
                 <span>{{ Math.round(severityPercent) }}%</span>
               </div>
               <div class="w-full rounded-full h-3" style="background-color: var(--primary-light);">
-                <div class="rounded-full h-3 transition-all duration-1000"
-                    :class="severityBarClass"
-                    :style="{ width: `${severityPercent}%` }"></div>
+                <div class="rounded-full h-3 transition-all duration-1000" :class="severityBarClass"
+                  :style="{ width: `${severityPercent}%` }"></div>
               </div>
             </div>
-            
+
             <!-- 资源链接 -->
             <div v-if="!isMBTI" class="rounded-lg p-4 mb-6"
-                style="background-color: var(--warning-bg); border-left: 4px solid var(--warning-border);">
+              style="background-color: var(--warning-bg); border-left: 4px solid var(--warning-border);">
               <h4 class="font-semibold mb-2" style="color: var(--text);">📞 需要帮助？</h4>
               <p class="text-sm" style="color: var(--warning-text);">
                 如果您感到困扰，可以联系以下专业资源：<br>
@@ -328,31 +324,28 @@
                 • 简单心理、壹心理等平台寻求专业咨询
               </p>
             </div>
-            
+
             <!-- 操作按钮 -->
             <div class="flex gap-4">
-              <button @click="retakeTest" 
-                      class="flex-1 py-3 rounded-lg font-semibold transition-all"
-                      :style="{ backgroundColor: 'var(--primary)', color: 'white', boxShadow: 'var(--shadow-sm)' }"
-                      @mouseenter="setButtonBg($event, 'var(--primary-dark)')"
-                      @mouseleave="setButtonBg($event, 'var(--primary)')">
+              <button @click="retakeTest" class="flex-1 py-3 rounded-lg font-semibold transition-all"
+                :style="{ backgroundColor: 'var(--primary)', color: 'white', boxShadow: 'var(--shadow-sm)' }"
+                @mouseenter="setButtonBg($event, 'var(--primary-dark)')"
+                @mouseleave="setButtonBg($event, 'var(--primary)')">
                 重新测评
               </button>
-              <button @click="goHome" 
-                      class="flex-1 py-3 rounded-lg font-semibold transition-all"
-                      style="background-color: var(--card-bg); color: var(--text-secondary); box-shadow: var(--shadow-sm);"
-                      @mouseenter="setButtonBg($event, 'var(--bg)')"
-                      @mouseleave="setButtonBg($event, 'var(--card-bg)')">
+              <button @click="goHome" class="flex-1 py-3 rounded-lg font-semibold transition-all"
+                style="background-color: var(--card-bg); color: var(--text-secondary); box-shadow: var(--shadow-sm);"
+                @mouseenter="setButtonBg($event, 'var(--bg)')" @mouseleave="setButtonBg($event, 'var(--card-bg)')">
                 返回首页
               </button>
             </div>
           </div>
         </div>
-        
+
         <div v-else class="text-center py-12">
           <div class="text-2xl" style="color: var(--text-secondary);">未找到测评结果</div>
-          <button @click="goHome" class="mt-4 px-6 py-2 rounded-lg" 
-                  style="background-color: var(--primary); color: white;">
+          <button @click="goHome" class="mt-4 px-6 py-2 rounded-lg"
+            style="background-color: var(--primary); color: white;">
             返回首页
           </button>
         </div>
@@ -394,9 +387,9 @@ const loadResult = async () => {
       console.error('从 sessionStorage 加载结果失败:', e)
     }
   }
-  
+
   result.value = resultData
-  
+
   try {
     const testId = result.value?.testId
     if (!testId) return

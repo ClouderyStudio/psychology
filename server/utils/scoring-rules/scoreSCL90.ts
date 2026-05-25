@@ -1,7 +1,7 @@
 import { calculateDimensionScores, scl90Dimensions } from "#imports";
 import { ScoringResult } from "../score";
 
-export type SCL90DimensionKey = keyof typeof scl90Dimensions
+export type SCL90DimensionKey = keyof typeof scl90Dimensions;
 
 // 更新 SCL-90 评分函数
 export function scoreSCL90(answers: Record<number, number>): ScoringResult {
@@ -15,16 +15,23 @@ export function scoreSCL90(answers: Record<number, number>): ScoringResult {
   const dimensionScores = calculateDimensionScores(answers);
 
   // 找出得分最高的三个维度
-  const sortedDimensions = (Object.entries(dimensionScores) as Array<[SCL90DimensionKey, { total: number; average: number; level: string; description: string; }]>)
+  const sortedDimensions = (
+    Object.entries(dimensionScores) as Array<
+      [
+        SCL90DimensionKey,
+        { total: number; average: number; level: string; description: string },
+      ]
+    >
+  )
     .sort((a, b) => b[1].average - a[1].average)
     .slice(0, 3);
 
   // 判断总体严重程度
-  let level = '';
-  let suggestion = '';
+  let level = "";
+  let suggestion = "";
 
   if (averageScore < 2) {
-    level = '心理健康状况良好';
+    level = "心理健康状况良好";
     suggestion = `您的SCL-90总均分为 ${averageScore.toFixed(2)} 分，处于正常范围。
 
 【总体评估】
@@ -38,11 +45,11 @@ ${generateDimensionReport(dimensionScores, sortedDimensions)}
 • 培养积极乐观的心态
 • 与他人保持良好的社交关系`;
   } else if (averageScore < 2.5) {
-    level = '轻度心理困扰';
+    level = "轻度心理困扰";
     suggestion = `您的SCL-90总均分为 ${averageScore.toFixed(2)} 分，处于轻度水平。
 
 【总体评估】
-您可能存在轻度的心理困扰，主要表现为${sortedDimensions.map(d => scl90Dimensions[d[0]]?.name || d[0]).join('、')}等方面的问题。
+您可能存在轻度的心理困扰，主要表现为${sortedDimensions.map((d) => scl90Dimensions[d[0]]?.name || d[0]).join("、")}等方面的问题。
 
 ${generateDimensionReport(dimensionScores, sortedDimensions)}
 
@@ -53,11 +60,11 @@ ${generateDimensionReport(dimensionScores, sortedDimensions)}
 • 学习放松技巧，如深呼吸、冥想
 • 培养兴趣爱好，丰富生活`;
   } else if (averageScore < 3.5) {
-    level = '中度心理困扰';
+    level = "中度心理困扰";
     suggestion = `您的SCL-90总均分为 ${averageScore.toFixed(2)} 分，处于中度水平。
 
 【总体评估】
-您存在中度心理困扰，${sortedDimensions.map(d => scl90Dimensions[d[0]]?.name || d[0]).join('、')}等方面的症状较为明显，需要引起重视。
+您存在中度心理困扰，${sortedDimensions.map((d) => scl90Dimensions[d[0]]?.name || d[0]).join("、")}等方面的症状较为明显，需要引起重视。
 
 ${generateDimensionReport(dimensionScores, sortedDimensions)}
 
@@ -69,7 +76,7 @@ ${generateDimensionReport(dimensionScores, sortedDimensions)}
 • 保持规律作息和健康饮食
 • 避免自我责备，接纳当前状态`;
   } else {
-    level = '重度心理困扰';
+    level = "重度心理困扰";
     suggestion = `您的SCL-90总均分为 ${averageScore.toFixed(2)} 分，处于重度水平。
 
 【总体评估】
@@ -94,37 +101,62 @@ ${generateDimensionReport(dimensionScores, sortedDimensions)}
     severity: averageScore / 5,
     rawScore: totalScore,
     standardizedScore: averageScore,
-    dimensionScores: dimensionScores
+    dimensionScores: dimensionScores,
   };
 }
 // 生成维度报告
 function generateDimensionReport(
-  dimensionScores: Partial<Record<SCL90DimensionKey, { total: number; average: number; level: string; description: string; }>>,
-  topDimensions: Array<[SCL90DimensionKey, { average: number; level: string; }]>
+  dimensionScores: Partial<
+    Record<
+      SCL90DimensionKey,
+      { total: number; average: number; level: string; description: string }
+    >
+  >,
+  topDimensions: Array<[SCL90DimensionKey, { average: number; level: string }]>,
 ): string {
-  let report = '\n【各维度得分详情】\n\n';
+  let report = "\n【各维度得分详情】\n\n";
 
-  const dimensionOrder: SCL90DimensionKey[] = ['somatization', 'obsessive', 'interpersonal', 'depression', 'anxiety', 'hostility', 'phobic', 'paranoid', 'psychotic', 'additional'];
+  const dimensionOrder: SCL90DimensionKey[] = [
+    "somatization",
+    "obsessive",
+    "interpersonal",
+    "depression",
+    "anxiety",
+    "hostility",
+    "phobic",
+    "paranoid",
+    "psychotic",
+    "additional",
+  ];
 
   for (const dimKey of dimensionOrder) {
     const dimInfo = scl90Dimensions[dimKey];
     const score = dimensionScores[dimKey];
     if (dimInfo && score) {
-      const levelIcon = score.level === '很高' ? '🔴' : score.level === '较高' ? '🟠' : score.level === '中等' ? '🟡' : score.level === '较低' ? '🟢' : '⚪';
+      const levelIcon =
+        score.level === "很高"
+          ? "🔴"
+          : score.level === "较高"
+            ? "🟠"
+            : score.level === "中等"
+              ? "🟡"
+              : score.level === "较低"
+                ? "🟢"
+                : "⚪";
       report += `${levelIcon} ${dimInfo.icon} ${dimInfo.name}（${dimInfo.nameEn}）\n`;
       report += `   均分：${score.average} 分（${score.level}）\n`;
       report += `   ${dimInfo.description}\n`;
       if (score.average >= 2.5) {
         report += `   ⚠️ ${dimInfo.highScore}\n`;
       }
-      report += '\n';
+      report += "\n";
     }
   }
 
-  report += '【重点关注维度】\n';
+  report += "【重点关注维度】\n";
   for (const [i, [dimKey, score]] of topDimensions.entries()) {
     const dimInfo = scl90Dimensions[dimKey];
-    report += `${i + 1}. ${dimInfo?.icon || '📌'} ${dimInfo?.name || dimKey}：${score.average}分（${score.level}）\n`;
+    report += `${i + 1}. ${dimInfo?.icon || "📌"} ${dimInfo?.name || dimKey}：${score.average}分（${score.level}）\n`;
   }
 
   return report;

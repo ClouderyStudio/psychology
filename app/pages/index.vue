@@ -1,11 +1,11 @@
 <template>
   <div class="min-h-screen" style="background-color: var(--bg);">
     <div class="container mx-auto px-4 py-8">
-      
+
       <!-- Hero 区域 -->
       <section class="hero mb-12 text-center">
         <div class="hero-badge inline-flex items-center gap-2 px-4 py-2 rounded-full mb-6"
-             style="background-color: var(--primary-light); color: var(--primary);">
+          style="background-color: var(--primary-light); color: var(--primary);">
           <span>🧭</span>
           <span class="text-sm font-medium">心理健康自评工具集</span>
         </div>
@@ -19,19 +19,22 @@
 
       <!-- 统计条 -->
       <div class="stats-row grid grid-cols-1 sm:grid-cols-3 gap-4 max-w-2xl mx-auto mb-12">
-        <div class="stat-item text-center p-4 rounded-xl" style="background-color: var(--card-bg); box-shadow: var(--shadow-sm);">
+        <div class="stat-item text-center p-4 rounded-xl"
+          style="background-color: var(--card-bg); box-shadow: var(--shadow-sm);">
           <div class="stat-num text-3xl md:text-4xl font-bold mb-1" style="color: var(--primary);">
             {{ tests.length }}
           </div>
           <div class="stat-label text-sm" style="color: var(--text-secondary);">专业量表</div>
         </div>
-        <div class="stat-item text-center p-4 rounded-xl" style="background-color: var(--card-bg); box-shadow: var(--shadow-sm);">
+        <div class="stat-item text-center p-4 rounded-xl"
+          style="background-color: var(--card-bg); box-shadow: var(--shadow-sm);">
           <div class="stat-num text-3xl md:text-4xl font-bold mb-1" style="color: var(--primary);">
             {{ uniqueCategories }}
           </div>
           <div class="stat-label text-sm" style="color: var(--text-secondary);">分类维度</div>
         </div>
-        <div class="stat-item text-center p-4 rounded-xl" style="background-color: var(--card-bg); box-shadow: var(--shadow-sm);">
+        <div class="stat-item text-center p-4 rounded-xl"
+          style="background-color: var(--card-bg); box-shadow: var(--shadow-sm);">
           <div class="stat-num text-3xl md:text-4xl font-bold mb-1" style="color: var(--primary);">
             2-20
           </div>
@@ -41,12 +44,13 @@
 
       <!-- 最后一次结果卡片 -->
       <div v-if="lastResult" class="last-result-card max-w-2xl mx-auto mb-8">
-        <div class="relative rounded-xl overflow-hidden transition-all duration-300 hover:transform hover:-translate-y-1"
-             style="background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%); box-shadow: var(--shadow-lg);">
+        <div
+          class="relative rounded-xl overflow-hidden transition-all duration-300 hover:transform hover:-translate-y-1"
+          style="background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%); box-shadow: var(--shadow-lg);">
           <div class="absolute top-2 right-2">
-            <button @click="clearLastResult" 
-                    class="w-6 h-6 rounded-full flex items-center justify-center text-white/70 hover:text-white hover:bg-white/20 transition-colors"
-                    title="关闭">
+            <button @click="clearLastResult"
+              class="w-6 h-6 rounded-full flex items-center justify-center text-white/70 hover:text-white hover:bg-white/20 transition-colors"
+              title="关闭">
               ✕
             </button>
           </div>
@@ -65,8 +69,8 @@
                 <div class="text-sm text-white/80">{{ lastResult.level }}</div>
               </div>
             </div>
-            <button @click="viewLastResult" 
-                    class="mt-3 w-full py-2 rounded-lg font-medium transition-all bg-white/20 hover:bg-white/30">
+            <button @click="viewLastResult"
+              class="mt-3 w-full py-2 rounded-lg font-medium transition-all bg-white/20 hover:bg-white/30">
               查看详细报告 →
             </button>
           </div>
@@ -75,7 +79,7 @@
 
       <!-- 温馨提示 -->
       <div class="notice-banner rounded-lg p-4 mb-8 max-w-4xl mx-auto"
-           style="background-color: var(--warning-bg); border-left: 4px solid var(--warning-border);">
+        style="background-color: var(--warning-bg); border-left: 4px solid var(--warning-border);">
         <div class="flex gap-3">
           <span class="notice-icon text-xl">⚠️</span>
           <div class="text-sm" style="color: var(--warning-text);">
@@ -88,54 +92,51 @@
 
       <!-- 分类筛选按钮 -->
       <div class="filter-section flex flex-wrap justify-center gap-3 mb-8">
-        <button v-for="category in categories" :key="category.id"
-                @click="activeFilter = category.id"
-                class="filter-btn px-5 py-2 rounded-full transition-all duration-200 text-sm font-medium"
-                :class="{ 'active': activeFilter === category.id }"
-                :style="getFilterButtonStyle(category.id)">
+        <button v-for="category in categories" :key="category.id" @click="activeFilter = category.id"
+          class="filter-btn px-5 py-2 rounded-full transition-all duration-200 text-sm font-medium"
+          :class="{ 'active': activeFilter === category.id }" :style="getFilterButtonStyle(category.id)">
           <span class="filter-dot inline-block w-2 h-2 rounded-full mr-2"
-                :style="{ backgroundColor: category.color }"></span>
+            :style="{ backgroundColor: category.color }"></span>
           {{ category.name }}
         </button>
       </div>
 
       <!-- 量表卡片网格 -->
       <div class="cards-grid grid md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-6xl mx-auto">
-        <div v-for="test in filteredTests" :key="test.id" 
-             class="card rounded-xl transition-all duration-300 hover:transform hover:-translate-y-1 overflow-hidden flex flex-col"
-             :style="{ boxShadow: 'var(--shadow-md)' }">
-          
+        <div v-for="test in filteredTests" :key="test.id"
+          class="card rounded-xl transition-all duration-300 hover:transform hover:-translate-y-1 overflow-hidden flex flex-col"
+          :style="{ boxShadow: 'var(--shadow-md)' }">
+
           <!-- 卡片顶部色带 -->
           <div class="h-2" :style="{ backgroundColor: getCategoryColor(test.category) }"></div>
-          
+
           <!-- 卡片内容 -->
           <div class="p-6 flex flex-col flex-grow" :style="{ backgroundColor: 'var(--card-bg)' }">
             <!-- 分类标签 -->
             <div class="flex items-start justify-between mb-3">
               <span class="category-tag px-3 py-1 rounded-full text-xs font-medium"
-                    :style="{ backgroundColor: getCategoryTagColor(test.category), color: '#ffffff' }">
+                :style="{ backgroundColor: getCategoryTagColor(test.category), color: '#ffffff' }">
                 {{ getCategoryName(test.category) }}
               </span>
               <span class="duration-badge px-2 py-1 rounded text-xs"
-                    :style="{ backgroundColor: 'var(--' + test.category + '-light)', color: 'var(--' + test.category + ')' }">
+                :style="{ backgroundColor: 'var(--' + test.category + '-light)', color: 'var(--' + test.category + ')' }">
                 {{ test.duration }}
               </span>
             </div>
-            
+
             <h3 class="text-xl font-bold mb-1" style="color: var(--text);">{{ test.title }}</h3>
-            
+
             <p class="text-xs mb-3" style="color: var(--text-muted);">
               {{ test.englishName }}
             </p>
-            
+
             <p class="text-sm mb-4 leading-relaxed min-h-[60px]" style="color: var(--text-secondary);">
               {{ test.description }}
             </p>
-            
+
             <div v-if="unfinishedTests[test.id]" class="min-h-[42px] pb-2">
-              <div
-                   class="mb-3 p-2 rounded-lg text-xs text-center"
-                   style="background-color: var(--warning-bg); color: var(--warning-text);">
+              <div class="mb-3 p-2 rounded-lg text-xs text-center"
+                style="background-color: var(--warning-bg); color: var(--warning-text);">
                 📌 已完成 {{ unfinishedCounts[test.id] }}/{{ test.questionsCount }} 题
               </div>
             </div>
@@ -144,48 +145,46 @@
               <span>📝 {{ test.questionsCount }} 题</span>
               <div>
                 <span v-for="tag in test.tags" :key="tag" class="tag px-2 py-1 rounded-full text-xs mr-2"
-                      :style="{ backgroundColor: 'var(--' + test.category + '-light)', color: 'var(--' + test.category + ')' }">
+                  :style="{ backgroundColor: 'var(--' + test.category + '-light)', color: 'var(--' + test.category + ')' }">
                   {{ tag }}
                 </span>
               </div>
             </div>
-            
+
             <!-- 按钮区域 -->
             <div class="flex gap-2 pt-2 min-h-[44px]">
-              <button @click="startTest(test.id, false)" 
-                      class="flex-1 py-2.5 rounded-lg font-semibold transition-all text-sm"
-                      :style="{ backgroundColor: getButtonColor(test.category), color: 'white' }"
-                      @mouseenter="e => e.target.style.backgroundColor = getButtonHoverColor(test.category)"
-                      @mouseleave="e => e.target.style.backgroundColor = getButtonColor(test.category)">
+              <button @click="startTest(test.id, false)"
+                class="flex-1 py-2.5 rounded-lg font-semibold transition-all text-sm"
+                :style="{ backgroundColor: getButtonColor(test.category), color: 'white' }"
+                @mouseenter="e => e.target.style.backgroundColor = getButtonHoverColor(test.category)"
+                @mouseleave="e => e.target.style.backgroundColor = getButtonColor(test.category)">
                 {{ unfinishedTests[test.id] ? '继续测评' : '开始测评' }}
               </button>
-              
-              <button v-if="unfinishedTests[test.id]" 
-                      @click="startTest(test.id, true)" 
-                      class="px-4 py-2.5 rounded-lg font-semibold transition-all text-sm"
-                      style="background-color: var(--card-bg); color: var(--text-secondary); box-shadow: var(--shadow-sm);"
-                      @mouseenter="e => e.target.style.backgroundColor = 'var(--bg)'"
-                      @mouseleave="e => e.target.style.backgroundColor = 'var(--card-bg)'">
+
+              <button v-if="unfinishedTests[test.id]" @click="startTest(test.id, true)"
+                class="px-4 py-2.5 rounded-lg font-semibold transition-all text-sm"
+                style="background-color: var(--card-bg); color: var(--text-secondary); box-shadow: var(--shadow-sm);"
+                @mouseenter="e => e.target.style.backgroundColor = 'var(--bg)'"
+                @mouseleave="e => e.target.style.backgroundColor = 'var(--card-bg)'">
                 重置
               </button>
             </div>
           </div>
         </div>
       </div>
-      
+
       <!-- 无结果提示 -->
       <div v-if="filteredTests.length === 0" class="no-results text-center py-12">
         <div class="no-results-emoji text-6xl mb-4">🔍</div>
         <p style="color: var(--text-secondary);">该分类下暂无量表，请切换筛选条件查看</p>
       </div>
-      
+
       <!-- 清空所有进度按钮 -->
       <div v-if="hasAnyUnfinished" class="text-center mt-8">
-        <button @click="clearAllProgress" 
-                class="px-4 py-2 rounded-lg text-sm transition-colors"
-                style="background-color: var(--card-bg); color: var(--text-muted); box-shadow: var(--shadow-sm);"
-                @mouseenter="e => e.target.style.backgroundColor = 'var(--bg)'"
-                @mouseleave="e => e.target.style.backgroundColor = 'var(--card-bg)'">
+        <button @click="clearAllProgress" class="px-4 py-2 rounded-lg text-sm transition-colors"
+          style="background-color: var(--card-bg); color: var(--text-muted); box-shadow: var(--shadow-sm);"
+          @mouseenter="e => e.target.style.backgroundColor = 'var(--bg)'"
+          @mouseleave="e => e.target.style.backgroundColor = 'var(--card-bg)'">
           🗑️ 清空所有测评进度
         </button>
       </div>
@@ -304,7 +303,7 @@ const getFilterButtonStyle = (categoryId: string) => {
 // 在客户端检查未完成的测评
 const refreshUnfinishedStatus = () => {
   if (typeof window === 'undefined') return
-  
+
   tests.value.forEach((test: TestListItem) => {
     try {
       const saved = sessionStorage.getItem(`test_${test.id}_answers`)
@@ -334,7 +333,7 @@ let isNavigating = false
 function startTest(testId: string, reset: boolean = false) {
   if (isNavigating) return
   isNavigating = true
-  
+
   if (reset && typeof window !== 'undefined') {
     $confirm({
       title: '确认重置',
@@ -357,11 +356,11 @@ function startTest(testId: string, reset: boolean = false) {
     // 检查是否有保存的进度
     const saved = sessionStorage.getItem(`test_${testId}_answers`)
     if (saved) {
-        answerStore.setCurrentTest(testId)
-        router.push(`/test/${testId}`)
-        setTimeout(() => {
-          isNavigating = false
-        }, 500)
+      answerStore.setCurrentTest(testId)
+      router.push(`/test/${testId}`)
+      setTimeout(() => {
+        isNavigating = false
+      }, 500)
     } else {
       answerStore.setCurrentTest(testId)
       router.push(`/test/${testId}`)
@@ -445,7 +444,7 @@ const refreshLastResult = () => {
 onMounted(() => {
   refreshUnfinishedStatus()
   loadLastResult()
-  
+
   window.addEventListener('storage', (e) => {
     if (e.key && e.key.startsWith('test_') && e.key.endsWith('_answers')) {
       refreshUnfinishedStatus()
@@ -454,25 +453,25 @@ onMounted(() => {
       refreshLastResult()
     }
   })
-  
+
   window.addEventListener('clearAllProgress', () => {
     refreshUnfinishedStatus()
   })
-  
+
   window.addEventListener('refreshProgress', () => {
     refreshUnfinishedStatus()
   })
-  
+
   window.addEventListener('newResult', () => {
     refreshLastResult()
   })
 })
 
 onUnmounted(() => {
-  window.removeEventListener('storage', () => {})
-  window.removeEventListener('clearAllProgress', () => {})
-  window.removeEventListener('refreshProgress', () => {})
-  window.removeEventListener('newResult', () => {})
+  window.removeEventListener('storage', () => { })
+  window.removeEventListener('clearAllProgress', () => { })
+  window.removeEventListener('refreshProgress', () => { })
+  window.removeEventListener('newResult', () => { })
 })
 // 如果加载失败
 if (error.value) {
