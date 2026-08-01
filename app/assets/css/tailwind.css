@@ -65,6 +65,88 @@
     --warning-bg: #fef9f0;
     --warning-border: #f0d89c;
     --warning-text: #8b6d3b;
+
+    /* 阴影 */
+    --shadow-sm: 0 1px 3px rgba(58, 53, 64, 0.08);
+    --shadow-lg: 0 8px 24px rgba(58, 53, 64, 0.12);
+    --shadow-xl: 0 12px 36px rgba(58, 53, 64, 0.16);
+
+    /* 遮罩层 */
+    --overlay-bg: rgba(58, 53, 64, 0.5);
+  }
+
+  [data-theme="dark"] {
+    --bg: #0f0f1a;
+    --card-bg: #1a1a2e;
+    --text: #e8e4ec;
+    --text-secondary: #a09aaa;
+    --text-muted: #6b6372;
+    --border: #2a2a4a;
+
+    /* 主色调 */
+    --primary: #7eb8cc;
+    --primary-light: #1a2e3a;
+    --primary-dark: #a3d2e0;
+
+    /* 症状筛查 - 蓝色系 */
+    --symptom: #7eb8cc;
+    --symptom-light: #1a2e3a;
+    --symptom-dark: #a3d2e0;
+    --symptom-tag: #1e3a4a;
+
+    /* 人格性格 - 紫色系 */
+    --personality: #a99bb8;
+    --personality-light: #1e1a2e;
+    --personality-dark: #c4b8d6;
+    --personality-tag: #2a1e3a;
+
+    /* 专项量表 - 绿色系 */
+    --special: #7eac8f;
+    --special-light: #1a2a20;
+    --special-dark: #a0c8ae;
+    --special-tag: #1e3628;
+
+    --disharmony: #7eb8cc;
+    --disharmony-light: #1a2e3a;
+    --disharmony-dark: #a3d2e0;
+
+    --flexibility: #7eac8f;
+    --flexibility-light: #1a2a20;
+    --flexibility-dark: #a0c8ae;
+
+    --rigidity: #a99bb8;
+    --rigidity-light: #1e1a2e;
+    --rigidity-dark: #c4b8d6;
+
+    /* 气质类型颜色 */
+    --choleric: #e89278;
+    --choleric-light: #2a1a16;
+    --choleric-dark: #f0b09e;
+
+    --sanguine: #9ec4a8;
+    --sanguine-light: #1a2a20;
+    --sanguine-dark: #bcdabe;
+
+    --phlegmatic: #8aacc8;
+    --phlegmatic-light: #1a222e;
+    --phlegmatic-dark: #a8c4da;
+
+    --melancholic: #c89aaa;
+    --melancholic-light: #2a1a20;
+    --melancholic-dark: #dab8c4;
+
+    /* 警告色 */
+    --warning-bg: #2a2415;
+    --warning-border: #8a7d55;
+    --warning-text: #d4b76a;
+
+    /* 阴影 - 暗色模式下使用亮边而非暗影 */
+    --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.3);
+    --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.4);
+    --shadow-xl: 0 12px 36px rgba(0, 0, 0, 0.5);
+
+    /* 遮罩层 */
+    --overlay-bg: rgba(0, 0, 0, 0.6);
   }
 }
 

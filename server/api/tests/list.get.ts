@@ -171,6 +171,26 @@ export default defineEventHandler(() => {
       category: "special",
       tags: ["情绪智力", "情绪管理", "共情能力"],
     },
+    {
+      id: "mdq",
+      title: "心境障碍问卷",
+      englishName: "Mood Disorder Questionnaire (MDQ)",
+      description: "双相谱系障碍的标准化筛查工具，评估躁狂/轻躁狂症状，包含15个问题",
+      duration: "约3-5分钟",
+      questionsCount: 15,
+      tags: ["躁狂", "双相筛查", "⚡快速评估"],
+      category: "symptom",
+    },
+    {
+      id: "asrm",
+      title: "Altman躁狂自评量表",
+      englishName: "Altman Self-Rating Mania Scale (ASRM)",
+      description: "快速评估过去一周的躁狂症状严重程度，包含5个核心问题",
+      duration: "约1-2分钟",
+      questionsCount: 5,
+      tags: ["躁狂", "情绪监测", "⚡快速评估"],
+      category: "symptom",
+    },
   ];
 
   return {

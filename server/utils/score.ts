@@ -67,6 +67,10 @@ export function calculateScore(input: ScoringInput): ScoringResult {
       return scoreBPNS(answers);
     case "ipip-eis":
       return scoreIPIPEIS(answers);
+    case "mdq":
+      return scoreMDQ(answers);
+    case "asrm":
+      return scoreASRM(answers);
     default:
       return {
         totalScore: 0,
@@ -624,5 +628,158 @@ function scoreEmotionalStability(
       maxScore: 60,
       scorePercentage: (totalScore / 60) * 100,
     },
+  };
+}
+
+// MDQ 心境障碍问卷评分
+function scoreMDQ(answers: Record<number, number>): ScoringResult {
+  // 题1-13：躁狂症状计数（每道"是"=1分）
+  let symptomCount = 0;
+  for (let i = 1; i <= 13; i++) {
+    symptomCount += getAnswerValue(answers, i);
+  }
+
+  // 题14：症状同时出现
+  const coOccurrence = getAnswerValue(answers, 14) === 1;
+
+  // 题15：功能损害
+  const functionalImpairment = getAnswerValue(answers, 15) === 1;
+
+  const isPositiveScreen = symptomCount >= 7 && coOccurrence && functionalImpairment;
+
+  let level = "";
+  let suggestion = "";
+  let severity = 0;
+
+  if (isPositiveScreen) {
+    level = "阳性筛查（建议进一步评估）";
+    severity = 0.8;
+    suggestion = `您在MDQ筛查中结果呈阳性（症状数：${symptomCount}/13）。
+
+【筛查说明】
+• 您报告了${symptomCount}种躁狂/轻躁狂症状，且这些症状在同一时间段内同时出现
+• 这些症状对您的社会功能造成了影响
+• MDQ阳性筛查提示可能存在双相谱系障碍
+
+【重要建议】
+• 本筛查不能替代临床诊断，强烈建议咨询精神科医生进行专业评估
+• 请向医生详细描述这些症状出现的时间、持续时长及对生活的影响
+• 双相障碍是可以有效治疗的，早期干预有助于改善预后
+• 如出现自伤或伤人念头，请立即拨打心理援助热线`;
+  } else if (symptomCount >= 7) {
+    level = "高症状（需关注）";
+    severity = 0.55;
+    suggestion = `您报告了${symptomCount}种躁狂/轻躁狂症状。
+
+【分析】
+• 症状数量达到阳性截断值，但可能未完全满足MDQ的辅助条件
+• 部分人在应激状态、物质使用或某些躯体疾病下也可能出现类似症状
+
+【建议】
+• 建议关注自身情绪变化，记录情绪波动的时间规律
+• 如症状持续或加重，建议咨询心理科或精神科医生
+• 保持规律作息，避免熬夜（睡眠剥夺可能诱发情绪波动）`;
+  } else if (symptomCount >= 4) {
+    level = "中症状（需观察）";
+    severity = 0.3;
+    suggestion = `您报告了${symptomCount}种躁狂/轻躁狂症状。
+
+【分析】
+• 症状数量低于典型双相障碍筛查截断值
+• 偶尔的精力旺盛或情绪波动在人群中较为常见
+
+【建议】
+• 继续观察自身情绪变化
+• 如症状频繁出现或逐步加重，建议关注
+• 保持健康的生活节律和情绪管理`;
+  } else {
+    level = "无明显躁狂症状";
+    severity = 0.05;
+    suggestion = `您报告的躁狂/轻躁狂症状较少（${symptomCount}/13）。
+
+【解读】
+• 目前未表现出明显的躁狂谱系症状
+• 偶尔的情绪波动属于正常现象
+
+【建议】
+• 保持健康的生活方式，规律运动和作息
+• 如仍有其他心理困扰，可尝试本平台其他相关量表`;
+  }
+
+  return {
+    totalScore: symptomCount,
+    maxScore: 13,
+    level,
+    suggestion,
+    severity,
+    dimensionScores: {
+      symptomCount,
+      coOccurrence,
+      functionalImpairment,
+      isPositiveScreen,
+    },
+  };
+}
+
+// ASRM Altman躁狂自评量表评分
+function scoreASRM(answers: Record<number, number>): ScoringResult {
+  let totalScore = 0;
+  for (let i = 1; i <= 5; i++) {
+    totalScore += getAnswerValue(answers, i);
+  }
+
+  const maxScore = 20;
+  let level = "";
+  let suggestion = "";
+  let severity = 0;
+
+  if (totalScore >= 10) {
+    level = "高度提示躁狂发作可能";
+    severity = 0.85;
+    suggestion = `您的ASRM得分为${totalScore}分（满分20分），提示存在明显的躁狂/轻躁狂症状。
+
+【结果解读】
+• 分数≥10分提示当前可能存在躁狂或轻躁狂发作
+• 可能表现为情绪异常高涨、精力过剩、睡眠需求减少、思维加速等
+
+【重要建议】
+• 强烈建议尽快咨询精神科医生进行专业评估
+• 向医生详细描述近一周的症状变化
+• 如伴有冲动行为、过度消费或冒险行为，请告知家人并寻求帮助
+• 躁狂发作需要专业医疗干预，请不要忽视`;
+  } else if (totalScore >= 6) {
+    level = "轻中度躁狂症状";
+    severity = 0.5;
+    suggestion = `您的ASRM得分为${totalScore}分（满分20分），提示存在轻中度躁狂症状。
+
+【结果解读】
+• 分数在6-9分之间提示可能存在轻躁狂状态
+• 可能比平时更加精力充沛、自信增强或睡眠减少
+
+【建议】
+• 建议关注情绪变化趋势，记录每日情绪和精力水平
+• 避免过度劳累和睡眠剥夺
+• 如症状持续超过4天或加重，建议咨询精神科医生
+• 减少咖啡因、酒精等刺激性物质的摄入`;
+  } else {
+    level = "无明显躁狂症状";
+    severity = 0.08;
+    suggestion = `您的ASRM得分为${totalScore}分（满分20分），目前在躁狂症状方面未见明显异常。
+
+【解读】
+• 您的情绪状态和精力水平在正常范围内
+• 偶尔的精力波动属于正常生理现象
+
+【建议】
+• 保持规律的生活作息和健康的情绪管理方式
+• 如仍有其他心理困扰，可尝试本平台其他相关量表`;
+  }
+
+  return {
+    totalScore,
+    maxScore,
+    level,
+    suggestion,
+    severity,
   };
 }
