@@ -21,29 +21,39 @@
               style="background-color: var(--card-bg);">
               <div class="py-1">
                 <button @click="quickCompleteAll"
-                  class="w-full px-4 py-2 text-left text-sm hover:bg-gray-100 transition-colors"
-                  style="color: var(--text);">
+                  class="w-full px-4 py-2 text-left text-sm transition-colors"
+                  style="color: var(--text);"
+                  @mouseenter="e => e.target.style.backgroundColor = 'var(--bg)'"
+                  @mouseleave="e => e.target.style.backgroundColor = 'transparent'">
                   🚀 随机完成所有题目
                 </button>
                 <button @click="quickCompleteCurrentPage"
-                  class="w-full px-4 py-2 text-left text-sm hover:bg-gray-100 transition-colors"
-                  style="color: var(--text);">
+                  class="w-full px-4 py-2 text-left text-sm transition-colors"
+                  style="color: var(--text);"
+                  @mouseenter="e => e.target.style.backgroundColor = 'var(--bg)'"
+                  @mouseleave="e => e.target.style.backgroundColor = 'transparent'">
                   📄 随机完成当前页
                 </button>
                 <button @click="completeCurrentPageWithFirstOption"
-                  class="w-full px-4 py-2 text-left text-sm hover:bg-gray-100 transition-colors"
-                  style="color: var(--text);">
+                  class="w-full px-4 py-2 text-left text-sm transition-colors"
+                  style="color: var(--text);"
+                  @mouseenter="e => e.target.style.backgroundColor = 'var(--bg)'"
+                  @mouseleave="e => e.target.style.backgroundColor = 'transparent'">
                   🛜 当前页全选第一个
                 </button>
                 <button @click="completeCurrentPageWithLastOption"
-                  class="w-full px-4 py-2 text-left text-sm hover:bg-gray-100 transition-colors"
-                  style="color: var(--text);">
+                  class="w-full px-4 py-2 text-left text-sm transition-colors"
+                  style="color: var(--text);"
+                  @mouseenter="e => e.target.style.backgroundColor = 'var(--bg)'"
+                  @mouseleave="e => e.target.style.backgroundColor = 'transparent'">
                   🔚 当前页全选最后一个
                 </button>
                 <hr class="my-1" style="border-color: var(--primary-light);">
                 <button @click="clearAllAnswers"
-                  class="w-full px-4 py-2 text-left text-sm hover:bg-gray-100 transition-colors"
-                  style="color: var(--warning-text);">
+                  class="w-full px-4 py-2 text-left text-sm transition-colors"
+                  style="color: var(--warning-text);"
+                  @mouseenter="e => e.target.style.backgroundColor = 'var(--bg)'"
+                  @mouseleave="e => e.target.style.backgroundColor = 'transparent'">
                   🗑️ 清除所有答案
                 </button>
               </div>

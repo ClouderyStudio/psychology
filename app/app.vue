@@ -11,6 +11,8 @@
 </template>
 
 <script setup>
+const { init } = useTheme()
+
 useHead({
   title: '心理测评中心',
   meta: [
@@ -18,4 +20,7 @@ useHead({
     { name: 'viewport', content: 'width=device-width, initial-scale=1' }
   ]
 })
+
+// 尽早初始化主题，避免闪烁
+init()
 </script>

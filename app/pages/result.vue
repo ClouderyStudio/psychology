@@ -675,7 +675,7 @@ function goHome() {
 .mbti-preference-item {
   border: 1px solid var(--border);
   border-radius: 10px;
-  background: rgba(255, 255, 255, 0.72);
+  background: var(--card-bg);
 }
 
 .mbti-hero-stats div {
