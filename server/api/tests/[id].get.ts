@@ -47,22 +47,6 @@ import {
   asrmOptions,
   asrmQuestions,
 } from "~~/server/utils/questions/asrm-questions";
-import {
-  gad7Options,
-  gad7Questions,
-} from "~~/server/utils/questions/gad7-questions";
-import {
-  phq9Options,
-  phq9Questions,
-} from "~~/server/utils/questions/phq9-questions";
-import {
-  pss10Options,
-  pss10Questions,
-} from "~~/server/utils/questions/pss10-questions";
-import {
-  rsesOptions,
-  rsesQuestions,
-} from "~~/server/utils/questions/rses-questions";
 
 // 通用的评分选项常量
 const LIKERT_4_OPTIONS: Option[] = [
@@ -778,72 +762,6 @@ export default defineEventHandler(async (event) => {
       })),
       scoringRules: {
         type: "asrm",
-      },
-    },
-    "gad-7": {
-      id: "gad-7",
-      title: "广泛性焦虑量表",
-      description:
-        "GAD-7是广泛性焦虑障碍的标准化筛查工具，用于评估过去两周内焦虑症状的严重程度。",
-      instructions:
-        '请回想过去两周内，以下症状困扰您的频率。每题有4个选项，从"完全不会"到"几乎每天"。共7题，大约需要1-2分钟。',
-      questions: gad7Questions.map((q) => ({
-        id: q.id,
-        text: q.text,
-        options: gad7Options,
-      })),
-      scoringRules: {
-        type: "gad-7",
-      },
-    },
-    "phq-9": {
-      id: "phq-9",
-      title: "患者健康问卷",
-      description:
-        "PHQ-9是抑郁症状筛查的金标准工具，用于评估过去两周内抑郁症状的严重程度。",
-      instructions:
-        '请回想过去两周内，以下问题困扰您的频率。每题有4个选项，从"完全不会"到"几乎每天"。共9题，大约需要2-3分钟。',
-      questions: phq9Questions.map((q) => ({
-        id: q.id,
-        text: q.text,
-        options: phq9Options,
-      })),
-      scoringRules: {
-        type: "phq-9",
-      },
-    },
-    "pss-10": {
-      id: "pss-10",
-      title: "压力知觉量表",
-      description:
-        "PSS-10用于评估个体在过去一个月中对生活压力的主观感受，是衡量压力水平的经典工具。",
-      instructions:
-        '请回想过去一个月内的感受和想法。每题有5个选项，从"从不"到"总是"。共10题，大约需要2-3分钟。',
-      questions: pss10Questions.map((q) => ({
-        id: q.id,
-        text: q.text,
-        options: pss10Options,
-        reversed: q.reverse,
-      })),
-      scoringRules: {
-        type: "pss-10",
-      },
-    },
-    rses: {
-      id: "rses",
-      title: "Rosenberg自尊量表",
-      description:
-        "RSES是测量整体自尊水平的经典工具，广泛应用于心理学研究和临床实践中。",
-      instructions:
-        '请根据您的真实感受，选择最符合的选项。每题有4个选项，从"非常不同意"到"非常同意"。共10题，大约需要1-2分钟。',
-      questions: rsesQuestions.map((q) => ({
-        id: q.id,
-        text: q.text,
-        options: rsesOptions,
-        reversed: q.reverse,
-      })),
-      scoringRules: {
-        type: "rses",
       },
     },
   };
