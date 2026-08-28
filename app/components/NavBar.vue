@@ -62,6 +62,11 @@
               </span>
             </div>
           </ClientOnly>
+
+          <!-- 内部测试入口 -->
+          <button @click="openInternalTest" class="internal-test-entry" title="内部测试">
+            <span>🔐</span> 内部测试
+          </button>
         </div>
 
         <!-- 移动端菜单按钮 -->
@@ -127,6 +132,11 @@
           心理资源
         </NuxtLink>
 
+        <!-- 移动端内部测试入口 -->
+        <button @click="openInternalTest" class="mobile-nav-link text-left">
+          🔐 内部测试
+        </button>
+
         <!-- 移动端主题切换 -->
         <button @click="toggleTheme"
           class="flex items-center gap-2 px-3 py-2 rounded-lg transition-colors w-full text-left"
@@ -167,6 +177,29 @@
         </ClientOnly>
       </div>
     </div>
+
+    <!-- 内部测试密码弹窗 -->
+    <Teleport to="body">
+      <Transition name="internal-fade">
+        <div v-if="internalTestOpen" class="internal-modal-overlay" @click="closeInternalTest">
+          <div class="internal-modal-card" @click.stop>
+            <div class="internal-modal-icon">🔐</div>
+            <div class="internal-modal-body">
+              <h3 class="internal-modal-title">内部测试</h3>
+              <p class="internal-modal-message">此区域仅限内部人员访问，请输入访问密码</p>
+              <input ref="passwordInput" v-model="internalPassword" type="password" class="internal-modal-input"
+                placeholder="请输入密码" autocomplete="off" @keyup.enter="submitInternalPassword" />
+              <p v-if="passwordError" class="internal-modal-error">⚠️ 密码错误，请重试</p>
+              <div class="internal-modal-buttons">
+                <button class="internal-modal-btn internal-modal-btn-cancel" @click="closeInternalTest">取消</button>
+                <button class="internal-modal-btn internal-modal-btn-confirm" @click="submitInternalPassword">进入</button>
+              </div>
+            </div>
+            <button class="internal-modal-close" @click="closeInternalTest">✕</button>
+          </div>
+        </div>
+      </Transition>
+    </Teleport>
   </nav>
 </template>
 
@@ -176,12 +209,47 @@ const route = useRoute()
 const { $toast, $confirm } = useNuxtApp()
 const { isDark, toggle: toggleTheme } = useTheme()
 
+// 内部测试访问凭证（cookie，供路由守卫校验，防止直接输入 URL 进入）
+const internalAuthed = useCookie('internal_authed')
+
 // 滚动状态
 const isScrolled = ref(false)
 // 移动端菜单状态
 const mobileMenuOpen = ref(false)
 // 进度面板状态
 const showProgressPanel = ref(false)
+// 内部测试弹窗状态
+const internalTestOpen = ref(false)
+const internalPassword = ref('')
+const passwordError = ref(false)
+const passwordInput = ref<HTMLInputElement | null>(null)
+const INTERNAL_TEST_PASSWORD = 'yunshu'
+
+// 打开内部测试弹窗
+const openInternalTest = () => {
+  internalPassword.value = ''
+  passwordError.value = false
+  internalTestOpen.value = true
+  nextTick(() => passwordInput.value?.focus())
+}
+
+// 关闭内部测试弹窗
+const closeInternalTest = () => {
+  internalTestOpen.value = false
+}
+
+// 提交密码：正确则跳转内部演示页
+const submitInternalPassword = () => {
+  if (internalPassword.value === INTERNAL_TEST_PASSWORD) {
+    internalAuthed.value = 'granted'
+    internalTestOpen.value = false
+    mobileMenuOpen.value = false
+    router.push('/exam')
+    return
+  }
+  passwordError.value = true
+  $toast.error('密码错误，请重试', '内部测试')
+}
 
 // 未完成测评数据
 const unfinishedTestsList = ref<Array<{ id: string; title: string; completed: number; total: number }>>([])
@@ -286,6 +354,12 @@ const loadUnfinishedTests = async () => {
 }
 
 onMounted(() => {
+  // 被内部测试路由守卫拦回首页时，自动弹出密码框
+  if (route.query.internal === '1') {
+    openInternalTest()
+    router.replace({ path: '/', query: {} })
+  }
+
   window.addEventListener('scroll', () => {
     isScrolled.value = window.scrollY > 10
   })
@@ -385,5 +459,190 @@ defineExpose({
   color: var(--primary);
   font-weight: 600;
   background-color: var(--primary-light);
+}
+
+/* 内部测试入口按钮 */
+.internal-test-entry {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin-left: 4px;
+  padding: 6px 12px;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-muted);
+  border: 1px dashed var(--primary-light);
+  background: none;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.internal-test-entry:hover {
+  color: var(--primary);
+  background-color: var(--primary-light);
+  border-color: var(--primary);
+}
+
+/* 内部测试密码弹窗 */
+.internal-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: var(--overlay-bg, rgba(58, 53, 64, 0.5));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  backdrop-filter: blur(4px);
+}
+
+.internal-modal-card {
+  background-color: var(--card-bg);
+  border-radius: 16px;
+  padding: 24px;
+  width: 100%;
+  max-width: 380px;
+  display: flex;
+  gap: 16px;
+  box-shadow: var(--shadow-xl);
+  animation: internal-modal-in 0.3s ease;
+}
+
+.internal-modal-icon {
+  font-size: 28px;
+  flex-shrink: 0;
+}
+
+.internal-modal-body {
+  flex: 1;
+}
+
+.internal-modal-title {
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--text);
+  margin-bottom: 8px;
+}
+
+.internal-modal-message {
+  font-size: 14px;
+  color: var(--text-secondary);
+  line-height: 1.5;
+  margin-bottom: 16px;
+}
+
+.internal-modal-input {
+  width: 100%;
+  padding: 10px 12px;
+  border-radius: 8px;
+  border: 1px solid var(--primary-light);
+  background-color: var(--bg);
+  color: var(--text);
+  font-size: 14px;
+  outline: none;
+  box-sizing: border-box;
+  transition: border-color 0.2s;
+}
+
+.internal-modal-input:focus {
+  border-color: var(--primary);
+}
+
+.internal-modal-error {
+  margin-top: 8px;
+  font-size: 13px;
+  color: var(--warning-text);
+}
+
+.internal-modal-buttons {
+  display: flex;
+  gap: 12px;
+  justify-content: flex-end;
+  margin-top: 16px;
+}
+
+.internal-modal-btn {
+  padding: 8px 20px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+  border: none;
+}
+
+.internal-modal-btn-confirm {
+  background-color: var(--primary);
+  color: white;
+}
+
+.internal-modal-btn-confirm:hover {
+  background-color: var(--primary-dark);
+}
+
+.internal-modal-btn-cancel {
+  background-color: var(--bg);
+  color: var(--text-secondary);
+}
+
+.internal-modal-btn-cancel:hover {
+  background-color: var(--primary-light);
+}
+
+.internal-modal-close {
+  background: none;
+  border: none;
+  font-size: 18px;
+  cursor: pointer;
+  color: var(--text-muted);
+  padding: 4px;
+  width: 28px;
+  height: 28px;
+  border-radius: 8px;
+  transition: all 0.2s;
+  flex-shrink: 0;
+}
+
+.internal-modal-close:hover {
+  background-color: var(--bg);
+  color: var(--text);
+}
+
+@keyframes internal-modal-in {
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.internal-fade-enter-active,
+.internal-fade-leave-active {
+  transition: opacity 0.3s ease;
+}
+
+.internal-fade-enter-from,
+.internal-fade-leave-to {
+  opacity: 0;
+}
+
+.internal-fade-enter-active .internal-modal-card,
+.internal-fade-leave-active .internal-modal-card {
+  transition: transform 0.3s ease;
+}
+
+.internal-fade-enter-from .internal-modal-card {
+  transform: translateY(-20px);
+}
+
+.internal-fade-leave-to .internal-modal-card {
+  transform: translateY(-20px);
 }
 </style>
