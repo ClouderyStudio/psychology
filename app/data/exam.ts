@@ -1042,4 +1042,33 @@ export const examPapers: ExamPaper[] = [
       },
     ],
   },
+  {
+    id: 'test',
+    name: '测试',
+    sections: [
+      {
+        title: '一、判断题（共 1 题，每题 1 分）',
+        pointsPerQuestion: 1,
+        questions: [
+          { text: '1 + 1 等于 2。', answer: 'A' },
+        ],
+      },
+      {
+        title: '二、单选题（共 1 题，每题 1 分）',
+        pointsPerQuestion: 1,
+        questions: [
+          {
+            text: '以下哪个是偶数？',
+            options: [
+              { label: 'A', text: '1' },
+              { label: 'B', text: '3' },
+              { label: 'C', text: '2' },
+              { label: 'D', text: '5' },
+            ],
+            answer: 'C',
+          },
+        ],
+      },
+    ],
+  },
 ]

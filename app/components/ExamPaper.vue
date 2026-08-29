@@ -159,13 +159,13 @@
                   </div>
                 </div>
 
-                <div class="flex gap-2">
+                <div class="flex flex-col sm:flex-row gap-2">
                   <input v-model="passwordInput" type="text" placeholder="请输入密码" autocomplete="off"
                     class="flex-1 px-3 py-2.5 rounded-lg text-sm outline-none"
                     style="background-color: var(--card-bg); border: 1px solid var(--primary-light); color: var(--text)"
                     @keyup.enter="unlockResult" />
                   <button @click="unlockResult"
-                    class="px-5 py-2.5 rounded-lg font-semibold text-sm transition-all"
+                    class="px-5 py-2.5 rounded-lg font-semibold text-sm transition-all w-full sm:w-auto"
                     style="background-color: var(--primary); color: white"
                     @mouseenter="e => e.target.style.backgroundColor = 'var(--primary-dark)'"
                     @mouseleave="e => e.target.style.backgroundColor = 'var(--primary)'">
