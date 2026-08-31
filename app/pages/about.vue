@@ -154,51 +154,56 @@
               </div>
             </div>
 
-            <div class="developer-card p-4 rounded-lg mb-4" style="background-color: var(--bg);">
+            <div
+              class="developer-card p-4 rounded-lg mb-4"
+              style="background-color: var(--bg)"
+            >
               <div class="flex items-center gap-4">
-                <div class="w-16 h-16 rounded-full flex items-center justify-center text-3xl"
-                  style="background-color: var(--disharmony); color: white;">
-                  <img src="https://q1.qlogo.cn/g?b=qq&nk=3353739856&s=100"
-                    class="w-full h-full rounded-full object-cover" />
+                <div
+                  class="w-16 h-16 rounded-full flex items-center justify-center text-3xl"
+                  style="background-color: var(--disharmony); color: white"
+                >
+                  <img
+                    src="https://q1.qlogo.cn/g?b=qq&nk=3353739856&s=100"
+                    class="w-full h-full rounded-full object-cover"
+                  />
                 </div>
                 <div>
                   <div class="flex items-center gap-2 flex-wrap">
-                    <span class="text-xl font-bold" style="color: var(--text);">AnonUsAl</span>
-                    <span class="text-xs px-2 py-1 rounded-full"
-                      style="background-color: var(--disharmony); color: white;">全栈开发</span>
+                    <span class="text-xl font-bold" style="color: var(--text)"
+                      >AnonUsAl</span
+                    >
+                    <span
+                      class="text-xs px-2 py-1 rounded-full"
+                      style="background-color: var(--disharmony); color: white"
+                      >全栈开发</span
+                    >
                   </div>
-                  <p class="text-sm mt-1" style="color: var(--text-secondary);">
+                  <p class="text-sm mt-1" style="color: var(--text-secondary)">
                     全栈开发 · 技术贡献
                   </p>
                   <div class="flex gap-3 mt-2">
-                    <a href="https://github.com/AnonUsAl/" class="text-xs" style="color: var(--special);">GitHub</a>
-                    <a href="https://user.qzone.qq.com/3353739856" class="text-xs" style="color: var(--personality);">QQ空间</a>
+                    <a
+                      href="https://github.com/AnonUsAl/"
+                      class="text-xs"
+                      style="color: var(--special)"
+                      >GitHub</a
+                    >
+                    <a
+                      href="https://user.qzone.qq.com/3353739856"
+                      class="text-xs"
+                      style="color: var(--personality)"
+                      >QQ空间</a
+                    >
                   </div>
                 </div>
               </div>
             </div>
 
-            <div class="supporter-card p-4 rounded-lg" style="background-color: var(--bg);">
-              <div class="flex items-center gap-4">
-                <div class="w-16 h-16 rounded-full flex items-center justify-center text-3xl"
-                  style="background-color: var(--personality); color: white;">
-                  <img src="https://q1.qlogo.cn/g?b=qq&nk=1770464015&s=100"
-                    class="w-full h-full rounded-full object-cover" />
-                </div>
-                <div>
-                  <div class="flex items-center gap-2 flex-wrap">
-                    <span class="text-xl font-bold" style="color: var(--text);">Olivia</span>
-                    <span class="text-xs px-2 py-1 rounded-full"
-                      style="background-color: var(--personality); color: white;">❤ 主要支持者</span>
-                  </div>
-                  <p class="text-sm mt-1" style="color: var(--text-secondary);">
-                    用户体验代表 · 提供宝贵反馈 · 鼓励和支持
-                  </p>
-                </div>
-              </div>
-            </div>
-
-            <div class="mt-3 text-center text-xs" style="color: var(--text-muted);">
+            <div
+              class="mt-3 text-center text-xs"
+              style="color: var(--text-muted)"
+            >
               感谢其他所有为本平台提供支持和建议的朋友们
             </div>
           </div>
