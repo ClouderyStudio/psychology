@@ -296,6 +296,69 @@
                 </div>
               </section>
 
+              <!-- 罪德镜像雷达 -->
+              <section class="seven-section">
+                <div class="seven-section-head">
+                  <h3>罪德镜像雷达</h3>
+                  <p>上半为七宗罪浓度，下半为对照美德浓度；同一条竖直线上是一对「罪─德」对照。</p>
+                </div>
+                <div class="seven-radar-wrap">
+                  <svg :viewBox="'0 0 360 370'" class="seven-radar-svg">
+                    <circle v-for="rv in sevenRadar?.rings || []" :key="rv" :cx="sevenRadar?.cx" :cy="sevenRadar?.cy" :r="((sevenRadar?.R || 0) * rv / 100)" fill="none" stroke="var(--primary-light)" stroke-width="1" />
+                    <g v-for="a in sevenRadar?.axis || []" :key="a.key">
+                      <line :x1="sevenRadar?.cx" :y1="sevenRadar?.cy" :x2="a.sp.x" :y2="a.sp.y" stroke="var(--primary-light)" stroke-width="1" />
+                      <line :x1="sevenRadar?.cx" :y1="sevenRadar?.cy" :x2="a.vp.x" :y2="a.vp.y" stroke="var(--primary-light)" stroke-width="1" />
+                      <text :x="a.upLabel.x" :y="a.upLabel.y" text-anchor="middle" fill="var(--symptom)" font-size="11" font-weight="600">{{ a.sin?.name }}</text>
+                      <text :x="a.dnLabel.x" :y="a.dnLabel.y" text-anchor="middle" fill="var(--primary)" font-size="11" font-weight="600">{{ a.vir?.name }}</text>
+                    </g>
+                    <polygon :points="(sevenRadar?.sinPoly || []).join(' ')" fill="var(--symptom)" fill-opacity="0.15" stroke="var(--symptom)" stroke-width="1.5" />
+                    <polygon :points="(sevenRadar?.virPoly || []).join(' ')" fill="var(--primary)" fill-opacity="0.15" stroke="var(--primary)" stroke-width="1.5" />
+                    <template v-for="a in sevenRadar?.axis || []" :key="a.key">
+                      <circle :cx="a.sp.x" :cy="a.sp.y" r="3.5" fill="var(--symptom)" />
+                      <text :x="a.sp.x" :y="a.sp.y - 8" text-anchor="middle" fill="var(--text-secondary)" font-size="10">{{ a.sin?.pct }}</text>
+                      <circle :cx="a.vp.x" :cy="a.vp.y" r="3.5" fill="var(--primary)" />
+                      <text :x="a.vp.x" :y="a.vp.y + 12" text-anchor="middle" fill="var(--text-secondary)" font-size="10">{{ a.vir?.pct }}</text>
+                    </template>
+                  </svg>
+                </div>
+              </section>
+
+              <!-- 罪与德对照表 -->
+              <section class="seven-section">
+                <div class="seven-section-head">
+                  <h3>罪与德 · 对照表</h3>
+                  <p>每条对照展示「一宗罪」与它相对的那条「美德」各自的浓度与档位。</p>
+                </div>
+                <div class="seven-compare">
+                  <div class="seven-compare-head"><span>罪</span><span class="seven-compare-sep">×</span><span>美德</span></div>
+                  <div v-for="p in sevenPairs || []" :key="p.sin?.key" class="seven-compare-row">
+                    <div class="seven-compare-cell">
+                      <div class="flex items-center gap-2">
+                        <span>{{ p.sin?.icon }}</span>
+                        <span class="font-semibold" style="color: var(--text);">{{ p.sin?.name }}</span>
+                        <span class="seven-band-chip" :style="{ backgroundColor: 'var(--symptom-light)', color: 'var(--symptom)' }">{{ p.sin?.bandLabel }}</span>
+                      </div>
+                      <div class="w-full h-2 rounded-full mt-2" style="background-color: var(--primary-light);">
+                        <div class="h-2 rounded-full" :style="{ width: (p.sin?.pct || 0) + '%', backgroundColor: 'var(--symptom)' }"></div>
+                      </div>
+                      <div class="text-xs mt-1" style="color: var(--text-secondary);">{{ p.sin?.pct }} / 100</div>
+                    </div>
+                    <div class="seven-compare-sep">×</div>
+                    <div class="seven-compare-cell">
+                      <div class="flex items-center gap-2">
+                        <span>{{ p.virtue?.icon }}</span>
+                        <span class="font-semibold" style="color: var(--text);">{{ p.virtue?.name }}</span>
+                        <span class="seven-band-chip" :style="{ backgroundColor: 'var(--primary-light)', color: 'var(--primary)' }">{{ p.virtue?.bandLabel }}</span>
+                      </div>
+                      <div class="w-full h-2 rounded-full mt-2" style="background-color: var(--primary-light);">
+                        <div class="h-2 rounded-full" :style="{ width: (p.virtue?.pct || 0) + '%', backgroundColor: 'var(--primary)' }"></div>
+                      </div>
+                      <div class="text-xs mt-1" style="color: var(--text-secondary);">{{ p.virtue?.pct }} / 100</div>
+                    </div>
+                  </div>
+                </div>
+              </section>
+
               <section v-if="sevenReport?.dominantSin || sevenReport?.guardianVirtue" class="grid md:grid-cols-2 gap-4">
                 <div v-if="sevenReport?.dominantSin" class="seven-highlight-box" style="border-top: 3px solid var(--symptom);">
                   <div class="text-3xl mb-2">{{ sevenReport.dominantSin.icon }}</div>
@@ -531,6 +594,56 @@ const isSeven = computed(() => result.value?.testId === 'seven')
 const mbtiReport = computed(() => result.value?.mbtiReport || null)
 
 const sevenReport = computed(() => result.value?.sevenReport || null)
+
+// 罪─德对照列表（每对罪←→德）
+const sevenPairs = computed(() => {
+  const r = sevenReport.value
+  const pairs = (r?.pairs as any[]) || []
+  return pairs.map((p: any[]) => ({
+    sin: (r?.sins as any[])?.find((s: any) => s.key === p[0]) || null,
+    virtue: (r?.virtues as any[])?.find((v: any) => v.key === p[1]) || null,
+  }))
+})
+
+// 罪德镜像雷达（上半=罪，下半=德）
+const sevenRadar = computed(() => {
+  const r = sevenReport.value
+  if (!r) return null
+  const N = 7
+  const cx = 180, cy = 185, Rr = 150
+  const clamp = (v: any) => Math.max(0, Math.min(100, Number(v) || 0))
+  const sinAng = (i: number) => Math.PI + (i + 0.5) * Math.PI / N
+  const virAng = (i: number) => (i + 0.5) * Math.PI / N
+  const pt = (a: number, v: any) => {
+    const rad = Rr * clamp(v) / 100
+    return { x: Math.round(cx + rad * Math.cos(a)), y: Math.round(cy + rad * Math.sin(a)) }
+  }
+  const sins = (r.sins as any[]) || []
+  const virtues = (r.virtues as any[]) || []
+  const pairs = (r.pairs as any[]) || []
+  const axis = pairs.map((p: any[], i: number) => {
+    const sin = sins.find((s: any) => s.key === p[0])
+    const vir = virtues.find((s: any) => s.key === p[1])
+    const sp = pt(sinAng(i), sin?.pct)
+    const vp = pt(virAng(i), vir?.pct)
+    return {
+      key: i, sin, vir,
+      sp,
+      vp,
+      upLabel: { x: Math.round(cx + (Rr + 22) * Math.cos(sinAng(i))), y: Math.round(cy + (Rr + 22) * Math.sin(sinAng(i))) },
+      dnLabel: { x: Math.round(cx + (Rr + 22) * Math.cos(virAng(i))), y: Math.round(cy + (Rr + 22) * Math.sin(virAng(i))) },
+    }
+  })
+  const sinPoly = pairs.map((_: any, i: number) => {
+    const p = pt(sinAng(i), sins.find((s: any) => s.key === pairs[i][0])?.pct)
+    return p.x + ',' + p.y
+  })
+  const virPoly = pairs.map((_: any, i: number) => {
+    const p = pt(virAng(i), virtues.find((s: any) => s.key === pairs[i][1])?.pct)
+    return p.x + ',' + p.y
+  })
+  return { cx, cy, R: Rr, rings: [20, 40, 60, 80], axis, sinPoly, virPoly }
+})
 
 const mbtiProfileSections = computed(() => {
   const profile = mbtiReport.value?.profile
@@ -1054,6 +1167,59 @@ function goHome() {
   }
   .seven-indices {
     grid-template-columns: 1fr;
+  }
+}
+
+/* 罪德镜像雷达 + 对照表 */
+.seven-radar-wrap {
+  background-color: var(--bg);
+  border-radius: 0.75rem;
+  padding: 1rem;
+  display: flex;
+  justify-content: center;
+}
+.seven-radar-svg {
+  width: 100%;
+  max-width: 400px;
+  height: auto;
+}
+.seven-compare {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+.seven-compare-head,
+.seven-compare-row {
+  display: grid;
+  grid-template-columns: 1fr 40px 1fr;
+  align-items: center;
+  gap: 0.5rem;
+}
+.seven-compare-head {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  font-weight: 600;
+}
+.seven-compare-cell {
+  background-color: var(--bg);
+  border-radius: 0.5rem;
+  padding: 0.5rem 0.75rem;
+}
+.seven-compare-sep {
+  text-align: center;
+  color: var(--text-muted);
+  font-weight: 700;
+}
+.seven-band-chip {
+  font-size: 0.7rem;
+  padding: 0 0.4rem;
+  border-radius: 999px;
+  line-height: 1.4;
+}
+@media (max-width: 420px) {
+  .seven-compare-head,
+  .seven-compare-row {
+    grid-template-columns: 1fr 28px 1fr;
   }
 }
 
