@@ -31,6 +31,27 @@ function getAnswerValue(
   return answers[id] ?? fallback;
 }
 
+// 求和工具：把各题答案直接相加
+function sumAnswers(answers: Record<number, number>): number {
+  return Object.values(answers).reduce((sum, val) => sum + val, 0);
+}
+
+// 求和工具：处理含反向计分的量表
+// reverseComplement = 正向最小分值 + 最大分值（PSS 为 4，SDS/SAS 为 5）
+function sumWithReverse(
+  answers: Record<number, number>,
+  questionCount: number,
+  reverseItems: number[],
+  reverseComplement: number,
+): number {
+  let total = 0;
+  for (let i = 1; i <= questionCount; i++) {
+    const answer = getAnswerValue(answers, i);
+    total += reverseItems.includes(i) ? reverseComplement - answer : answer;
+  }
+  return total;
+}
+
 export function calculateScore(input: ScoringInput): ScoringResult {
   const { testId, answers } = input;
 
@@ -84,7 +105,7 @@ export function calculateScore(input: ScoringInput): ScoringResult {
 
 // PHQ-9 抑郁筛查量表
 function scorePHQ9(answers: Record<number, number>): ScoringResult {
-  const totalScore = Object.values(answers).reduce((sum, val) => sum + val, 0);
+  const totalScore = sumAnswers(answers);
 
   let level = "";
   let suggestion = "";
@@ -122,7 +143,7 @@ function scorePHQ9(answers: Record<number, number>): ScoringResult {
 
 // GAD-7 焦虑筛查量表
 function scoreGAD7(answers: Record<number, number>): ScoringResult {
-  const totalScore = Object.values(answers).reduce((sum, val) => sum + val, 0);
+  const totalScore = sumAnswers(answers);
 
   let level = "";
   let suggestion = "";
@@ -157,16 +178,7 @@ function scoreGAD7(answers: Record<number, number>): ScoringResult {
 // PSS 压力感知量表（含反向计分）
 function scorePSS(answers: Record<number, number>): ScoringResult {
   // PSS-10 反向计分题：4,5,7,8
-  let totalScore = 0;
-  for (let i = 1; i <= 10; i++) {
-    const answer = getAnswerValue(answers, i);
-    if ([4, 5, 7, 8].includes(i)) {
-      // 反向计分: 0=4, 1=3, 2=2, 3=1, 4=0
-      totalScore += 4 - answer;
-    } else {
-      totalScore += answer;
-    }
-  }
+  const totalScore = sumWithReverse(answers, 10, [4, 5, 7, 8], 4);
 
   let level = "";
   let suggestion = "";
@@ -197,18 +209,7 @@ function scorePSS(answers: Record<number, number>): ScoringResult {
 // SDS 抑郁自评量表
 function scoreSDS(answers: Record<number, number>): ScoringResult {
   // SDS 反向计分题：2,5,6,11,12,14,16,17,18,20
-  const reverseItems = [2, 5, 6, 11, 12, 14, 16, 17, 18, 20];
-
-  let rawScore = 0;
-  for (let i = 1; i <= 20; i++) {
-    const answer = getAnswerValue(answers, i);
-    if (reverseItems.includes(i)) {
-      // 反向计分：1→4, 2→3, 3→2, 4→1
-      rawScore += 5 - answer;
-    } else {
-      rawScore += answer;
-    }
-  }
+  const rawScore = sumWithReverse(answers, 20, [2, 5, 6, 11, 12, 14, 16, 17, 18, 20], 5);
 
   // 计算标准分（乘以1.25后取整）
   const standardizedScore = Math.round(rawScore * 1.25);
@@ -248,18 +249,7 @@ function scoreSDS(answers: Record<number, number>): ScoringResult {
 // SAS 焦虑自评量表
 function scoreSAS(answers: Record<number, number>): ScoringResult {
   // SAS 反向计分题：5,9,13,17,19
-  const reverseItems = [5, 9, 13, 17, 19];
-
-  let rawScore = 0;
-  for (let i = 1; i <= 20; i++) {
-    const answer = getAnswerValue(answers, i);
-    if (reverseItems.includes(i)) {
-      // 反向计分：1→4, 2→3, 3→2, 4→1
-      rawScore += 5 - answer;
-    } else {
-      rawScore += answer;
-    }
-  }
+  const rawScore = sumWithReverse(answers, 20, [5, 9, 13, 17, 19], 5);
 
   // 计算标准分（乘以1.25后取整）
   const standardizedScore = Math.round(rawScore * 1.25);
