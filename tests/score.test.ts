@@ -54,4 +54,17 @@ describe("calculateScore 基础评分", () => {
     expect(r.level).toBe("阳性筛查（建议进一步评估）");
     expect(r.dimensionScores?.isPositiveScreen).toBe(true);
   });
+
+  it("RSES：反向题按反向计分，全选同值 → 中等自尊", () => {
+    // 反向 5 题(3,5,8,9,10)补值 4 + 正向 5 题 ×1 = 25
+    const r = calculateScore({ testId: "rses", answers: full(10, 1) });
+    expect(r.totalScore).toBe(25);
+    expect(r.maxScore).toBe(40);
+    expect(r.level).toBe("中等自尊");
+  });
+
+  it("RSES：全选最高分 → 总分仍为 25（反向题等幅抵消）", () => {
+    const r = calculateScore({ testId: "rses", answers: full(10, 4) });
+    expect(r.totalScore).toBe(25);
+  });
 });

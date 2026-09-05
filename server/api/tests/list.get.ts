@@ -191,6 +191,16 @@ export default defineEventHandler(() => {
       tags: ["躁狂", "情绪监测", "⚡快速评估"],
       category: "symptom",
     },
+    {
+      id: "rses",
+      title: "Rosenberg 自尊量表",
+      englishName: "Rosenberg Self-Esteem Scale (RSES)",
+      description: "评估个体的整体自我价值感与自尊水平，包含10个问题",
+      duration: "约2-3分钟",
+      questionsCount: 10,
+      tags: ["自尊", "自我认知", "⚡快速评估"],
+      category: "special",
+    },
   ];
 
   return {

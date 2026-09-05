@@ -59,6 +59,10 @@ import {
   pss10Options,
   pss10Questions,
 } from "~~/server/utils/questions/pss10-questions";
+import {
+  rsesOptions,
+  rsesQuestions,
+} from "~~/server/utils/questions/rses-questions";
 
 // SCL-90 专用5点选项
 const SCL_90_OPTIONS: Option[] = [
@@ -702,6 +706,23 @@ export default defineEventHandler(async (event) => {
       })),
       scoringRules: {
         type: "asrm",
+      },
+    },
+    rses: {
+      id: "rses",
+      title: "Rosenberg 自尊量表",
+      description:
+        "罗森伯格自尊量表(Rosenberg Self-Esteem Scale)用于评估个体的整体自我价值感与自尊水平，包含10个问题。",
+      instructions:
+        "请根据您的实际情况，选择最符合您感受的选项。共10题，大约需要2-3分钟。",
+      questions: rsesQuestions.map((q) => ({
+        id: q.id,
+        text: q.text,
+        options: rsesOptions,
+        reversed: q.reverse,
+      })),
+      scoringRules: {
+        type: "rses",
       },
     },
   };

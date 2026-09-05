@@ -52,6 +52,37 @@ function sumWithReverse(
   return total;
 }
 
+// RSES Rosenberg 自尊量表
+function scoreRSES(answers: Record<number, number>): ScoringResult {
+  // RSES 反向计分题：3,5,8,9,10（选项 1-4，反向补值 5）
+  const totalScore = sumWithReverse(answers, 10, [3, 5, 8, 9, 10], 5);
+
+  let level = "";
+  let suggestion = "";
+
+  if (totalScore <= 20) {
+    level = "低自尊";
+    suggestion =
+      "您目前的自我评价偏低。建议：\n• 试着记录并认可自己的小成就\n• 减少与他人的过度比较\n• 练习自我肯定与积极自我对话\n• 如有需要可寻求心理咨询支持";
+  } else if (totalScore <= 30) {
+    level = "中等自尊";
+    suggestion =
+      "您的自尊水平处于中等区间。建议：\n• 继续保持客观的自我评价\n• 发展能带来成就感的目标\n• 与尊重您的人建立联系";
+  } else {
+    level = "高自尊";
+    suggestion =
+      "您拥有较高的自尊水平。请保持这份自信，同时避免过度自尊带来的固执，保持真诚倾听与自我成长。";
+  }
+
+  return {
+    totalScore,
+    maxScore: 40,
+    level,
+    suggestion,
+    severity: totalScore / 40,
+  };
+}
+
 export function calculateScore(input: ScoringInput): ScoringResult {
   const { testId, answers } = input;
 
@@ -92,6 +123,8 @@ export function calculateScore(input: ScoringInput): ScoringResult {
       return scoreMDQ(answers);
     case "asrm":
       return scoreASRM(answers);
+    case "rses":
+      return scoreRSES(answers);
     default:
       return {
         totalScore: 0,
