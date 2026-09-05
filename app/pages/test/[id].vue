@@ -439,6 +439,10 @@ watch(answers, (newAnswers) => {
   Object.entries(newAnswers).forEach(([id, value]) => {
     answerStore.setAnswer(parseInt(id), value)
   })
+  // 实时刷新“未完成的测评”进度（NavBar 下拉与首页卡片）
+  if (typeof window !== 'undefined') {
+    window.dispatchEvent(new CustomEvent('refreshProgress'))
+  }
 }, { deep: true })
 
 // 分页导航函数
