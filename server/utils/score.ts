@@ -6,6 +6,7 @@ import { scoreEPQRSC } from "./scoring-rules/scoreEPQRSC";
 import { scoreSixteenPF } from "./scoring-rules/scoreSixteenPF";
 import { scoreBPNS } from "./scoring-rules/scoreBPNS";
 import { scoreIPIPEIS } from "./scoring-rules/scoreIPIPEIS";
+import { scoreSeven } from "./scoring-rules/scoreSeven";
 interface ScoringInput {
   testId: string;
   answers: Record<number, number>;
@@ -19,6 +20,7 @@ export interface ScoringResult {
   severity: number;
   dimensionScores?: Record<string, any>;
   mbtiReport?: Record<string, any>;
+  sevenReport?: Record<string, any>;
   rawScore?: number;
   standardizedScore?: number;
 }
@@ -125,6 +127,8 @@ export function calculateScore(input: ScoringInput): ScoringResult {
       return scoreASRM(answers);
     case "rses":
       return scoreRSES(answers);
+    case "seven":
+      return scoreSeven(answers);
     default:
       return {
         totalScore: 0,

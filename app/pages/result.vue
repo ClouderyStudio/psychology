@@ -1,6 +1,6 @@
 <template>
   <div class="min-h-screen py-12" style="background-color: var(--bg);">
-    <div class="container mx-auto px-4" :class="isMBTI ? 'max-w-5xl' : 'max-w-3xl'">
+    <div class="container mx-auto px-4" :class="isMBTI || isSeven ? 'max-w-5xl' : 'max-w-3xl'">
       <ClientOnly>
         <div v-if="isLoading" class="text-center py-12">
           <div class="text-2xl" style="color: var(--text-secondary);">加载中...</div>
@@ -252,12 +252,124 @@
             </div>
 
             <!-- 等级标签 -->
-            <div v-if="!isMBTI" class="text-center mb-6">
+            <div v-if="!isMBTI && !isSeven" class="text-center mb-6">
               <div v-if="!canScore" class="text-2xl font-semibold mb-2" style="color: var(--text);">你的测评结果是:</div>
 
               <div class="inline-block px-6 py-2 rounded-full text-lg font-semibold" :class="levelColorClass">
                 {{ result.level }}
               </div>
+            </div>
+
+            <!-- 七宗罪与七美德 报告 -->
+            <div v-if="isSeven" class="seven-report space-y-6">
+              <section class="seven-hero">
+                <div class="seven-hero-desc">
+                  <p class="seven-eyebrow">罪德双轴 · 独立测量</p>
+                  <h3>你的罪德面相</h3>
+                  <p class="seven-soft">罪与德是两条独立的指标，可同时并存、互不抵消。</p>
+                </div>
+                <div class="seven-indices">
+                  <div class="seven-index" style="border-top-color: var(--symptom);">
+                    <div class="seven-index-row">
+                      <span style="color: var(--text-secondary);">罪孽指数</span>
+                      <strong>{{ sevenReport?.sinIndex }}%</strong>
+                    </div>
+                    <div class="w-full h-2 rounded-full" style="background-color: var(--primary-light);">
+                      <div class="h-2 rounded-full transition-all duration-500" :style="{ width: (sevenReport?.sinIndex || 0) + '%', backgroundColor: 'var(--symptom)' }"></div>
+                    </div>
+                    <div class="seven-index-tier" :style="{ backgroundColor: 'var(--symptom-light)', color: 'var(--symptom)' }">
+                      {{ sevenReport?.sinTier?.label }} — {{ sevenReport?.sinTier?.text }}
+                    </div>
+                  </div>
+                  <div class="seven-index" style="border-top-color: var(--primary);">
+                    <div class="seven-index-row">
+                      <span style="color: var(--text-secondary);">美德指数</span>
+                      <strong>{{ sevenReport?.virtueIndex }}%</strong>
+                    </div>
+                    <div class="w-full h-2 rounded-full" style="background-color: var(--primary-light);">
+                      <div class="h-2 rounded-full transition-all duration-500" :style="{ width: (sevenReport?.virtueIndex || 0) + '%', backgroundColor: 'var(--primary)' }"></div>
+                    </div>
+                    <div class="seven-index-tier" :style="{ backgroundColor: 'var(--primary-light)', color: 'var(--primary)' }">
+                      {{ sevenReport?.virtueTier?.label }} — {{ sevenReport?.virtueTier?.text }}
+                    </div>
+                  </div>
+                </div>
+              </section>
+
+              <section v-if="sevenReport?.dominantSin || sevenReport?.guardianVirtue" class="grid md:grid-cols-2 gap-4">
+                <div v-if="sevenReport?.dominantSin" class="seven-highlight-box" style="border-top: 3px solid var(--symptom);">
+                  <div class="text-3xl mb-2">{{ sevenReport.dominantSin.icon }}</div>
+                  <div class="font-semibold" style="color: var(--text);">最突出的罪 · {{ sevenReport.dominantSin.name }}（{{ sevenReport.dominantSin.pct }}%）</div>
+                  <p class="text-sm mt-1" style="color: var(--text-secondary);">{{ sevenReport.dominantSin.note }}</p>
+                </div>
+                <div v-if="sevenReport?.guardianVirtue" class="seven-highlight-box" style="border-top: 3px solid var(--primary);">
+                  <div class="text-3xl mb-2">{{ sevenReport.guardianVirtue.icon }}</div>
+                  <div class="font-semibold" style="color: var(--text);">守护美德 · {{ sevenReport.guardianVirtue.name }}（{{ sevenReport.guardianVirtue.pct }}%）</div>
+                  <p class="text-sm mt-1" style="color: var(--text-secondary);">{{ sevenReport.guardianVirtue.note }}</p>
+                </div>
+              </section>
+
+              <section v-if="sevenReport?.coexist?.length" class="seven-section">
+                <div class="seven-section-head">
+                  <h3>罪德共存 · 双高组合</h3>
+                  <p>以下罪与德同时偏高（≥55）——不是矛盾，是完整。</p>
+                </div>
+                <div class="flex flex-wrap gap-2">
+                  <div v-for="c in sevenReport.coexist" :key="c.sin" class="seven-coexist-pair">
+                    <span>{{ c.sinIcon }} {{ c.sinName }} {{ c.sinPct }}%</span>
+                    <span class="mx-1" style="color: var(--text-muted);">×</span>
+                    <span>{{ c.virtueIcon }} {{ c.virtueName }} {{ c.virtuePct }}%</span>
+                  </div>
+                </div>
+              </section>
+
+              <section class="seven-section">
+                <div class="seven-section-head">
+                  <h3>七宗罪 · 逐维解析</h3>
+                  <p>浓度越低表示此维度越克制，越高表示越突出。</p>
+                </div>
+                <div class="seven-dim-grid">
+                  <div v-for="item in sevenReport?.sins || []" :key="item.key" class="seven-dim-card">
+                    <div class="flex items-center justify-between mb-2">
+                      <div class="flex items-center gap-2">
+                        <span>{{ item.icon }}</span>
+                        <span class="font-semibold" style="color: var(--text);">{{ item.name }}</span>
+                        <span class="text-xs px-1.5 py-0.5 rounded-full" :style="{ backgroundColor: 'var(--symptom-light)', color: 'var(--symptom)' }">{{ item.bandLabel }}</span>
+                      </div>
+                      <span style="color: var(--text-secondary);">{{ item.pct }}%</span>
+                    </div>
+                    <div class="w-full h-2 rounded-full mb-2" style="background-color: var(--primary-light);">
+                      <div class="h-2 rounded-full" :style="{ width: item.pct + '%', backgroundColor: item.band === 'high' ? 'var(--symptom)' : item.band === 'mid' ? 'var(--personality)' : 'var(--special)' }"></div>
+                    </div>
+                    <p class="text-xs" style="color: var(--text-muted);">{{ item.text }}</p>
+                  </div>
+                </div>
+              </section>
+
+              <section class="seven-section">
+                <div class="seven-section-head">
+                  <h3>七美德 · 逐维解析</h3>
+                  <p>浓度越低表示此美德尚在萌芽，越高表示越丰沛。</p>
+                </div>
+                <div class="seven-dim-grid">
+                  <div v-for="item in sevenReport?.virtues || []" :key="item.key" class="seven-dim-card">
+                    <div class="flex items-center justify-between mb-2">
+                      <div class="flex items-center gap-2">
+                        <span>{{ item.icon }}</span>
+                        <span class="font-semibold" style="color: var(--text);">{{ item.name }}</span>
+                        <span class="text-xs px-1.5 py-0.5 rounded-full" :style="{ backgroundColor: 'var(--primary-light)', color: 'var(--primary)' }">{{ item.bandLabel }}</span>
+                      </div>
+                      <span style="color: var(--text-secondary);">{{ item.pct }}%</span>
+                    </div>
+                    <div class="w-full h-2 rounded-full mb-2" style="background-color: var(--primary-light);">
+                      <div class="h-2 rounded-full" :style="{ width: item.pct + '%', backgroundColor: item.band === 'high' ? 'var(--primary)' : item.band === 'mid' ? 'var(--personality)' : 'var(--special)' }"></div>
+                    </div>
+                    <p class="text-xs" style="color: var(--text-muted);">{{ item.text }}</p>
+                  </div>
+                </div>
+              </section>
+
+              <p class="seven-disclaimer">{{ sevenReport?.disclaimer }}</p>
             </div>
 
             <!-- SCL-90 维度详情 -->
@@ -293,7 +405,7 @@
             </div>
 
             <!-- 建议内容 -->
-            <div v-if="!isMBTI" class="rounded-lg p-6 mb-6" style="background-color: var(--primary-light);">
+            <div v-if="!isMBTI && !isSeven" class="rounded-lg p-6 mb-6" style="background-color: var(--primary-light);">
               <h3 class="font-bold text-lg mb-3 flex items-center" style="color: var(--text);">
                 <span class="text-2xl mr-2">💡</span>
                 专业建议
@@ -413,7 +525,12 @@ const isSCL90 = computed(() => result.value?.testId === 'scl90')
 // 判断是否为 MBTI
 const isMBTI = computed(() => result.value?.testId === 'mbti')
 
+// 判断是否为 七宗罪与七美德
+const isSeven = computed(() => result.value?.testId === 'seven')
+
 const mbtiReport = computed(() => result.value?.mbtiReport || null)
+
+const sevenReport = computed(() => result.value?.sevenReport || null)
 
 const mbtiProfileSections = computed(() => {
   const profile = mbtiReport.value?.profile
@@ -840,4 +957,104 @@ function goHome() {
     grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 }
+/* 七宗罪与七美德 报告 */
+.seven-report { }
+.seven-hero {
+  display: grid;
+  grid-template-columns: 1fr 1.4fr;
+  gap: 1rem;
+}
+.seven-hero-desc h3 {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--text);
+}
+.seven-eyebrow {
+  color: var(--primary);
+  font-size: 0.75rem;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+.seven-soft {
+  color: var(--text-secondary);
+  font-size: 0.875rem;
+}
+.seven-indices {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.75rem;
+}
+.seven-index {
+  border-top: 4px solid;
+  background-color: var(--bg);
+  padding: 1rem;
+  border-radius: 0.75rem;
+}
+.seven-index-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.5rem;
+}
+.seven-index-row strong {
+  font-size: 1.5rem;
+  color: var(--text);
+}
+.seven-index-tier {
+  margin-top: 0.6rem;
+  font-size: 0.8rem;
+  line-height: 1.5;
+  padding: 0.5rem 0.75rem;
+  border-radius: 0.5rem;
+}
+.seven-highlight-box {
+  background-color: var(--bg);
+  border-radius: 0.75rem;
+  padding: 1rem;
+}
+.seven-section-head {
+  margin-bottom: 0.75rem;
+}
+.seven-section-head h3 {
+  font-weight: 700;
+  color: var(--text);
+}
+.seven-section-head p {
+  color: var(--text-muted);
+  font-size: 0.8rem;
+  margin-top: 0.25rem;
+}
+.seven-dim-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 0.75rem;
+}
+.seven-dim-card {
+  background-color: var(--bg);
+  border-radius: 0.75rem;
+  padding: 0.9rem;
+}
+.seven-coexist-pair {
+  background-color: var(--card-bg);
+  border: 1px solid var(--primary-light);
+  border-radius: 0.5rem;
+  padding: 0.4rem 0.8rem;
+  font-size: 0.85rem;
+  color: var(--text);
+}
+.seven-disclaimer {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  border-left: 3px solid var(--warning-border);
+  padding-left: 0.75rem;
+}
+@media (max-width: 768px) {
+  .seven-hero {
+    grid-template-columns: 1fr;
+  }
+  .seven-indices {
+    grid-template-columns: 1fr;
+  }
+}
+
 </style>

@@ -201,6 +201,16 @@ export default defineEventHandler(() => {
       tags: ["自尊", "自我认知"],
       category: "special",
     },
+    {
+      id: "seven",
+      title: "七美德与七宗罪",
+      englishName: "Seven Deadly Sins & Seven Virtues Test",
+      description: "分别测量 7 宗罪与 7 美德两条独立指数，罪与德互不抵消",
+      duration: "约8-12分钟",
+      questionsCount: 60,
+      tags: ["人格", "自我认知", "趣味自评"],
+      category: "personality",
+    },
   ];
 
   return {

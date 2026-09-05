@@ -75,6 +75,10 @@ import {
   rsesOptions,
   rsesQuestions,
 } from "~~/server/utils/questions/rses-questions";
+import {
+  sevenOptions,
+  sevenQuestions,
+} from "~~/server/utils/questions/seven-questions";
 
 // 按题目 id 升序排序（题库文件顺序可能与出题顺序不同）
 function sortQuestionsById<T extends { id: number }>(questions: T[]): T[] {
@@ -404,6 +408,23 @@ export default defineEventHandler(async (event) => {
       })),
       scoringRules: {
         type: "rses",
+      },
+    },
+    seven: {
+      id: "seven",
+      title: "七美德与七宗罪",
+      description:
+        "分别测量 7 宗罪与 7 美德两条独立指数。罪与德互不抵消——你可以同时贪婪又慷慨。趣味化自评，供自省与娱乐，非道德审判。",
+      instructions:
+        "请根据您的真实情况，选择最符合的选项。每题 5 个选项，从「完全不像我」到「非常像我」。共 60 题，大约需要 8-12 分钟。题面已做情景化处理，看不出哪个答案更好。",
+      questions: sortQuestionsById(sevenQuestions).map((q) => ({
+        id: q.id,
+        text: q.text,
+        options: sevenOptions,
+        dimension: q.dimension,
+      })),
+      scoringRules: {
+        type: "seven",
       },
     },
   };

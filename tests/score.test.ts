@@ -67,4 +67,28 @@ describe("calculateScore 基础评分", () => {
     const r = calculateScore({ testId: "rses", answers: full(10, 4) });
     expect(r.totalScore).toBe(25);
   });
+
+  it("七宗罪与七美德：全选最不像我 → 罪德指数均为 0", () => {
+    const r = calculateScore({ testId: "seven", answers: full(60, 1) });
+    expect(r.sevenReport?.sinIndex).toBe(0);
+    expect(r.sevenReport?.virtueIndex).toBe(0);
+    expect(r.sevenReport?.sins).toHaveLength(7);
+    expect(r.sevenReport?.virtues).toHaveLength(7);
+  });
+
+  it("七宗罪与七美德：全选非常像我 → 罪德指数均为 100，双高共存 7 组", () => {
+    const r = calculateScore({ testId: "seven", answers: full(60, 5) });
+    expect(r.sevenReport?.sinIndex).toBe(100);
+    expect(r.sevenReport?.virtueIndex).toBe(100);
+    expect(r.sevenReport?.coexist).toHaveLength(7);
+    expect(r.level).toBe("魔王转世 · 圣人气象");
+  });
+
+  it("七宗罪与七美德：全选中立 → 罪德指数均为 50，无共存", () => {
+    const r = calculateScore({ testId: "seven", answers: full(60, 3) });
+    expect(r.sevenReport?.sinIndex).toBe(50);
+    expect(r.sevenReport?.virtueIndex).toBe(50);
+    expect(r.sevenReport?.coexist).toHaveLength(0);
+    expect(r.totalScore).toBe(50);
+  });
 });
