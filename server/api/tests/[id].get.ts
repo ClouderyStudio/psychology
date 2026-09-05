@@ -47,22 +47,18 @@ import {
   asrmOptions,
   asrmQuestions,
 } from "~~/server/utils/questions/asrm-questions";
-
-// 通用的评分选项常量
-const LIKERT_4_OPTIONS: Option[] = [
-  { value: 0, label: "完全不会" },
-  { value: 1, label: "好几天" },
-  { value: 2, label: "一半以上天数" },
-  { value: 3, label: "几乎每天" },
-];
-
-const LIKERT_5_OPTIONS: Option[] = [
-  { value: 0, label: "从不" },
-  { value: 1, label: "几乎不" },
-  { value: 2, label: "有时" },
-  { value: 3, label: "经常" },
-  { value: 4, label: "非常频繁" },
-];
+import {
+  gad7Options,
+  gad7Questions,
+} from "~~/server/utils/questions/gad7-questions";
+import {
+  phq9Options,
+  phq9Questions,
+} from "~~/server/utils/questions/phq9-questions";
+import {
+  pss10Options,
+  pss10Questions,
+} from "~~/server/utils/questions/pss10-questions";
 
 // SCL-90 专用5点选项
 const SCL_90_OPTIONS: Option[] = [
@@ -111,33 +107,11 @@ export default defineEventHandler(async (event) => {
       title: "PHQ-9 抑郁筛查量表",
       description: "在过去的两周里，您生活中以下症状出现的频率有多少？",
       instructions: "请根据您的实际情况，选择最符合您过去两周内感受的选项。",
-      questions: [
-        createQuestion(1, "做事时提不起劲或没有兴趣", LIKERT_4_OPTIONS),
-        createQuestion(2, "感到心情低落、沮丧或绝望", LIKERT_4_OPTIONS),
-        createQuestion(3, "入睡困难、睡不安稳或睡眠过多", LIKERT_4_OPTIONS),
-        createQuestion(4, "感到疲倦或没有活力", LIKERT_4_OPTIONS),
-        createQuestion(5, "食欲不振或吃太多", LIKERT_4_OPTIONS),
-        createQuestion(
-          6,
-          "觉得自己很糟，或觉得自己很失败，或让自己或家人失望",
-          LIKERT_4_OPTIONS,
-        ),
-        createQuestion(
-          7,
-          "对事物专注有困难，例如阅读报纸或看电视时",
-          LIKERT_4_OPTIONS,
-        ),
-        createQuestion(
-          8,
-          "动作或说话速度缓慢到别人已经觉察？或正好相反，烦躁或坐立不安、动来动去的情况更胜平常",
-          LIKERT_4_OPTIONS,
-        ),
-        createQuestion(
-          9,
-          "有不如死掉或用某种方式伤害自己的念头",
-          LIKERT_4_OPTIONS,
-        ),
-      ],
+      questions: phq9Questions.map((q) => ({
+        id: q.id,
+        text: q.text,
+        options: phq9Options,
+      })),
       scoringRules: {
         type: "sum",
         thresholds: [
@@ -175,19 +149,11 @@ export default defineEventHandler(async (event) => {
       title: "GAD-7 焦虑筛查量表",
       description: "在过去的两周里，您被以下问题困扰的频率有多少？",
       instructions: "请根据您的实际情况，选择最符合您过去两周内感受的选项。",
-      questions: [
-        createQuestion(1, "感到紧张、焦虑或烦躁", LIKERT_4_OPTIONS),
-        createQuestion(2, "无法停止或控制担忧", LIKERT_4_OPTIONS),
-        createQuestion(3, "对各种事情过度担忧", LIKERT_4_OPTIONS),
-        createQuestion(4, "难以放松", LIKERT_4_OPTIONS),
-        createQuestion(5, "坐立不安，以至于难以安静地坐着", LIKERT_4_OPTIONS),
-        createQuestion(6, "容易烦躁或急躁", LIKERT_4_OPTIONS),
-        createQuestion(
-          7,
-          "感到害怕，好像有什么可怕的事情会发生",
-          LIKERT_4_OPTIONS,
-        ),
-      ],
+      questions: gad7Questions.map((q) => ({
+        id: q.id,
+        text: q.text,
+        options: gad7Options,
+      })),
       scoringRules: {
         type: "sum",
         thresholds: [
@@ -209,38 +175,12 @@ export default defineEventHandler(async (event) => {
       description: "在过去的一个月里，您有多频繁地出现以下情况？",
       instructions:
         "请根据过去一个月您的真实感受，选择最符合的选项。注意：部分题目需要反向计分。",
-      questions: [
-        createQuestion(1, "因为发生意外的事情而感到心烦", LIKERT_5_OPTIONS),
-        createQuestion(2, "感觉无法控制生活中重要的事情", LIKERT_5_OPTIONS),
-        createQuestion(3, "感到紧张和压力", LIKERT_5_OPTIONS),
-        createQuestion(
-          4,
-          "对自己处理个人问题的能力感到有信心（反向计分）",
-          LIKERT_5_OPTIONS,
-          true,
-        ),
-        createQuestion(
-          5,
-          "觉得事情都按照你的意愿发展（反向计分）",
-          LIKERT_5_OPTIONS,
-          true,
-        ),
-        createQuestion(6, "发现自己无法应对所有必须做的事情", LIKERT_5_OPTIONS),
-        createQuestion(
-          7,
-          "能够控制生活中的恼人事情（反向计分）",
-          LIKERT_5_OPTIONS,
-          true,
-        ),
-        createQuestion(
-          8,
-          "觉得自己一切都很顺利（反向计分）",
-          LIKERT_5_OPTIONS,
-          true,
-        ),
-        createQuestion(9, "因为无法控制的事情而感到愤怒", LIKERT_5_OPTIONS),
-        createQuestion(10, "感到困难堆积如山，无法克服", LIKERT_5_OPTIONS),
-      ],
+      questions: pss10Questions.map((q) => ({
+        id: q.id,
+        text: q.text,
+        options: pss10Options,
+        reversed: q.reverse,
+      })),
       scoringRules: {
         type: "sum",
         thresholds: [
