@@ -10,7 +10,7 @@
     "postinstall": "nuxt prepare",
     "generate-build-time": "node scripts/generate-build-time.cjs"
   },
-  "packageManager": "pnpm@11.3.0",
+  "packageManager": "pnpm@12.2.1",
   "dependencies": {
     "@pinia/nuxt": "^0.11.3",
     "@tailwindcss/postcss": "^4.3.0",
