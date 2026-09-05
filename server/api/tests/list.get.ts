@@ -9,7 +9,7 @@ export default defineEventHandler(() => {
       description: "用于评估过去两周内的抑郁症状严重程度，包含9个核心问题",
       duration: "约3-5分钟",
       questionsCount: 9,
-      tags: ["抑郁", "⚡快速评估"],
+      tags: ["抑郁", "快速评估"],
       category: "symptom",
     },
     {
@@ -19,7 +19,7 @@ export default defineEventHandler(() => {
       description: "用于评估广泛性焦虑症状的严重程度，快速识别焦虑倾向",
       duration: "约2-3分钟",
       questionsCount: 7,
-      tags: ["焦虑", "⚡快速评估"],
+      tags: ["焦虑", "快速评估"],
       category: "symptom",
     },
     {
@@ -29,7 +29,7 @@ export default defineEventHandler(() => {
       description: "用于评估您在过去一个月中的压力感知水平，了解压力管理需求",
       duration: "约4-6分钟",
       questionsCount: 10,
-      tags: ["压力", "自我感知", "应激评估"],
+      tags: ["压力", "自我感知"],
       category: "special",
     },
     {
@@ -39,7 +39,7 @@ export default defineEventHandler(() => {
       description: "全面的心理健康评估工具，评估9个维度的心理症状，专业详尽",
       duration: "约15-20分钟",
       questionsCount: 90,
-      tags: ["综合评估", "多维度"],
+      tags: ["综合评估", "心理健康"],
       category: "symptom",
     },
     {
@@ -70,7 +70,7 @@ export default defineEventHandler(() => {
         "基于荣格心理学理论，结合情境假设与日常问题，评估16种人格类型以及内在/外在性格差异",
       duration: "约15-18分钟",
       questionsCount: 109,
-      tags: ["人格类型", "职业倾向", "性格分析"],
+      tags: ["人格", "性格分析"],
       category: "personality",
     },
     {
@@ -80,7 +80,7 @@ export default defineEventHandler(() => {
       description: "评估自我与经验的关系，了解内心和谐程度，包含35个问题",
       duration: "约8-10分钟",
       questionsCount: 35,
-      tags: ["自我认知", "心理健康", "内心和谐"],
+      tags: ["自我认知", "心理和谐"],
       category: "special",
     },
     {
@@ -91,7 +91,7 @@ export default defineEventHandler(() => {
         "基于希波克拉底的四液说，评估胆汁质、多血质、粘液质、抑郁质四种气质类型",
       duration: "约10-15分钟",
       questionsCount: 60,
-      tags: ["气质类型", "天生倾向", "行为风格"],
+      tags: ["气质", "行为风格"],
       category: "personality",
     },
     {
@@ -102,7 +102,7 @@ export default defineEventHandler(() => {
         "美国心理治疗专家David D. Burns博士设计的抑郁症自我诊断表，帮助快速评估抑郁情绪程度",
       duration: "约3-5分钟",
       questionsCount: 15,
-      tags: ["抑郁", "⚡快速评估", "自评量表"],
+      tags: ["抑郁", "快速评估"],
       category: "symptom",
     },
     {
@@ -113,7 +113,7 @@ export default defineEventHandler(() => {
         "英国心理学家艾森克编制的人格测量工具，测评内外向、情绪稳定性、精神质三个维度",
       duration: "约15-20分钟",
       questionsCount: 88,
-      tags: ["人格维度", "气质理论", "心理学经典"],
+      tags: ["人格", "气质"],
       category: "personality",
     },
     {
@@ -125,7 +125,7 @@ export default defineEventHandler(() => {
         "北京大学钱铭怡教授等修订的中国版艾森克人格问卷简式版，评估内外向(E)、神经质(N)、精神质(P)、掩饰性(L)四个维度",
       duration: "约10-15分钟",
       questionsCount: 48,
-      tags: ["⚡快速测评", "中国常模", "人格简版"],
+      tags: ["人格", "快速评估", "中国常模"],
       category: "personality",
     },
     {
@@ -135,7 +135,7 @@ export default defineEventHandler(() => {
       description: "评估您的情绪稳定程度，了解情绪波动情况和心理抗压能力",
       duration: "约5-10分钟",
       questionsCount: 30,
-      tags: ["情绪", "心理韧性", "抗压能力"],
+      tags: ["情绪", "心理韧性"],
       category: "special",
     },
     {
@@ -146,7 +146,7 @@ export default defineEventHandler(() => {
         "美国卡特尔教授编制，评估16种根源人格特质，广泛应用于心理咨询、职业指导等领域",
       duration: "约30-45分钟",
       questionsCount: 187,
-      tags: ["人格维度", "职业倾向", "专业测评"],
+      tags: ["人格", "职业发展", "专业测评"],
       category: "personality",
     },
     {
@@ -157,7 +157,7 @@ export default defineEventHandler(() => {
         "基于自我决定理论，评估自主需求、胜任需求和归属需求的满足程度",
       duration: "约3-5分钟",
       questionsCount: 21,
-      tags: ["心理需求", "自我决定", "幸福感"],
+      tags: ["心理需求", "幸福感"],
       category: "special",
     },
     {
@@ -169,7 +169,7 @@ export default defineEventHandler(() => {
       duration: "约8-12分钟",
       questionsCount: 64,
       category: "special",
-      tags: ["情绪智力", "情绪管理", "共情能力"],
+      tags: ["情绪智力", "共情能力"],
     },
     {
       id: "mdq",
@@ -178,7 +178,7 @@ export default defineEventHandler(() => {
       description: "双相谱系障碍的标准化筛查工具，评估躁狂/轻躁狂症状，包含15个问题",
       duration: "约3-5分钟",
       questionsCount: 15,
-      tags: ["躁狂", "双相筛查", "⚡快速评估"],
+      tags: ["躁狂", "双相", "快速评估"],
       category: "symptom",
     },
     {
@@ -188,7 +188,7 @@ export default defineEventHandler(() => {
       description: "快速评估过去一周的躁狂症状严重程度，包含5个核心问题",
       duration: "约1-2分钟",
       questionsCount: 5,
-      tags: ["躁狂", "情绪监测", "⚡快速评估"],
+      tags: ["躁狂", "快速评估"],
       category: "symptom",
     },
     {
@@ -198,7 +198,7 @@ export default defineEventHandler(() => {
       description: "评估个体的整体自我价值感与自尊水平，包含10个问题",
       duration: "约2-3分钟",
       questionsCount: 10,
-      tags: ["自尊", "自我认知", "⚡快速评估"],
+      tags: ["自尊", "自我认知"],
       category: "special",
     },
   ];
