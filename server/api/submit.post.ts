@@ -38,7 +38,8 @@ export default defineEventHandler(async (event) => {
     Array.isArray(testData?.data?.questions) ? testData.data.questions : [];
 
   if (questions.length > 0) {
-    const missing = questions.filter((q) => !(q && q.id in answers));
+    // number 题（如生理年龄）为可选，不参与必答校验
+    const missing = questions.filter((q) => (q as any).type !== "number" && !(q.id in answers));
     if (missing.length > 0) {
       throw createError({
         statusCode: 400,

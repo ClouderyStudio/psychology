@@ -1,6 +1,6 @@
 <template>
   <div class="min-h-screen py-12" style="background-color: var(--bg);">
-    <div class="container mx-auto px-4" :class="isMBTI || isSeven ? 'max-w-5xl' : 'max-w-3xl'">
+    <div class="container mx-auto px-4" :class="isMBTI || isSeven || isPsyAge ? 'max-w-5xl' : 'max-w-3xl'">
       <ClientOnly>
         <div v-if="isLoading" class="text-center py-12">
           <div class="text-2xl" style="color: var(--text-secondary);">加载中...</div>
@@ -19,6 +19,7 @@
           <!-- 分数展示 -->
           <div class="p-8">
             <ResultMbti v-if="isMBTI" :report="mbtiReport" :level="result.level" />
+            <ResultPsyAge v-if="isPsyAge" :report="psyAgeReport" />
 
             <!-- 分数指示器 -->
             <div v-if="canScore" class="text-center mb-8">
@@ -37,7 +38,7 @@
             </div>
 
             <!-- 等级标签 -->
-            <div v-if="!isMBTI && !isSeven" class="text-center mb-6">
+            <div v-if="!isMBTI && !isSeven && !isPsyAge" class="text-center mb-6">
               <div v-if="!canScore" class="text-2xl font-semibold mb-2" style="color: var(--text);">你的测评结果是:</div>
 
               <div class="inline-block px-6 py-2 rounded-full text-lg font-semibold" :class="levelColorClass">
@@ -51,7 +52,7 @@
             <ResultScl90 v-if="isSCL90 && hasDimensionScores" :scores="result.dimensionScores" />
 
             <!-- 建议内容 -->
-            <div v-if="!isMBTI && !isSeven" class="rounded-lg p-6 mb-6" style="background-color: var(--primary-light);">
+            <div v-if="!isMBTI && !isSeven && !isPsyAge" class="rounded-lg p-6 mb-6" style="background-color: var(--primary-light);">
               <h3 class="font-bold text-lg mb-3 flex items-center" style="color: var(--text);">
                 <span class="text-2xl mr-2">💡</span>
                 专业建议
@@ -172,6 +173,8 @@ const isMBTI = computed(() => result.value?.testId === 'mbti')
 
 // 判断是否为 七宗罪与七美德
 const isSeven = computed(() => result.value?.testId === 'seven')
+const isPsyAge = computed(() => result.value?.testId === 'psy-age')
+const psyAgeReport = computed(() => result.value?.psyAgeReport)
 
 const mbtiReport = computed(() => result.value?.mbtiReport || null)
 

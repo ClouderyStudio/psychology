@@ -79,6 +79,10 @@ import {
   sevenOptions,
   sevenQuestions,
 } from "~~/server/utils/questions/seven-questions";
+import {
+  psyAgeOptions,
+  psyAgeQuestions,
+} from "~~/server/utils/questions/psy-age-questions";
 
 // 按题目 id 升序排序（题库文件顺序可能与出题顺序不同）
 function sortQuestionsById<T extends { id: number }>(questions: T[]): T[] {
@@ -425,6 +429,26 @@ export default defineEventHandler(async (event) => {
       })),
       scoringRules: {
         type: "seven",
+      },
+    },
+    psyage: {
+      id: "psy-age",
+      title: "心理年龄测验",
+      description:
+        "基于发展心理学多维年龄模型（Baltes · Birren），用 42 道题勾勒认知、情绪、时间观、活力等七维画像，并以「成熟度 × 少年感」双轴解读你的心理年龄。",
+      instructions:
+        "请凭第一直觉，选择最符合你的选项（非常不同意 → 非常同意）。共 42 道陈述题，约需 5-8 分钟；最后一道会请填写你的生理年龄（可不填），便于对比心理年龄与生理年龄。",
+      questions: sortQuestionsById(psyAgeQuestions).map((q) => ({
+        id: q.id,
+        text: q.text,
+        dimension: q.dimension,
+        type: q.type === "number" ? "number" : undefined,
+        min: q.min != null ? q.min : undefined,
+        max: q.max != null ? q.max : undefined,
+        options: q.type === "number" ? [] : psyAgeOptions,
+      })),
+      scoringRules: {
+        type: "psy-age",
       },
     },
   };

@@ -211,6 +211,16 @@ export default defineEventHandler(() => {
       tags: ["人格", "自我认知", "趣味自评"],
       category: "personality",
     },
+    {
+      id: "psy-age",
+      title: "心理年龄测验",
+      englishName: "Psychological Age Test",
+      description: "基于发展心理学的多维年龄模型，探究你的心理年龄。42 道题勾勒认知、情绪、时间观等七维画像，用「成熟度 × 少年感」双轴解读你的心理年龄",
+      duration: "约5-8分钟",
+      questionsCount: 43,
+      tags: ["人格", "自我认知", "趣味自评"],
+      category: "personality",
+    },
   ];
 
   return {

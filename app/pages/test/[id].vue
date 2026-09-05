@@ -65,7 +65,7 @@
         <div class="mb-6">
           <div class="flex justify-between text-sm mb-2" style="color: var(--text-secondary);">
             <span>答题进度</span>
-            <span>{{ answeredCount }} / {{ totalQuestions }}</span>
+            <span>{{ answeredCount }} / {{ requiredCount }}</span>
           </div>
           <div class="w-full rounded-full h-2" style="background-color: var(--primary-light);">
             <div class="rounded-full h-2 transition-all duration-300"
@@ -164,6 +164,17 @@
               </p>
 
               <div class="space-y-3">
+                <!-- number 题（数字输入，如生理年龄）：可不填 -->
+                <template v-if="isNumberQuestion(question)">
+                  <div class="p-3 rounded-lg" style="background-color: var(--bg);">
+                    <input type="number" v-model.number="answers[question.id]" :min="question.min ?? 0"
+                      :max="question.max ?? 99" inputmode="numeric" placeholder="请输入数字"
+                      class="w-full px-3 py-2 rounded-lg border text-base"
+                      :style="{ backgroundColor: 'var(--card-bg)', borderColor: 'var(--primary)', color: 'var(--text)' }">
+                    <p class="text-xs mt-2" style="color: var(--text-muted);">可不填；若填写，报告将对比「心理年龄 vs 生理年龄」。</p>
+                  </div>
+                </template>
+                <template v-else>
                 <label v-for="option in question.options" :key="option.value"
                   class="flex items-center p-3 rounded-lg cursor-pointer transition-all duration-200"
                   :class="{ 'border-2': answers[question.id] === option.value }" :style="{
@@ -174,6 +185,7 @@
                     class="w-4 h-4 mr-3" :style="{ accentColor: 'var(--primary)' }">
                   <span style="color: var(--text);">{{ option.label }}</span>
                 </label>
+                </template>
               </div>
             </div>
           </div>
@@ -278,10 +290,18 @@ const getGlobalQuestionNumber = (questionId: number) => {
   return questionId
 }
 
-// 计算已答题数
-const answeredCount = computed(() => Object.keys(answers.value).length)
-const remainingCount = computed(() => totalQuestions.value - answeredCount.value)
-const isComplete = computed(() => answeredCount.value === totalQuestions.value && totalQuestions.value > 0)
+// number 题（数字输入，如生理年龄）——不计入必答完成度，可留空
+const isNumberQuestion = (q: any) => q?.type === 'number'
+
+// 必答题目（排除 number 题）
+const requiredQuestions = computed(() => allQuestions.value.filter(q => !isNumberQuestion(q)))
+const requiredIds = computed(() => requiredQuestions.value.map(q => q.id))
+const requiredCount = computed(() => requiredIds.value.length)
+
+// 计算已答题数（仅计必答题）
+const answeredCount = computed(() => requiredIds.value.filter(id => answers.value[id] !== undefined).length)
+const remainingCount = computed(() => requiredCount.value - answeredCount.value)
+const isComplete = computed(() => answeredCount.value === requiredCount.value && requiredCount.value > 0)
 
 // 当前页是否有答案
 const hasCurrentPageAnswers = computed(() => {
@@ -297,7 +317,7 @@ const isCurrentPageComplete = computed(() => {
 const isLastPage = computed(() => currentPage.value === totalPages.value)
 
 // 总进度
-const progress = computed(() => (answeredCount.value / totalQuestions.value) * 100 || 0)
+const progress = computed(() => (answeredCount.value / requiredCount.value) * 100 || 0)
 
 // 可见页码（用于快速跳转）
 const visiblePages = computed(() => {

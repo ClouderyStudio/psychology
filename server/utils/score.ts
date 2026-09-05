@@ -7,6 +7,7 @@ import { scoreSixteenPF } from "./scoring-rules/scoreSixteenPF";
 import { scoreBPNS } from "./scoring-rules/scoreBPNS";
 import { scoreIPIPEIS } from "./scoring-rules/scoreIPIPEIS";
 import { scoreSeven } from "./scoring-rules/scoreSeven";
+import { scorePsyAge } from "./scoring-rules/scorePsyAge";
 interface ScoringInput {
   testId: string;
   answers: Record<number, number>;
@@ -21,6 +22,7 @@ export interface ScoringResult {
   dimensionScores?: Record<string, any>;
   mbtiReport?: Record<string, any>;
   sevenReport?: Record<string, any>;
+  psyAgeReport?: Record<string, any>;
   rawScore?: number;
   standardizedScore?: number;
 }
@@ -129,6 +131,8 @@ export function calculateScore(input: ScoringInput): ScoringResult {
       return scoreRSES(answers);
     case "seven":
       return scoreSeven(answers);
+    case "psy-age":
+      return scorePsyAge(answers);
     default:
       return {
         totalScore: 0,

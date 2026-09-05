@@ -91,4 +91,26 @@ describe("calculateScore 基础评分", () => {
     expect(r.sevenReport?.coexist).toHaveLength(0);
     expect(r.totalScore).toBe(50);
   });
+
+  it("心理年龄：全选中立 → 六维中点加权合成 33 岁，迷航待航", () => {
+    const r = calculateScore({ testId: "psy-age", answers: full(42, 3) });
+    expect(r.totalScore).toBe(33);
+    expect(r.psyAgeReport?.descriptor).toBe("两轴都在蓄力");
+    expect(r.psyAgeReport?.archetype.id).toBe("mihang");
+    expect(r.psyAgeReport?.dims).toHaveLength(6);
+    expect(r.psyAgeReport?.maturity).toBe(50);
+    expect(r.psyAgeReport?.youth).toBe(50);
+    expect(r.psyAgeReport?.resLevel).toBe("担当适中");
+    expect(r.psyAgeReport?.balance.label).toBe("非常均衡");
+  });
+
+  it("心理年龄：填生理年龄 22 → 心理 33 偏高约 11 岁", () => {
+    const a = full(42, 3);
+    a[43] = 22;
+    const r = calculateScore({ testId: "psy-age", answers: a });
+    expect(r.psyAgeReport?.chrono).toBe(22);
+    expect(r.psyAgeReport?.diff).toBe(11);
+    expect(r.psyAgeReport?.diffLabel).toBe("大 11 岁");
+    expect(r.psyAgeReport?.describe).toBe("比你的实际年龄成熟");
+  });
 });

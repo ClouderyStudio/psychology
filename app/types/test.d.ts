@@ -6,9 +6,13 @@ export interface Option {
 export interface Question {
   id: number;
   text: string;
-  options: Option[];
+  options?: Option[];
   reversed?: boolean;
   dimension?: string | null;
+  /** number 题：数字输入（用于生理年龄等），min/max 为允许区间 */
+  type?: "likert" | "number" | "single" | "judge" | "essay";
+  min?: number;
+  max?: number;
 }
 
 export interface Test {
@@ -60,6 +64,7 @@ export interface TestResult {
   dimensionScores?: SCL90DimensionScores | Record<string, any>;
   mbtiReport?: Record<string, any>;
   sevenReport?: Record<string, any>;
+  psyAgeReport?: Record<string, any>;
 }
 export interface TestListItem {
   id: string;
