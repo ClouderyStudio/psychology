@@ -394,16 +394,3 @@ export const ipipEisDimensionKeys = [
   "empathy",
 ];
 
-// 测谎题ID列表
-export const lieItems = [61, 62, 63, 64];
-
-// 获取题目对应的维度
-export function getQuestionDimension(id: number): string | null {
-  const question = ipipEisQuestions.find((q) => q.id === id);
-  return question?.dimension || null;
-}
-
-// 判断是否为测谎题
-export function isLieItem(id: number): boolean {
-  return lieItems.includes(id);
-}
