@@ -1,4 +1,4 @@
-import { mbtiQuestions } from "#imports";
+import { mbtiQuestions } from "../questions/mbti-questions";
 import { ScoringResult } from "../score";
 
 // MBTI 评分函数

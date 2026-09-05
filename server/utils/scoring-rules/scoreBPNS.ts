@@ -1,4 +1,4 @@
-import { bpnsQuestions, bpnsDimensions } from "#imports";
+import { bpnsQuestions, bpnsDimensions } from "../questions/bpns-questions";
 import { ScoringResult } from "../score";
 
 // BPNS 评分函数

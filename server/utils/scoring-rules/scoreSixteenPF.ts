@@ -3,7 +3,7 @@ import {
   getCorrectAnswer,
   isReverseQuestion,
   sixteenPFFactors,
-} from "#imports";
+} from "../questions/sixteenPF-questions";
 import { ScoringResult } from "../score";
 
 // 16PF 评分函数

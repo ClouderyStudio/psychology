@@ -1,4 +1,4 @@
-import { calculateDimensionScores, scl90Dimensions } from "#imports";
+import { calculateDimensionScores, scl90Dimensions } from "../misc/scl90-dimensions";
 import { ScoringResult } from "../score";
 
 export type SCL90DimensionKey = keyof typeof scl90Dimensions;

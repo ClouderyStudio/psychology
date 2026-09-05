@@ -403,12 +403,6 @@ export function getQuestionDimension(id: number): string | null {
   return question?.dimension || null;
 }
 
-// 判断是否为反向计分题
-export function isReverseQuestion(id: number): boolean {
-  const question = ipipEisQuestions.find((q) => q.id === id);
-  return question?.reverse || false;
-}
-
 // 判断是否为测谎题
 export function isLieItem(id: number): boolean {
   return lieItems.includes(id);
