@@ -1,0 +1,36 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  test-and-build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 12.2.1
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+
+      - name: Install dependencies
+        # 使用非 frozen 安装以同步 lockfile（新增的 vitest 属开发依赖）
+        run: pnpm install
+
+      - name: Type-check
+        run: pnpm exec nuxt typecheck
+
+      - name: Run tests
+        run: pnpm test
+
+      - name: Build
+        run: pnpm build
