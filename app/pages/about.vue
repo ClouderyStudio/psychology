@@ -80,7 +80,7 @@
             >
               <div class="flex items-center gap-4">
                 <div
-                  class="w-16 h-16 rounded-full flex items-center justify-center text-3xl"
+                  class="w-16 h-16 shrink-0 rounded-full flex items-center justify-center text-3xl"
                   style="background-color: var(--primary); color: white"
                 >
                   <img
@@ -120,7 +120,7 @@
             >
               <div class="flex items-center gap-4">
                 <div
-                  class="w-16 h-16 rounded-full flex items-center justify-center text-3xl"
+                  class="w-16 h-16 shrink-0 rounded-full flex items-center justify-center text-3xl"
                   style="background-color: var(--special); color: white"
                 >
                   <img
@@ -160,7 +160,7 @@
             >
               <div class="flex items-center gap-4">
                 <div
-                  class="w-16 h-16 rounded-full flex items-center justify-center text-3xl"
+                  class="w-16 h-16 shrink-0 rounded-full flex items-center justify-center text-3xl"
                   style="background-color: var(--disharmony); color: white"
                 >
                   <img
