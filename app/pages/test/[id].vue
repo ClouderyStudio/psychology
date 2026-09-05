@@ -23,37 +23,37 @@
                 <button @click="quickCompleteAll"
                   class="w-full px-4 py-2 text-left text-sm transition-colors"
                   style="color: var(--text);"
-                  @mouseenter="e => e.target.style.backgroundColor = 'var(--bg)'"
-                  @mouseleave="e => e.target.style.backgroundColor = 'transparent'">
+                  @mouseenter="elStyle($event, { backgroundColor: 'var(--bg)' })"
+                  @mouseleave="elStyle($event, { backgroundColor: 'transparent' })">
                   🚀 随机完成所有题目
                 </button>
                 <button @click="quickCompleteCurrentPage"
                   class="w-full px-4 py-2 text-left text-sm transition-colors"
                   style="color: var(--text);"
-                  @mouseenter="e => e.target.style.backgroundColor = 'var(--bg)'"
-                  @mouseleave="e => e.target.style.backgroundColor = 'transparent'">
+                  @mouseenter="elStyle($event, { backgroundColor: 'var(--bg)' })"
+                  @mouseleave="elStyle($event, { backgroundColor: 'transparent' })">
                   📄 随机完成当前页
                 </button>
                 <button @click="completeCurrentPageWithFirstOption"
                   class="w-full px-4 py-2 text-left text-sm transition-colors"
                   style="color: var(--text);"
-                  @mouseenter="e => e.target.style.backgroundColor = 'var(--bg)'"
-                  @mouseleave="e => e.target.style.backgroundColor = 'transparent'">
+                  @mouseenter="elStyle($event, { backgroundColor: 'var(--bg)' })"
+                  @mouseleave="elStyle($event, { backgroundColor: 'transparent' })">
                   🛜 当前页全选第一个
                 </button>
                 <button @click="completeCurrentPageWithLastOption"
                   class="w-full px-4 py-2 text-left text-sm transition-colors"
                   style="color: var(--text);"
-                  @mouseenter="e => e.target.style.backgroundColor = 'var(--bg)'"
-                  @mouseleave="e => e.target.style.backgroundColor = 'transparent'">
+                  @mouseenter="elStyle($event, { backgroundColor: 'var(--bg)' })"
+                  @mouseleave="elStyle($event, { backgroundColor: 'transparent' })">
                   🔚 当前页全选最后一个
                 </button>
                 <hr class="my-1" style="border-color: var(--primary-light);">
                 <button @click="clearAllAnswers"
                   class="w-full px-4 py-2 text-left text-sm transition-colors"
                   style="color: var(--warning-text);"
-                  @mouseenter="e => e.target.style.backgroundColor = 'var(--bg)'"
-                  @mouseleave="e => e.target.style.backgroundColor = 'transparent'">
+                  @mouseenter="elStyle($event, { backgroundColor: 'var(--bg)' })"
+                  @mouseleave="elStyle($event, { backgroundColor: 'transparent' })">
                   🗑️ 清除所有答案
                 </button>
               </div>
@@ -125,8 +125,8 @@
             <span class="text-xs" style="color: var(--text-muted);">页</span>
             <button @click="jumpToPage" class="px-3 py-1 rounded text-xs transition-colors"
               style="background-color: var(--primary); color: white;"
-              @mouseenter="e => e.target.style.backgroundColor = 'var(--primary-dark)'"
-              @mouseleave="e => e.target.style.backgroundColor = 'var(--primary)'">
+              @mouseenter="elStyle($event, { backgroundColor: 'var(--primary-dark)' })"
+              @mouseleave="elStyle($event, { backgroundColor: 'var(--primary)' })">
               GO
             </button>
           </div>
@@ -583,7 +583,7 @@ const quickCompleteAll = () => {
         if (options && options.length > 0) {
           // 随机选择一个选项
           const randomIndex = Math.floor(Math.random() * options.length)
-          const randomValue = options[randomIndex].value
+          const randomValue = options[randomIndex]!.value
           newAnswers[question.id] = randomValue
         }
       }
@@ -621,7 +621,7 @@ const quickCompleteCurrentPage = () => {
     const options = question.options
     if (options && options.length > 0) {
       const randomIndex = Math.floor(Math.random() * options.length)
-      newAnswers[question.id] = options[randomIndex].value
+      newAnswers[question.id] = options[randomIndex]!.value
     }
   }
 
@@ -642,7 +642,7 @@ const completeCurrentPageWithFirstOption = () => {
   for (const question of currentPageQuestions.value) {
     const options = question.options
     if (options && options.length > 0) {
-      newAnswers[question.id] = options[0].value
+      newAnswers[question.id] = options[0]!.value
     }
   }
 
@@ -662,7 +662,7 @@ const completeCurrentPageWithLastOption = () => {
   for (const question of currentPageQuestions.value) {
     const options = question.options
     if (options && options.length > 0) {
-      newAnswers[question.id] = options[options.length - 1].value
+      newAnswers[question.id] = options[options.length - 1]!.value
     }
   }
 
