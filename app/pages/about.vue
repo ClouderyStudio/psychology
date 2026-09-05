@@ -106,7 +106,7 @@
                     <a href="https://github.com/TulipQiyi" class="text-xs" style="color: var(--special)">GitHub</a>
                     <a href="https://user.qzone.qq.com/2675256772" class="text-xs" style="color: var(--personality)">QQ空间</a>
                     <a href="https://space.bilibili.com/1762277941" class="text-xs" style="color: var(--special)">哔哩哔哩</a>
-                    <a href="https://afdian.com/a/justqiyi" class="text-xs" style="color: var(--special)">爱发电</a>
+                    <a href="https://afdian.com/a/justqiyi" class="text-xs" style="color: var(--personality)">爱发电</a>
                   </div>
                 </div>
               </div>
