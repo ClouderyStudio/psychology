@@ -8,7 +8,8 @@
     "generate": "nuxt generate",
     "preview": "nuxt preview",
     "postinstall": "nuxt prepare",
-    "generate-build-time": "node scripts/generate-build-time.cjs"
+    "generate-build-time": "node scripts/generate-build-time.cjs",
+    "test": "vitest run"
   },
   "packageManager": "pnpm@12.2.1",
   "dependencies": {
@@ -25,6 +26,7 @@
   "devDependencies": {
     "@tailwindcss/vite": "^4.3.3",
     "@types/node": "^25.8.0",
-    "@types/nprogress": "^0.2.3"
+    "@types/nprogress": "^0.2.3",
+    "vitest": "^3.2.4"
   }
 }
