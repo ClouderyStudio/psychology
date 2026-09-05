@@ -212,10 +212,10 @@ const refText = (r: any) => {
 .pa-callout { color: var(--text); line-height: 1.7; font-size: 0.9rem; }
 .pa-callout p { margin-top: 0.4rem; }
 /* 雷达 */
-.pa-radar-wrap { position: relative; display: flex; justify-content: center; height: 280px; margin: 0 auto; }
-.pa-radar { width: 260px; height: 260px; }
-.pa-radar-label { position: absolute; transform: translate(-50%, -50%); font-size: 0.75rem; color: var(--text-secondary); }
-@media (max-width: 360px) { .pa-radar-wrap { height: 240px; } .pa-radar { width: 220px; height: 220px; } }
+.pa-radar-wrap { position: relative; width: 260px; height: 260px; margin: 0 auto; }
+.pa-radar { position: absolute; inset: 0; width: 260px; height: 260px; }
+.pa-radar-label { position: absolute; transform: translate(-50%, -50%); font-size: 0.75rem; color: var(--text-secondary); white-space: nowrap; }
+@media (max-width: 380px) { .pa-radar-wrap { transform: scale(0.82); } }
 /* 双轴象限 */
 .pa-quad-wrap { display: flex; justify-content: center; }
 .pa-quad-plot { position: relative; width: 100%; max-width: 300px; height: 260px; border: 1px solid var(--primary-light); border-radius: 0.75rem; background:
