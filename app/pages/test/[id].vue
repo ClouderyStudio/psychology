@@ -419,7 +419,6 @@ const clearAllAnswers = () => {
 
 // 初始化时加载已保存的答案
 onMounted(async () => {
-  answerStore.clearLastResult()
   jumpPage.value = currentPage.value
   isClient.value = true
 
