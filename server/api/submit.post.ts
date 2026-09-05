@@ -1,7 +1,7 @@
 import { calculateScore, generatePersonalizedAdvice } from "../utils/score";
 
 export default defineEventHandler(async (event) => {
-  const body = await readBody(event);
+  const body = await readBody(event).catch(() => ({}));
   const { testId, answers, userInfo } = body;
 
   // 验证数据
@@ -12,30 +12,61 @@ export default defineEventHandler(async (event) => {
     });
   }
 
-  if (!answers || Object.keys(answers).length === 0) {
+  if (!answers || typeof answers !== "object" || Array.isArray(answers)) {
     throw createError({
       statusCode: 400,
       message: "请先完成所有题目",
     });
   }
 
-  // 获取测评信息以获取标题
-  let testTitle = "";
+  // 拉取测评完整数据（标题 + 题目），用于标题展示与完整性/值域校验
+  let testData: any = null;
   try {
-    const testData = await $fetch(`/api/tests/${testId}`);
+    testData = await $fetch(`/api/tests/${testId}`);
+  } catch {
+    throw createError({
+      statusCode: 400,
+      message: "测评不存在",
+    });
+  }
 
-    if (Array.isArray(testData)) {
-      testTitle =
-        typeof testData[0]?.title === "string"
-          ? testData[0]?.title
-          : "心理测评";
-    } else if ("data" in testData && typeof testData.data?.title === "string") {
-      testTitle = testData.data.title;
-    } else if ("title" in testData && typeof testData.title === "string") {
-      testTitle = testData.title;
+  const testTitle =
+    (typeof testData?.title === "string" && testData.title) || "心理测评";
+
+  // 完整性校验：所有题目必须作答
+  const questions: Array<{ id: number; options?: Array<{ value: number }> }> =
+    Array.isArray(testData?.questions) ? testData.questions : [];
+
+  if (questions.length > 0) {
+    const missing = questions.filter((q) => !(q && q.id in answers));
+    if (missing.length > 0) {
+      throw createError({
+        statusCode: 400,
+        message: `还有 ${missing.length} 道题未作答，请先完成所有题目`,
+      });
     }
-  } catch (error) {
-    testTitle = "心理测评";
+
+    // 值域校验：答案必须是数字且在选项分值范围内
+    for (const q of questions) {
+      const val = answers[q.id];
+      if (typeof val !== "number" || Number.isNaN(val)) {
+        throw createError({
+          statusCode: 400,
+          message: `第 ${q.id} 题的答案格式不正确`,
+        });
+      }
+      if (Array.isArray(q.options) && q.options.length > 0) {
+        const values = q.options.map((o) => o.value);
+        const min = Math.min(...values);
+        const max = Math.max(...values);
+        if (val < min || val > max) {
+          throw createError({
+            statusCode: 400,
+            message: `第 ${q.id} 题的选项无效`,
+          });
+        }
+      }
+    }
   }
 
   // 计算分数
