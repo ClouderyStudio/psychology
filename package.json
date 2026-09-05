@@ -27,6 +27,8 @@
     "@tailwindcss/vite": "^4.3.3",
     "@types/node": "^25.8.0",
     "@types/nprogress": "^0.2.3",
-    "vitest": "^3.2.4"
+    "typescript": "^5.8.0",
+    "vitest": "^3.2.4",
+    "vue-tsc": "^3.3.11"
   }
 }
