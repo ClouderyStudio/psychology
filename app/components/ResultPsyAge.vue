@@ -1,44 +1,55 @@
 <template>
-  <div class="pa-psy">
-    <!-- 主数字 -->
+  <div class="pa-report space-y-6">
+    <!-- 概述 -->
     <section class="pa-hero">
-      <div class="pa-hero-main">
-        <div class="pa-num">{{ report.psychAge }}<span class="pa-unit">岁</span></div>
-        <div class="pa-badge">{{ report.descriptor }}</div>
+      <div class="pa-hero-desc">
+        <p class="pa-eyebrow">心理年龄测验 · 七维模型</p>
+        <div class="pa-hero-main">
+          <div class="pa-num">{{ report.psychAge }}<span class="pa-unit">岁</span></div>
+          <span class="pa-badge">{{ report.descriptor }}</span>
+        </div>
+        <p class="pa-desc">{{ report.describe }}</p>
+        <p class="pa-soft">{{ report.heroNote }}</p>
       </div>
-      <p class="pa-desc">{{ report.describe }}</p>
-      <div class="pa-chips">
-        <div class="pa-chip" v-if="report.chrono != null">
-          <span class="pa-chip-k">生理年龄</span><b>{{ report.chrono }}</b>
+      <div class="pa-hero-stats">
+        <div class="pa-stat" v-if="report.chrono != null" style="border-top-color: var(--special);">
+          <div class="pa-stat-row"><span style="color: var(--text-secondary);">生理年龄</span><strong>{{ report.chrono }}</strong></div>
+          <div class="pa-stat-tip" style="background-color: var(--special-light); color: var(--special-dark);">身份证上的年龄</div>
         </div>
-        <div class="pa-chip" v-if="report.diff != null">
-          <span class="pa-chip-k">心理 vs 生理</span><b>{{ report.diffLabel }}</b>
+        <div class="pa-stat" v-if="report.diff != null" style="border-top-color: var(--primary);">
+          <div class="pa-stat-row"><span style="color: var(--text-secondary);">心理 vs 生理</span><strong>{{ report.diffLabel }}</strong></div>
+          <div class="pa-stat-tip" style="background-color: var(--primary-light); color: var(--primary);">心理年龄相对生理年龄</div>
         </div>
-        <div class="pa-chip">
-          <span class="pa-chip-k">概括值</span><b>6 维加权合成</b>
+        <div class="pa-stat" style="border-top-color: var(--symptom);">
+          <div class="pa-stat-row"><span style="color: var(--text-secondary);">概括值</span><strong>6 维加权</strong></div>
+          <div class="pa-stat-tip" style="background-color: var(--symptom-light); color: var(--symptom-dark);">由 6 个年龄维度合成</div>
         </div>
       </div>
-      <p class="pa-note">{{ report.heroNote }}</p>
     </section>
 
     <!-- 六维雷达 -->
-    <section class="pa-card">
-      <h3 class="pa-title">六维心理年龄画像</h3>
+    <section class="pa-section">
+      <div class="pa-section-head">
+        <h3>六维心理年龄画像</h3>
+        <p>六个维度各自对应的心理年龄（16—60 岁区间），越靠近外周越年轻。</p>
+      </div>
       <div class="pa-radar-wrap">
         <svg viewBox="0 0 260 260" class="pa-radar">
-          <polygon :points="ringPoly()" fill="rgba(120,120,120,0.06)" stroke="var(--primary-light)" stroke-width="1"/>
+          <polygon :points="ringPoly()" fill="var(--primary)" fill-opacity="0.05" stroke="var(--primary-light)" stroke-width="1"/>
           <line v-for="i in [0,1,2,3,4,5]" :key="'ax'+i" :x1="C" :y1="C" :x2="pt(i,100).x" :y2="pt(i,100).y" stroke="var(--primary-light)" stroke-width="1"/>
-          <polygon :points="radarPoly()" fill="var(--pa-fill)" stroke="var(--primary)" stroke-width="2" stroke-linejoin="round"/>
+          <polygon :points="radarPoly()" fill="var(--primary)" fill-opacity="0.18" stroke="var(--primary)" stroke-width="2" stroke-linejoin="round"/>
         </svg>
         <span v-for="(d,i) in report.dims" :key="d.key" class="pa-radar-label" :style="labelPos(Number(i),d)">{{ d.short }}</span>
       </div>
     </section>
 
     <!-- 双轴象限 -->
-    <section class="pa-card">
-      <h3 class="pa-title">成熟度 × 少年感 双轴画像</h3>
-      <p class="pa-sub">两条轴相互独立，可以同时很高——"看清世界"和"童心未泯"并不冲突。</p>
-      <div class="pa-quad">
+    <section class="pa-section">
+      <div class="pa-section-head">
+        <h3>成熟度 × 少年感 双轴画像</h3>
+        <p>两条轴相互独立，可以同时很高——「看清世界」与「童心未泯」并不冲突。</p>
+      </div>
+      <div class="pa-quad-wrap">
         <div class="pa-quad-plot">
           <div class="pa-quad-point" :style="qDot()"></div>
           <div class="pa-quad-l pa-q">赤子之心</div>
@@ -56,49 +67,68 @@
       </div>
     </section>
 
-    <!-- 维度条形 + 逐维解析 -->
-    <section class="pa-card">
-      <h3 class="pa-title">逐维度解析</h3>
-      <div v-for="d in report.dims" :key="d.key" class="pa-bar-block">
-        <div class="pa-bar-head">
-          <span class="pa-bar-name">{{ d.name }} · {{ d.short }}</span>
-          <span class="pa-bar-meta">{{ d.age }} 岁 · <em :class="'pa-band-' + d.band">{{ d.bandLabel }}</em></span>
-        </div>
-        <div class="pa-bar-track">
-          <div class="pa-bar-fill" :class="'pa-fill-' + d.band" :style="{ width: barPct(d) + '%' }"></div>
-          <div class="pa-bar-marker" v-if="report.chrono != null" :style="{ left: markerPct() + '%' }" :title="'生理年龄 ' + report.chrono"></div>
-        </div>
-        <p class="pa-bar-about">{{ d.about }}</p>
-        <p class="pa-bar-text">{{ d.bandText }}</p>
+    <!-- 逐维度解析 -->
+    <section class="pa-section">
+      <div class="pa-section-head">
+        <h3>逐维度解析</h3>
+        <p>每个维度的心理年龄与成长建议（竖线为你填写的生理年龄位置，如已填写）。</p>
       </div>
-      <div class="pa-bar-legend" v-if="report.chrono != null">竖线标记：你的生理年龄（{{ report.chrono }} 岁）</div>
+      <div class="pa-dims">
+        <div v-for="d in report.dims" :key="d.key" class="pa-dim">
+          <div class="pa-dim-head">
+            <span class="pa-dim-name">{{ d.name }} · {{ d.short }}</span>
+            <span class="pa-dim-meta">{{ d.age }} 岁 · <em :class="'pa-band-' + d.band">{{ d.bandLabel }}</em></span>
+          </div>
+          <div class="w-full h-2 rounded-full" style="background-color: var(--primary-light);">
+            <div class="h-2 rounded-full" :class="'pa-fill-' + d.band" :style="{ width: barPct(d) + '%' }"></div>
+          </div>
+          <div class="pa-bar-marker" v-if="report.chrono != null" :style="{ left: markerPct() + '%' }" :title="'生理年龄 ' + report.chrono"></div>
+          <p class="pa-bar-about">{{ d.about }}</p>
+          <p class="pa-bar-text" style="color: var(--text-secondary);">{{ d.bandText }}</p>
+        </div>
+      </div>
     </section>
 
     <!-- 均衡度 -->
-    <section class="pa-card">
-      <h3 class="pa-title">维度均衡度</h3>
-      <p class="pa-sub"><b class="pa-band-key">{{ report.balance.label }}</b> —— {{ report.balance.text }}</p>
+    <section class="pa-section">
+      <div class="pa-section-head">
+        <h3>维度均衡度</h3>
+        <p>你 6 个维度的心理年龄彼此差异有多大。</p>
+      </div>
+      <div class="pa-callout">
+        <b class="pa-band-key">{{ report.balance.label }}</b>
+        <p style="color: var(--text-secondary);">{{ report.balance.text }}</p>
+      </div>
     </section>
 
-    <!-- 责任担当 -->
-    <section class="pa-card">
-      <h3 class="pa-title">担当力（不计入年龄）</h3>
-      <p class="pa-sub"><b class="pa-band-key">{{ report.resLevel }}</b>（特质分 {{ report.resTrait }} / 5）</p>
-      <p class="pa-note">{{ report.responsibilityNote }}</p>
+    <!-- 担当力 -->
+    <section class="pa-section">
+      <div class="pa-section-head">
+        <h3>担当力（不计入年龄）</h3>
+        <p>责任感是「担当」而不是「年龄」——它反映你靠不靠谱、扛不扛事。</p>
+      </div>
+      <div class="pa-callout">
+        <b class="pa-band-key">{{ report.resLevel }}</b><span style="color: var(--text-muted); font-size: 0.8rem;">（特质分 {{ report.resTrait }} / 5）</span>
+        <p style="color: var(--text-secondary);">{{ report.responsibilityNote }}</p>
+      </div>
     </section>
 
     <!-- 如何阅读 -->
-    <section class="pa-card">
-      <h3 class="pa-title">如何阅读这份报告</h3>
+    <section class="pa-section">
+      <div class="pa-section-head">
+        <h3>如何阅读这份报告</h3>
+      </div>
       <ol class="pa-how">
         <li v-for="(t,i) in report.howToRead" :key="'h'+i">{{ t }}</li>
       </ol>
     </section>
 
     <!-- 依据与文献 -->
-    <section class="pa-card">
-      <h3 class="pa-title">维度与文献依据</h3>
-      <p class="pa-note">{{ report.basisIntro }}</p>
+    <section class="pa-section">
+      <div class="pa-section-head">
+        <h3>维度与文献依据</h3>
+        <p>{{ report.basisIntro }}</p>
+      </div>
       <ul class="pa-refs">
         <li v-for="(r,i) in report.references" :key="'r'+i">
           <b>[{{ Number(i) + 1 }}]</b> {{ refText(r) }}
@@ -127,17 +157,16 @@ const pt = (i: number, norm: number) => {
   const a = ((-90 + i * 60) * Math.PI) / 180
   return { x: C + r * Math.cos(a), y: C + r * Math.sin(a) }
 }
-const radarPoly = () =>
-  report.dims.map((d: any, i: number) => pt(i, radarVal(d)).x.toFixed(1) + ',' + pt(i, radarVal(d)).y.toFixed(1)).join(' ')
-const ringPoly = () =>
-  [0, 1, 2, 3, 4, 5].map((i: number) => pt(i, 100).x.toFixed(1) + ',' + pt(i, 100).y.toFixed(1)).join(' ')
+const pstr = (p: any) => p.x.toFixed(1) + ',' + p.y.toFixed(1)
+const radarPoly = () => report.dims.map((d: any, i: number) => pstr(pt(i, radarVal(d)))).join(' ')
+const ringPoly = () => [0, 1, 2, 3, 4, 5].map((i: number) => pstr(pt(i, 100))).join(' ')
 const labelPos = (i: number, d: any) => {
   const p = pt(i, 126)
   return { left: p.x + 'px', top: p.y + 'px' }
 }
-// 双轴象限点（成熟度 x，少年感 y，左上角为原点视觉）
-const qDot = () => ({ left: report.maturity + '%', top: 100 - report.youth + '%' })
-// 维度条占比
+// 双轴象限点（成熟度 x，少年感 y）
+const qDot = () => ({ left: report.maturity + '%', top: (100 - report.youth) + '%' })
+// 维度条占比（16—60 岁区间）
 const barPct = (d: any) => {
   const v = ((Number(d.age) || 16) - 16) / 44
   return Math.round(Math.max(0, Math.min(1, v)) * 100)
@@ -147,7 +176,7 @@ const markerPct = () => {
   const v = (c - 16) / 44
   return Math.round(Math.max(0, Math.min(1, v)) * 100)
 }
-// 文献格式化
+// 文献格式化（GB/T 7714 概述）
 const refText = (r: any) => {
   let s = r.authors + ' (' + r.year + '). ' + r.title + '.'
   if (r.journal) s += ' ' + r.journal
@@ -159,62 +188,81 @@ const refText = (r: any) => {
 </script>
 
 <style scoped>
-.pa-psy { display: flex; flex-direction: column; gap: 16px; }
-.pa-hero { padding: 24px; border-radius: 16px; background: linear-gradient(135deg, var(--primary), var(--special)); color: #fff; }
-.pa-hero-main { display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap; }
-.pa-num { font-size: 56px; font-weight: 800; line-height: 1; }
-.pa-unit { font-size: 24px; margin-left: 4px; }
-.pa-badge { background: rgba(255,255,255,0.22); padding: 6px 12px; border-radius: 999px; font-size: 13px; }
-.pa-desc { margin: 10px 0 14px; font-size: 16px; opacity: 0.95; }
-.pa-chips { display: flex; flex-wrap: wrap; gap: 8px; }
-.pa-chip { background: rgba(255,255,255,0.16); padding: 8px 12px; border-radius: 10px; font-size: 13px; display: flex; gap: 6px; align-items: baseline; }
-.pa-chip-k { opacity: 0.8; }
-.pa-note { font-size: 13px; margin-top: 14px; opacity: 0.92; line-height: 1.6; }
-.pa-card { padding: 20px; border-radius: 16px; background: var(--card-bg); box-shadow: var(--shadow-sm); }
-.pa-title { font-size: 17px; font-weight: 700; margin-bottom: 8px; color: var(--text); }
-.pa-sub { font-size: 13px; color: var(--text-secondary); line-height: 1.7; margin-bottom: 8px; }
-.pa-radar-wrap { position: relative; height: 300px; margin: 6px auto; max-width: 300px; }
-.pa-radar { width: 260px; height: 260px; position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); }
-.pa-radar-label { position: absolute; transform: translate(-50%, -50%); font-size: 12px; color: var(--text-secondary); }
-.pa-quad-plot { position: relative; height: 260px; border: 1px solid var(--primary-light); border-radius: 12px; background:
+.pa-report { }
+/* 概述：左文右指标 */
+.pa-hero { display: grid; grid-template-columns: 1fr 1.3fr; gap: 1rem; align-items: stretch; }
+.pa-hero-desc h3, .pa-hero-main { }
+.pa-eyebrow { color: var(--primary); font-size: 0.75rem; letter-spacing: 0.05em; text-transform: uppercase; margin-bottom: 0.5rem; }
+.pa-hero-main { display: flex; align-items: baseline; gap: 0.6rem; flex-wrap: wrap; }
+.pa-num { font-size: 3.25rem; font-weight: 800; line-height: 1; color: var(--text); }
+.pa-unit { font-size: 1.4rem; margin-left: 4px; color: var(--text); }
+.pa-badge { background-color: var(--primary-light); color: var(--primary); font-size: 0.8rem; font-weight: 600; padding: 0.35rem 0.75rem; border-radius: 999px; }
+.pa-desc { margin: 0.6rem 0 0.4rem; font-size: 1.05rem; color: var(--text); }
+.pa-soft { color: var(--text-secondary); font-size: 0.85rem; line-height: 1.7; }
+.pa-hero-stats { display: grid; grid-template-columns: 1fr; gap: 0.6rem; }
+.pa-stat { border-top: 4px solid; background-color: var(--bg); padding: 1rem; border-radius: 0.75rem; }
+.pa-stat-row { display: flex; justify-content: space-between; align-items: baseline; }
+.pa-stat-row strong { font-size: 1.4rem; color: var(--text); }
+.pa-stat-tip { margin-top: 0.5rem; font-size: 0.75rem; line-height: 1.5; padding: 0.35rem 0.6rem; border-radius: 0.5rem; }
+/* 区块 */
+.pa-section { background-color: var(--bg); border-radius: 0.75rem; padding: 1.25rem; }
+.pa-section-head { margin-bottom: 0.75rem; }
+.pa-section-head h3 { font-weight: 700; color: var(--text); font-size: 1.05rem; }
+.pa-section-head p { color: var(--text-muted); font-size: 0.8rem; margin-top: 0.25rem; line-height: 1.6; }
+.pa-callout { color: var(--text); line-height: 1.7; font-size: 0.9rem; }
+.pa-callout p { margin-top: 0.4rem; }
+/* 雷达 */
+.pa-radar-wrap { position: relative; display: flex; justify-content: center; height: 280px; margin: 0 auto; }
+.pa-radar { width: 260px; height: 260px; }
+.pa-radar-label { position: absolute; transform: translate(-50%, -50%); font-size: 0.75rem; color: var(--text-secondary); }
+@media (max-width: 360px) { .pa-radar-wrap { height: 240px; } .pa-radar { width: 220px; height: 220px; } }
+/* 双轴象限 */
+.pa-quad-wrap { display: flex; justify-content: center; }
+.pa-quad-plot { position: relative; width: 100%; max-width: 300px; height: 260px; border: 1px solid var(--primary-light); border-radius: 0.75rem; background:
   linear-gradient(90deg, transparent 49.6%, var(--primary-light) 49.6%, var(--primary-light) 50.4%, transparent 50.4%),
   linear-gradient(0deg, transparent 49.6%, var(--primary-light) 49.6%, var(--primary-light) 50.4%, transparent 50.4%); }
-.pa-quad-point { position: absolute; width: 14px; height: 14px; border-radius: 50%; background: var(--primary);
-  border: 3px solid #fff; box-shadow: 0 0 0 2px var(--primary); transform: translate(-50%, -50%); }
-.pa-q { position: absolute; font-size: 13px; font-weight: 600; opacity: 0.75; }
+.pa-quad-point { position: absolute; width: 14px; height: 14px; border-radius: 50%; background-color: var(--primary);
+  border: 3px solid var(--bg); box-shadow: 0 0 0 2px var(--primary); transform: translate(-50%, -50%); z-index: 2; }
+.pa-q { position: absolute; font-size: 0.85rem; font-weight: 600; color: var(--text-muted); }
 .pa-quad-l { left: 12px; top: 12px; }
 .pa-quad-r { right: 12px; top: 12px; }
 .pa-quad-bl { left: 12px; bottom: 12px; }
 .pa-quad-br { right: 12px; bottom: 12px; }
-.pa-axis-x { position: absolute; left: 50%; bottom: 8px; transform: translateX(-50%); font-size: 12px; color: var(--text-secondary); }
-.pa-axis-y { position: absolute; left: 8px; top: 50%; transform: translateY(-50%) rotate(-90deg); transform-origin: left center; font-size: 12px; color: var(--text-secondary); }
-.pa-archetype { margin-top: 14px; padding: 14px; border-radius: 12px; background: var(--bg); }
-.pa-archetype-title { font-size: 15px; font-weight: 700; color: var(--primary); }
-.pa-archetype-short { font-size: 12px; color: var(--text-secondary); margin-left: 8px; }
-.pa-archetype-text { font-size: 14px; line-height: 1.7; margin-top: 8px; color: var(--text); }
-.pa-bar-block { margin-bottom: 16px; }
-.pa-bar-head { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 6px; }
-.pa-bar-name { font-weight: 600; font-size: 14px; }
-.pa-bar-meta { font-size: 12px; color: var(--text-secondary); }
-.pa-bar-track { position: relative; height: 10px; border-radius: 999px; background: var(--primary-light); }
-.pa-bar-fill { height: 100%; border-radius: 999px; }
-.pa-fill-young { background: linear-gradient(90deg, var(--special), #7ed6a5); }
-.pa-fill-balanced { background: var(--primary); }
-.pa-fill-old { background: linear-gradient(90deg, #9a7bd8, #7c5cbf); }
-.pa-bar-marker { position: absolute; top: -3px; bottom: -3px; width: 2px; background: #333; border-radius: 1px; }
-.pa-bar-about { font-size: 12px; color: var(--text-secondary); margin: 6px 0 4px; }
-.pa-bar-text { font-size: 13px; line-height: 1.7; color: var(--text); }
-.pa-bar-legend { font-size: 12px; color: var(--text-muted); margin-top: 4px; }
+.pa-axis-x { position: absolute; left: 50%; bottom: 8px; transform: translateX(-50%); font-size: 0.75rem; color: var(--text-secondary); }
+.pa-axis-y { position: absolute; left: 10px; top: 50%; transform: translateY(-50%) rotate(-90deg); transform-origin: left center; font-size: 0.75rem; color: var(--text-secondary); }
+.pa-archetype { margin-top: 1rem; padding: 1rem; border: 1px solid var(--primary-light); border-radius: 0.75rem; }
+.pa-archetype-title { display: inline; font-size: 1rem; font-weight: 700; color: var(--primary); }
+.pa-archetype-short { font-size: 0.8rem; color: var(--text-secondary); margin-left: 0.5rem; }
+.pa-archetype-text { font-size: 0.9rem; line-height: 1.8; margin-top: 0.6rem; color: var(--text); }
+/* 逐维 */
+.pa-dims { display: flex; flex-direction: column; gap: 1.1rem; }
+.pa-dim { position: relative; }
+.pa-dim-head { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 0.4rem; }
+.pa-dim-name { font-weight: 600; font-size: 0.95rem; color: var(--text); }
+.pa-dim-meta { font-size: 0.8rem; color: var(--text-secondary); }
+.pa-bar-marker { position: absolute; top: 1.75rem; bottom: 0; width: 2px; background-color: var(--text); opacity: 0.85; transform: translateX(-1px); }
+.pa-bar-about { font-size: 0.8rem; color: var(--text-muted); margin: 0.5rem 0 0.35rem; }
+.pa-bar-text { font-size: 0.85rem; line-height: 1.7; color: var(--text-secondary); }
+.pa-fill-young { background-color: var(--special); }
+.pa-fill-balanced { background-color: var(--primary); }
+.pa-fill-old { background-color: var(--symptom-dark); }
 .pa-band-young, .pa-band-old, .pa-band-balanced { font-style: normal; font-weight: 600; }
-.pa-band-young { color: #0c9a58; }
-.pa-band-balanced { color: var(--primary); }
-.pa-band-old { color: #7c5cbf; }
+.pa-band-young { background-color: var(--special-light); color: var(--special-dark); }
+.pa-band-balanced { background-color: var(--primary-light); color: var(--primary); }
+.pa-band-old { background-color: var(--symptom-light); color: var(--symptom-dark); }
+.pa-band-young, .pa-band-balanced, .pa-band-old { padding: 0.1rem 0.5rem; border-radius: 999px; font-size: 0.75rem; }
 .pa-band-key { color: var(--primary); font-weight: 700; }
-.pa-how { padding-left: 20px; margin: 6px 0; }
-.pa-how li { font-size: 13px; line-height: 1.8; color: var(--text); margin-bottom: 4px; }
-.pa-refs { list-style: none; padding: 0; margin: 10px 0 0; }
-.pa-refs li { font-size: 12px; line-height: 1.7; color: var(--text-secondary); padding-bottom: 10px; border-bottom: 1px dashed var(--primary-light); margin-bottom: 10px; }
+/* 如何阅读 */
+.pa-how { list-style: none; padding: 0; margin: 0; }
+.pa-how li { font-size: 0.9rem; line-height: 1.8; color: var(--text); padding: 0.5rem 0.75rem; border-left: 3px solid var(--primary-light); background-color: var(--card-bg); border-radius: 0 0.5rem 0.5rem 0; margin-bottom: 0.5rem; }
+/* 文献 */
+.pa-refs { list-style: none; padding: 0; margin: 0; }
+.pa-refs li { font-size: 0.8rem; line-height: 1.7; color: var(--text-secondary); padding-bottom: 0.75rem; border-bottom: 1px dashed var(--primary-light); margin-bottom: 0.75rem; }
 .pa-refs li:last-child { border-bottom: 0; margin-bottom: 0; }
-.pa-ref-note { display: block; margin-top: 4px; color: var(--text); background: var(--bg); border-radius: 8px; padding: 6px 8px; }
-.pa-disclaimer { font-size: 12px; color: var(--text-muted); line-height: 1.7; padding: 0 4px; }
+.pa-ref-note { display: block; margin-top: 0.4rem; color: var(--text); font-size: 0.82rem; }
+/* 免责 */
+.pa-disclaimer { font-size: 0.75rem; color: var(--text-muted); line-height: 1.7; border-left: 3px solid var(--warning-border); padding-left: 0.75rem; }
+@media (max-width: 768px) {
+  .pa-hero { grid-template-columns: 1fr; }
+}
 </style>
