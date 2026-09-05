@@ -1,4 +1,4 @@
-import type { Test, Option } from "~/types/test";
+import type { Test } from "~/types/test";
 import {
   bdcOptions,
   bdcQuestions,
@@ -60,46 +60,25 @@ import {
   pss10Questions,
 } from "~~/server/utils/questions/pss10-questions";
 import {
+  sasOptions,
+  sasQuestions,
+} from "~~/server/utils/questions/sas-questions";
+import {
+  scl90Options,
+  scl90Questions,
+} from "~~/server/utils/questions/scl90-questions";
+import {
+  sdsOptions,
+  sdsQuestions,
+} from "~~/server/utils/questions/sds-questions";
+import {
   rsesOptions,
   rsesQuestions,
 } from "~~/server/utils/questions/rses-questions";
 
-// SCL-90 专用5点选项
-const SCL_90_OPTIONS: Option[] = [
-  { value: 1, label: "从无" },
-  { value: 2, label: "很轻" },
-  { value: 3, label: "中等" },
-  { value: 4, label: "偏重" },
-  { value: 5, label: "严重" },
-];
-
-// SDS 和 SAS 专用4点选项
-const SDS_SAS_OPTIONS: Option[] = [
-  { value: 1, label: "没有或很少时间" },
-  { value: 2, label: "小部分时间" },
-  { value: 3, label: "相当多时间" },
-  { value: 4, label: "绝大部分或全部时间" },
-];
-
-function sortQuestionsById(questions: any[]) {
+// 按题目 id 升序排序（题库文件顺序可能与出题顺序不同）
+function sortQuestionsById<T extends { id: number }>(questions: T[]): T[] {
   return [...questions].sort((a, b) => a.id - b.id);
-}
-
-// 快速生成题目
-function createQuestion(
-  id: number,
-  text: string,
-  options: Option[],
-  reversed?: boolean,
-  dimension?: string,
-) {
-  return {
-    id,
-    text,
-    options,
-    ...(reversed && { reversed }),
-    ...(dimension && { dimension }),
-  };
 }
 
 export default defineEventHandler(async (event) => {
@@ -118,33 +97,6 @@ export default defineEventHandler(async (event) => {
       })),
       scoringRules: {
         type: "sum",
-        thresholds: [
-          {
-            min: 0,
-            max: 4,
-            level: "无显著抑郁症状",
-            suggestion: "保持良好生活习惯",
-          },
-          { min: 5, max: 9, level: "轻度抑郁", suggestion: "建议关注心理健康" },
-          {
-            min: 10,
-            max: 14,
-            level: "中度抑郁",
-            suggestion: "建议寻求专业帮助",
-          },
-          {
-            min: 15,
-            max: 19,
-            level: "中重度抑郁",
-            suggestion: "强烈建议咨询医生",
-          },
-          {
-            min: 20,
-            max: 27,
-            level: "重度抑郁",
-            suggestion: "请尽快寻求医疗帮助",
-          },
-        ],
       },
     },
 
@@ -160,16 +112,6 @@ export default defineEventHandler(async (event) => {
       })),
       scoringRules: {
         type: "sum",
-        thresholds: [
-          { min: 0, max: 4, level: "轻度焦虑", suggestion: "建议学习放松技巧" },
-          { min: 5, max: 9, level: "中度焦虑", suggestion: "建议寻求专业帮助" },
-          {
-            min: 10,
-            max: 21,
-            level: "重度焦虑",
-            suggestion: "建议尽快咨询医生",
-          },
-        ],
       },
     },
 
@@ -187,26 +129,6 @@ export default defineEventHandler(async (event) => {
       })),
       scoringRules: {
         type: "sum",
-        thresholds: [
-          {
-            min: 0,
-            max: 13,
-            level: "压力水平较低",
-            suggestion: "压力管理良好",
-          },
-          {
-            min: 14,
-            max: 26,
-            level: "压力水平适中",
-            suggestion: "建议学习压力管理",
-          },
-          {
-            min: 27,
-            max: 40,
-            level: "压力水平较高",
-            suggestion: "建议积极干预",
-          },
-        ],
       },
     },
 
@@ -217,143 +139,13 @@ export default defineEventHandler(async (event) => {
         "以下列出了有些人可能会有的问题，请仔细阅读每一条，根据最近一星期以内您的实际感觉，选择最符合的选项。",
       instructions:
         "请根据您最近一周的真实感受，选择最符合的选项。该量表包含90个题目，大约需要15-20分钟完成。",
-      questions: [
-        createQuestion(1, "头痛", SCL_90_OPTIONS),
-        createQuestion(2, "神经过敏，心中不踏实", SCL_90_OPTIONS),
-        createQuestion(3, "头脑中有不必要的想法或字句盘旋", SCL_90_OPTIONS),
-        createQuestion(4, "头晕或晕倒", SCL_90_OPTIONS),
-        createQuestion(5, "对异性的兴趣减退", SCL_90_OPTIONS),
-        createQuestion(6, "对旁人责备求全", SCL_90_OPTIONS),
-        createQuestion(7, "感到别人能控制您的思想", SCL_90_OPTIONS),
-        createQuestion(8, "责怪别人制造麻烦", SCL_90_OPTIONS),
-        createQuestion(9, "忘记性大", SCL_90_OPTIONS),
-        createQuestion(10, "担心自己的衣饰整齐及仪态的端正", SCL_90_OPTIONS),
-        createQuestion(11, "容易烦恼和激动", SCL_90_OPTIONS),
-        createQuestion(12, "胸痛", SCL_90_OPTIONS),
-        createQuestion(13, "害怕空旷的场所或街道", SCL_90_OPTIONS),
-        createQuestion(14, "感到自己精力下降，活动减慢", SCL_90_OPTIONS),
-        createQuestion(15, "想结束自己的生命", SCL_90_OPTIONS),
-        createQuestion(16, "听到旁人听不到的声音", SCL_90_OPTIONS),
-        createQuestion(17, "发抖", SCL_90_OPTIONS),
-        createQuestion(18, "感到大多数人都不可信任", SCL_90_OPTIONS),
-        createQuestion(19, "胃口不好", SCL_90_OPTIONS),
-        createQuestion(20, "容易哭泣", SCL_90_OPTIONS),
-        createQuestion(21, "同异性相处时感到害羞不自在", SCL_90_OPTIONS),
-        createQuestion(22, "感到受骗，中了圈套或有人想抓住您", SCL_90_OPTIONS),
-        createQuestion(23, "无缘无故地突然感到害怕", SCL_90_OPTIONS),
-        createQuestion(24, "自己不能控制地大发脾气", SCL_90_OPTIONS),
-        createQuestion(25, "怕单独出门", SCL_90_OPTIONS),
-        createQuestion(26, "经常责怪自己", SCL_90_OPTIONS),
-        createQuestion(27, "腰痛", SCL_90_OPTIONS),
-        createQuestion(28, "感到难以完成任务", SCL_90_OPTIONS),
-        createQuestion(29, "感到孤独", SCL_90_OPTIONS),
-        createQuestion(30, "感到苦闷", SCL_90_OPTIONS),
-        createQuestion(31, "过分担忧", SCL_90_OPTIONS),
-        createQuestion(32, "对事物不感兴趣", SCL_90_OPTIONS),
-        createQuestion(33, "感到害怕", SCL_90_OPTIONS),
-        createQuestion(34, "您的感情容易受到伤害", SCL_90_OPTIONS),
-        createQuestion(35, "旁人能知道您的私下想法", SCL_90_OPTIONS),
-        createQuestion(36, "感到别人不理解您或不同情您", SCL_90_OPTIONS),
-        createQuestion(37, "感到人们对您不友好，不喜欢您", SCL_90_OPTIONS),
-        createQuestion(38, "做事必须做得很慢以保证做得正确", SCL_90_OPTIONS),
-        createQuestion(39, "心跳得很厉害", SCL_90_OPTIONS),
-        createQuestion(40, "恶心或胃部不舒服", SCL_90_OPTIONS),
-        createQuestion(41, "感到比不上他人", SCL_90_OPTIONS),
-        createQuestion(42, "肌肉酸痛", SCL_90_OPTIONS),
-        createQuestion(43, "感到有人在监视您、谈论您", SCL_90_OPTIONS),
-        createQuestion(44, "难以入睡", SCL_90_OPTIONS),
-        createQuestion(45, "做事必须反复检查", SCL_90_OPTIONS),
-        createQuestion(46, "难以作出决定", SCL_90_OPTIONS),
-        createQuestion(47, "怕乘电车、公共汽车、地铁或火车", SCL_90_OPTIONS),
-        createQuestion(48, "呼吸有困难", SCL_90_OPTIONS),
-        createQuestion(49, "一阵阵发冷或发热", SCL_90_OPTIONS),
-        createQuestion(
-          50,
-          "因为感到害怕而避开某些东西、场合或活动",
-          SCL_90_OPTIONS,
-        ),
-        createQuestion(51, "脑子变空了", SCL_90_OPTIONS),
-        createQuestion(52, "身体发麻或刺痛", SCL_90_OPTIONS),
-        createQuestion(53, "喉咙有梗塞感", SCL_90_OPTIONS),
-        createQuestion(54, "感到前途没有希望", SCL_90_OPTIONS),
-        createQuestion(55, "不能集中注意力", SCL_90_OPTIONS),
-        createQuestion(56, "感到身体的某一部分软弱无力", SCL_90_OPTIONS),
-        createQuestion(57, "感到紧张或容易紧张", SCL_90_OPTIONS),
-        createQuestion(58, "感到手或脚发重", SCL_90_OPTIONS),
-        createQuestion(59, "想到死亡的事", SCL_90_OPTIONS),
-        createQuestion(60, "吃得太多", SCL_90_OPTIONS),
-        createQuestion(61, "当别人看着您或谈论您时感到不自在", SCL_90_OPTIONS),
-        createQuestion(62, "有一些不属于您自己的想法", SCL_90_OPTIONS),
-        createQuestion(63, "有想打人或伤害他人的冲动", SCL_90_OPTIONS),
-        createQuestion(64, "醒得太早", SCL_90_OPTIONS),
-        createQuestion(65, "必须反复洗手、点数", SCL_90_OPTIONS),
-        createQuestion(66, "睡得不稳不深", SCL_90_OPTIONS),
-        createQuestion(67, "有想摔坏或破坏东西的冲动", SCL_90_OPTIONS),
-        createQuestion(68, "有一些别人没有的想法或念头", SCL_90_OPTIONS),
-        createQuestion(69, "感到对别人神经过敏", SCL_90_OPTIONS),
-        createQuestion(
-          70,
-          "在商店或电影院等人多的地方感到不自在",
-          SCL_90_OPTIONS,
-        ),
-        createQuestion(71, "感到任何事情都很困难", SCL_90_OPTIONS),
-        createQuestion(72, "一阵阵恐惧或惊恐", SCL_90_OPTIONS),
-        createQuestion(73, "感到在公共场合吃东西很不舒服", SCL_90_OPTIONS),
-        createQuestion(74, "经常与人争论", SCL_90_OPTIONS),
-        createQuestion(75, "单独一人时神经很紧张", SCL_90_OPTIONS),
-        createQuestion(76, "别人对您的成绩没有作出恰当的评价", SCL_90_OPTIONS),
-        createQuestion(77, "即使和别人在一起也感到孤单", SCL_90_OPTIONS),
-        createQuestion(78, "感到坐立不安心神不定", SCL_90_OPTIONS),
-        createQuestion(79, "感到自己没有什么价值", SCL_90_OPTIONS),
-        createQuestion(
-          80,
-          "感到熟悉的东西变成陌生或不像是真的",
-          SCL_90_OPTIONS,
-        ),
-        createQuestion(81, "大叫或摔东西", SCL_90_OPTIONS),
-        createQuestion(82, "害怕会在公共场合昏倒", SCL_90_OPTIONS),
-        createQuestion(83, "感到别人想占您的便宜", SCL_90_OPTIONS),
-        createQuestion(84, "为一些有关性的想法而很苦恼", SCL_90_OPTIONS),
-        createQuestion(
-          85,
-          "您认为应该因为自己的过错而受到惩罚",
-          SCL_90_OPTIONS,
-        ),
-        createQuestion(86, "感到要很快把事情做完", SCL_90_OPTIONS),
-        createQuestion(87, "感到自己的身体有严重问题", SCL_90_OPTIONS),
-        createQuestion(88, "从未感到和其他人很亲近", SCL_90_OPTIONS),
-        createQuestion(89, "感到自己有罪", SCL_90_OPTIONS),
-        createQuestion(90, "感到自己的脑子有毛病", SCL_90_OPTIONS),
-      ],
+      questions: scl90Questions.map((q) => ({
+        id: q.id,
+        text: q.text,
+        options: scl90Options,
+      })),
       scoringRules: {
         type: "scl90",
-        thresholds: [
-          {
-            min: 90,
-            max: 179,
-            level: "心理健康状况良好",
-            suggestion: "您的心理健康状况良好，请继续保持健康的生活方式。",
-          },
-          {
-            min: 180,
-            max: 224,
-            level: "轻度心理困扰",
-            suggestion: "您可能存在轻度心理困扰，建议关注自我调适，适当放松。",
-          },
-          {
-            min: 225,
-            max: 269,
-            level: "中度心理困扰",
-            suggestion: "您的心理困扰程度中等，建议寻求专业心理咨询帮助。",
-          },
-          {
-            min: 270,
-            max: 450,
-            level: "重度心理困扰",
-            suggestion:
-              "您的心理困扰较明显，强烈建议尽快寻求专业心理医生帮助。",
-          },
-        ],
       },
     },
 
@@ -363,82 +155,12 @@ export default defineEventHandler(async (event) => {
       description: "请根据您过去一周的实际感觉，选择最符合的选项。",
       instructions:
         "请仔细阅读每一条题目，根据您过去一周的实际感觉选择最符合的选项。注意：部分题目需要反向计分。",
-      questions: [
-        createQuestion(1, "我觉得闷闷不乐，情绪低沉", SDS_SAS_OPTIONS),
-        createQuestion(
-          2,
-          "我觉得一天中早晨最好（反向计分）",
-          SDS_SAS_OPTIONS,
-          true,
-        ),
-        createQuestion(3, "我一阵阵哭出来或觉得想哭", SDS_SAS_OPTIONS),
-        createQuestion(4, "我晚上睡眠不好", SDS_SAS_OPTIONS),
-        createQuestion(
-          5,
-          "我吃得跟平常一样多（反向计分）",
-          SDS_SAS_OPTIONS,
-          true,
-        ),
-        createQuestion(
-          6,
-          "我与异性密切接触时和以往一样感到愉快（反向计分）",
-          SDS_SAS_OPTIONS,
-          true,
-        ),
-        createQuestion(7, "我发觉我的体重在下降", SDS_SAS_OPTIONS),
-        createQuestion(8, "我有便秘的苦恼", SDS_SAS_OPTIONS),
-        createQuestion(9, "我心跳比平时快", SDS_SAS_OPTIONS),
-        createQuestion(10, "我无缘无故地感到疲乏", SDS_SAS_OPTIONS),
-        createQuestion(
-          11,
-          "我的头脑跟平常一样清楚（反向计分）",
-          SDS_SAS_OPTIONS,
-          true,
-        ),
-        createQuestion(
-          12,
-          "我觉得经常做的事情并没有困难（反向计分）",
-          SDS_SAS_OPTIONS,
-          true,
-        ),
-        createQuestion(13, "我觉得不安而平静不下来", SDS_SAS_OPTIONS),
-        createQuestion(
-          14,
-          "我对将来抱有希望（反向计分）",
-          SDS_SAS_OPTIONS,
-          true,
-        ),
-        createQuestion(15, "我比平常容易生气激动", SDS_SAS_OPTIONS),
-        createQuestion(
-          16,
-          "我觉得作出决定是容易的（反向计分）",
-          SDS_SAS_OPTIONS,
-          true,
-        ),
-        createQuestion(
-          17,
-          "我觉得自己是个有用的人，有人需要我（反向计分）",
-          SDS_SAS_OPTIONS,
-          true,
-        ),
-        createQuestion(
-          18,
-          "我的生活过得很有意思（反向计分）",
-          SDS_SAS_OPTIONS,
-          true,
-        ),
-        createQuestion(
-          19,
-          "我认为如果我死了，别人会生活得好些",
-          SDS_SAS_OPTIONS,
-        ),
-        createQuestion(
-          20,
-          "平常感兴趣的事我仍然感兴趣（反向计分）",
-          SDS_SAS_OPTIONS,
-          true,
-        ),
-      ],
+      questions: sdsQuestions.map((q) => ({
+        id: q.id,
+        text: q.text,
+        options: sdsOptions,
+        reversed: q.reverse,
+      })),
       scoringRules: {
         type: "sds",
       },
@@ -450,53 +172,12 @@ export default defineEventHandler(async (event) => {
       description: "请根据您过去一周的实际感觉，选择最符合的选项。",
       instructions:
         "请仔细阅读每一条题目，根据您过去一周的实际感觉选择最符合的选项。注意：部分题目需要反向计分。",
-      questions: [
-        createQuestion(1, "我觉得比平常容易紧张和着急", SDS_SAS_OPTIONS),
-        createQuestion(2, "我无缘无故地感到害怕", SDS_SAS_OPTIONS),
-        createQuestion(3, "我容易心里烦乱或觉得惊恐", SDS_SAS_OPTIONS),
-        createQuestion(4, "我觉得我可能将要发疯", SDS_SAS_OPTIONS),
-        createQuestion(
-          5,
-          "我觉得一切都很好，也不会发生什么不幸（反向计分）",
-          SDS_SAS_OPTIONS,
-          true,
-        ),
-        createQuestion(6, "我手脚发抖打颤", SDS_SAS_OPTIONS),
-        createQuestion(7, "我因为头痛、颈痛和背痛而苦恼", SDS_SAS_OPTIONS),
-        createQuestion(8, "我感觉容易衰弱和疲乏", SDS_SAS_OPTIONS),
-        createQuestion(
-          9,
-          "我觉得心平气和，并且容易安静坐着（反向计分）",
-          SDS_SAS_OPTIONS,
-          true,
-        ),
-        createQuestion(10, "我觉得心跳得很快", SDS_SAS_OPTIONS),
-        createQuestion(11, "我因为一阵阵头晕而苦恼", SDS_SAS_OPTIONS),
-        createQuestion(12, "我有晕倒发作，或觉得要晕倒似的", SDS_SAS_OPTIONS),
-        createQuestion(
-          13,
-          "我吸气呼气都感到很容易（反向计分）",
-          SDS_SAS_OPTIONS,
-          true,
-        ),
-        createQuestion(14, "我手脚麻木和刺痛", SDS_SAS_OPTIONS),
-        createQuestion(15, "我因为胃痛和消化不良而苦恼", SDS_SAS_OPTIONS),
-        createQuestion(16, "我常常要小便", SDS_SAS_OPTIONS),
-        createQuestion(
-          17,
-          "我的手常常是干燥温暖的（反向计分）",
-          SDS_SAS_OPTIONS,
-          true,
-        ),
-        createQuestion(18, "我脸红发热", SDS_SAS_OPTIONS),
-        createQuestion(
-          19,
-          "我容易入睡并且一夜睡得很好（反向计分）",
-          SDS_SAS_OPTIONS,
-          true,
-        ),
-        createQuestion(20, "我做恶梦", SDS_SAS_OPTIONS),
-      ],
+      questions: sasQuestions.map((q) => ({
+        id: q.id,
+        text: q.text,
+        options: sasOptions,
+        reversed: q.reverse,
+      })),
       scoringRules: {
         type: "sas",
       },

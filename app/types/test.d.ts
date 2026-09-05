@@ -8,7 +8,7 @@ export interface Question {
   text: string;
   options: Option[];
   reversed?: boolean;
-  dimension?: string;
+  dimension?: string | null;
 }
 
 export interface Test {
@@ -19,13 +19,6 @@ export interface Test {
   questions: Question[];
   scoringRules: {
     type: string;
-    thresholds?: Array<{
-      min: number;
-      max: number;
-      level: string;
-      suggestion: string;
-    }>;
-    dimensions?: Record<string, number[]>;
   };
 }
 
