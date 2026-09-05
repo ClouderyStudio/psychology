@@ -15,8 +15,12 @@
 
         <!-- 试卷列表 -->
         <div class="p-8">
-          <div class="grid gap-4 sm:grid-cols-2">
-            <NuxtLink v-for="paper in examPapers" :key="paper.id" :to="`/exam/${paper.id.toLowerCase()}`"
+          <div v-if="pending" class="py-16 text-center text-sm" style="color: var(--text-secondary)">加载中…</div>
+          <div v-else-if="!examPapers.length" class="py-16 text-center text-sm" style="color: var(--text-secondary)">
+            暂无试卷，或访问未授权。
+          </div>
+          <div v-else class="grid gap-4 sm:grid-cols-2">
+            <NuxtLink v-for="paper in examPapers" :key="paper.id" :to="'/exam/' + paper.id.toLowerCase()"
               class="p-6 rounded-xl transition-all block"
               style="background-color: var(--bg);"
               @mouseenter="e => { e.target.style.backgroundColor = 'var(--primary-light)'; e.target.style.transform = 'translateY(-2px)' }"
@@ -43,11 +47,20 @@
 </template>
 
 <script setup lang="ts">
-import { examPapers, type ExamPaper } from '~/data/exam'
+import type { ExamPaper } from '~/types/exam'
 
 useHead({
   title: '内部试卷 - 心灵驿站'
 })
+
+// 试卷数据由服务端受保护接口下发（不在前端 bundle 中）
+const { data: papersData, pending } = await useAsyncData('internal-exam-papers', () =>
+  $fetch('/api/internal/papers', {
+    // SSR 时转发 cookie，确保服务端渲染也能通过鉴权
+    headers: useRequestHeaders(['cookie']),
+  }).catch(() => [])
+)
+const examPapers = computed<ExamPaper[]>(() => (papersData.value as ExamPaper[]) || [])
 
 const paperCount = (paper: ExamPaper) =>
   paper.sections.reduce((sum, section) => sum + section.questions.length, 0)

@@ -224,7 +224,7 @@
 </template>
 
 <script setup lang="ts">
-import type { ExamPaper, ExamQuestion } from '~/data/exam'
+import type { ExamPaper, ExamQuestion } from '~/types/exam'
 
 const props = defineProps<{
   paper: ExamPaper
