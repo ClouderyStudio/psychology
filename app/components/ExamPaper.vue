@@ -138,8 +138,8 @@
                   color: 'white',
                   boxShadow: 'var(--shadow-sm)'
                 }"
-                @mouseenter="e => { if (isComplete) elStyle($event, { backgroundColor: 'var(--primary-dark)' }) }"
-                @mouseleave="e => { if (isComplete) elStyle($event, { backgroundColor: 'var(--primary)' }) }">
+                @mouseenter="e => { if (isComplete) elStyle(e, { backgroundColor: 'var(--primary-dark)' }) }"
+                @mouseleave="e => { if (isComplete) elStyle(e, { backgroundColor: 'var(--primary)' }) }">
                 {{ isComplete ? '提交试卷' : `还需完成 ${remainingCount} 题` }}
               </button>
             </div>
