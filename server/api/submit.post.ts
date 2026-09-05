@@ -31,11 +31,11 @@ export default defineEventHandler(async (event) => {
   }
 
   const testTitle =
-    (typeof testData?.title === "string" && testData.title) || "心理测评";
+    (typeof testData?.data?.title === "string" && testData.data.title) || "心理测评";
 
   // 完整性校验：所有题目必须作答
   const questions: Array<{ id: number; options?: Array<{ value: number }> }> =
-    Array.isArray(testData?.questions) ? testData.questions : [];
+    Array.isArray(testData?.data?.questions) ? testData.data.questions : [];
 
   if (questions.length > 0) {
     const missing = questions.filter((q) => !(q && q.id in answers));
