@@ -1,5 +1,5 @@
 import { bpnsQuestions, bpnsDimensions } from "../questions/bpns-questions";
-import { ScoringResult } from "../score";
+import type { ScoringResult } from "../score";
 
 // BPNS 评分函数
 export function scoreBPNS(answers: Record<number, number>): ScoringResult {
@@ -27,8 +27,8 @@ export function scoreBPNS(answers: Record<number, number>): ScoringResult {
       // 反向计分：1→7, 2→6, 3→5, 4→4, 5→3, 6→2, 7→1
       score = 8 - value;
     }
-    dimScores[question.dimension].total += score;
-    dimScores[question.dimension].count++;
+    dimScores[question.dimension]!.total += score;
+    dimScores[question.dimension]!.count++;
   });
 
   // 计算各维度平均分和等级
@@ -36,7 +36,7 @@ export function scoreBPNS(answers: Record<number, number>): ScoringResult {
   const dimLevels: Record<string, string> = {};
 
   for (const dim of dimensions) {
-    const avg = dimScores[dim].total / dimScores[dim].count;
+    const avg = dimScores[dim]!.total / dimScores[dim]!.count;
     dimAverages[dim] = Math.round(avg * 100) / 100;
 
     if (avg >= 5.5) dimLevels[dim] = "高度满足";
@@ -47,7 +47,7 @@ export function scoreBPNS(answers: Record<number, number>): ScoringResult {
 
   // 总分（各维度平均分的平均值，转换为百分制）
   const totalAvg =
-    (dimAverages.autonomy + dimAverages.competence + dimAverages.relatedness) /
+    (dimAverages.autonomy! + dimAverages.competence! + dimAverages.relatedness!) /
     3;
   const totalScore = Math.round((totalAvg / 7) * 100);
 
@@ -107,9 +107,9 @@ function generateBPNSReport(
 
 二、综合评估
 
-总分：${Math.round((((scores.autonomy + scores.competence + scores.relatedness) / 3) * 100) / 7)}分
+总分：${Math.round((((scores.autonomy! + scores.competence! + scores.relatedness!) / 3) * 100) / 7)}分
 
-${getOverallLevel((scores.autonomy + scores.competence + scores.relatedness) / 3)}
+${getOverallLevel((scores.autonomy! + scores.competence! + scores.relatedness!) / 3)}
 
 【成长建议】
 • 关注得分较低的维度，有针对性地改善

@@ -4,7 +4,7 @@ import {
   isReverseQuestion,
   sixteenPFFactors,
 } from "../questions/sixteenPF-questions";
-import { ScoringResult } from "../score";
+import type { ScoringResult } from "../score";
 
 // 16PF 评分函数
 export function scoreSixteenPF(answers: Record<number, number>): ScoringResult {
