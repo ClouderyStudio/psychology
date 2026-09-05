@@ -209,8 +209,7 @@ const route = useRoute()
 const { $toast, $confirm } = useNuxtApp()
 const { isDark, toggle: toggleTheme } = useTheme()
 
-// 内部测试访问凭证（cookie，供路由守卫校验，防止直接输入 URL 进入）
-const internalAuthed = useCookie('internal_authed')
+// 内部测试访问凭证由服务端 /api/internal/auth 签发，客户端无需直接读写 cookie
 
 // 滚动状态
 const isScrolled = ref(false)
@@ -223,7 +222,7 @@ const internalTestOpen = ref(false)
 const internalPassword = ref('')
 const passwordError = ref(false)
 const passwordInput = ref<HTMLInputElement | null>(null)
-const INTERNAL_TEST_PASSWORD = 'yunshu'
+const internalAuthSubmitting = ref(false)
 
 // 打开内部测试弹窗
 const openInternalTest = () => {
@@ -238,17 +237,25 @@ const closeInternalTest = () => {
   internalTestOpen.value = false
 }
 
-// 提交密码：正确则跳转内部演示页
-const submitInternalPassword = () => {
-  if (internalPassword.value === INTERNAL_TEST_PASSWORD) {
-    internalAuthed.value = 'granted'
+// 提交密码：交由服务端校验并签发 HttpOnly 凭证
+const submitInternalPassword = async () => {
+  if (internalAuthSubmitting.value) return
+  internalAuthSubmitting.value = true
+  passwordError.value = false
+  try {
+    await $fetch('/api/internal/auth', {
+      method: 'POST',
+      body: { password: internalPassword.value },
+    })
     internalTestOpen.value = false
     mobileMenuOpen.value = false
     router.push('/exam')
-    return
+  } catch (e: any) {
+    passwordError.value = true
+    $toast.error(e?.data?.statusMessage || '密码错误，请重试', '内部测试')
+  } finally {
+    internalAuthSubmitting.value = false
   }
-  passwordError.value = true
-  $toast.error('密码错误，请重试', '内部测试')
 }
 
 // 未完成测评数据
