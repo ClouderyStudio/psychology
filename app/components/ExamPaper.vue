@@ -25,8 +25,8 @@
             </div>
             <NuxtLink to="/exam" class="text-sm font-medium transition-colors"
               style="color: var(--text-secondary)"
-              @mouseenter="e => e.target.style.color = 'var(--primary)'"
-              @mouseleave="e => e.target.style.color = 'var(--text-secondary)'">
+              @mouseenter="elStyle($event, { color: 'var(--primary)' })"
+              @mouseleave="elStyle($event, { color: 'var(--text-secondary)' })">
               ← 返回试卷列表
             </NuxtLink>
           </div>
@@ -138,8 +138,8 @@
                   color: 'white',
                   boxShadow: 'var(--shadow-sm)'
                 }"
-                @mouseenter="e => { if (isComplete) e.target.style.backgroundColor = 'var(--primary-dark)' }"
-                @mouseleave="e => { if (isComplete) e.target.style.backgroundColor = 'var(--primary)' }">
+                @mouseenter="e => { if (isComplete) elStyle($event, { backgroundColor: 'var(--primary-dark)' }) }"
+                @mouseleave="e => { if (isComplete) elStyle($event, { backgroundColor: 'var(--primary)' }) }">
                 {{ isComplete ? '提交试卷' : `还需完成 ${remainingCount} 题` }}
               </button>
             </div>
@@ -167,8 +167,8 @@
                   <button @click="unlockResult"
                     class="px-5 py-2.5 rounded-lg font-semibold text-sm transition-all w-full sm:w-auto"
                     style="background-color: var(--primary); color: white"
-                    @mouseenter="e => e.target.style.backgroundColor = 'var(--primary-dark)'"
-                    @mouseleave="e => e.target.style.backgroundColor = 'var(--primary)'">
+                    @mouseenter="elStyle($event, { backgroundColor: 'var(--primary-dark)' })"
+                    @mouseleave="elStyle($event, { backgroundColor: 'var(--primary)' })">
                     解锁
                   </button>
                 </div>
@@ -210,8 +210,8 @@
                 <button @click="retake"
                   class="px-6 py-2.5 rounded-lg font-medium transition-all text-sm"
                   style="background-color: var(--card-bg); color: var(--text-secondary); box-shadow: var(--shadow-sm)"
-                  @mouseenter="e => e.target.style.backgroundColor = 'var(--bg)'"
-                  @mouseleave="e => e.target.style.backgroundColor = 'var(--card-bg)'">
+                  @mouseenter="elStyle($event, { backgroundColor: 'var(--bg)' })"
+                  @mouseleave="elStyle($event, { backgroundColor: 'var(--card-bg)' })">
                   ↺ 重新作答
                 </button>
               </div>

@@ -23,8 +23,8 @@
             <NuxtLink v-for="paper in examPapers" :key="paper.id" :to="'/exam/' + paper.id.toLowerCase()"
               class="p-6 rounded-xl transition-all block"
               style="background-color: var(--bg);"
-              @mouseenter="e => { e.target.style.backgroundColor = 'var(--primary-light)'; e.target.style.transform = 'translateY(-2px)' }"
-              @mouseleave="e => { e.target.style.backgroundColor = 'var(--bg)'; e.target.style.transform = 'translateY(0)' }">
+              @mouseenter="elStyle($event, { backgroundColor: 'var(--primary-light)', transform: 'translateY(-2px)' })"
+              @mouseleave="elStyle($event, { backgroundColor: 'var(--bg)', transform: 'translateY(0)' })">
               <div class="flex items-center justify-between mb-3">
                 <span class="text-2xl font-bold" style="color: var(--primary)">{{ paper.name }}</span>
                 <span class="text-xs px-2.5 py-1 rounded-full font-medium"

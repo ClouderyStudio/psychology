@@ -22,7 +22,7 @@ const paperId = (route.params.id as string) || ''
 const { data: paper, pending } = await useAsyncData<ExamPaper | null>(
   'internal-exam-' + paperId,
   () =>
-    $fetch('/api/internal/papers/' + paperId, {
+    $fetch<ExamPaper | null>('/api/internal/papers/' + paperId, {
       // SSR 时转发 cookie，确保服务端渲染也能通过鉴权
       headers: useRequestHeaders(['cookie']),
     }).catch(() => null),

@@ -156,16 +156,16 @@
               <button @click="startTest(test.id, false)"
                 class="flex-1 py-2.5 rounded-lg font-semibold transition-all text-sm"
                 :style="{ backgroundColor: getButtonColor(test.category), color: 'white' }"
-                @mouseenter="e => e.target.style.backgroundColor = getButtonHoverColor(test.category)"
-                @mouseleave="e => e.target.style.backgroundColor = getButtonColor(test.category)">
+                @mouseenter="elStyle($event, { backgroundColor: getButtonHoverColor(test.category) })"
+                @mouseleave="elStyle($event, { backgroundColor: getButtonColor(test.category) })">
                 {{ unfinishedTests[test.id] ? '继续测评' : '开始测评' }}
               </button>
 
               <button v-if="unfinishedTests[test.id]" @click="startTest(test.id, true)"
                 class="px-4 py-2.5 rounded-lg font-semibold transition-all text-sm"
                 style="background-color: var(--card-bg); color: var(--text-secondary); box-shadow: var(--shadow-sm);"
-                @mouseenter="e => e.target.style.backgroundColor = 'var(--bg)'"
-                @mouseleave="e => e.target.style.backgroundColor = 'var(--card-bg)'">
+                @mouseenter="elStyle($event, { backgroundColor: 'var(--bg)' })"
+                @mouseleave="elStyle($event, { backgroundColor: 'var(--card-bg)' })">
                 重置
               </button>
             </div>
@@ -183,8 +183,8 @@
       <div v-if="hasAnyUnfinished" class="text-center mt-8">
         <button @click="clearAllProgress" class="px-4 py-2 rounded-lg text-sm transition-colors"
           style="background-color: var(--card-bg); color: var(--text-muted); box-shadow: var(--shadow-sm);"
-          @mouseenter="e => e.target.style.backgroundColor = 'var(--bg)'"
-          @mouseleave="e => e.target.style.backgroundColor = 'var(--card-bg)'">
+          @mouseenter="elStyle($event, { backgroundColor: 'var(--bg)' })"
+          @mouseleave="elStyle($event, { backgroundColor: 'var(--card-bg)' })">
           🗑️ 清空所有测评进度
         </button>
       </div>

@@ -34,8 +34,8 @@
             class="w-8 h-8 rounded-full flex items-center justify-center transition-all"
             style="color: var(--text-secondary);"
             :title="isDark ? '切换到浅色模式' : '切换到深色模式'"
-            @mouseenter="e => { e.target.style.backgroundColor = 'var(--primary-light)'; e.target.style.color = 'var(--primary)' }"
-            @mouseleave="e => { e.target.style.backgroundColor = 'transparent'; e.target.style.color = 'var(--text-secondary)' }">
+            @mouseenter="elStyle($event, { backgroundColor: 'var(--primary-light)', color: 'var(--primary)' })"
+            @mouseleave="elStyle($event, { backgroundColor: 'transparent', color: 'var(--text-secondary)' })">
             <svg v-if="isDark" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                 d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
@@ -52,8 +52,8 @@
               @click.stop="showProgressPanel = !showProgressPanel">
               <div class="w-8 h-8 rounded-full flex items-center justify-center transition-all"
                 style="background-color: var(--warning-bg);"
-                @mouseenter="e => e.target.style.backgroundColor = 'var(--warning-border)'"
-                @mouseleave="e => e.target.style.backgroundColor = 'var(--warning-bg)'">
+                @mouseenter="elStyle($event, { backgroundColor: 'var(--warning-border)' })"
+                @mouseleave="elStyle($event, { backgroundColor: 'var(--warning-bg)' })">
                 <span class="text-sm">📋</span>
               </div>
               <span class="absolute -top-1 -right-1 w-4 h-4 rounded-full text-xs flex items-center justify-center"
@@ -71,8 +71,8 @@
 
         <!-- 移动端菜单按钮 -->
         <button @click="toggleMobileMenu" class="md:hidden p-2 rounded-lg transition-colors" style="color: var(--text);"
-          @mouseenter="e => e.target.style.backgroundColor = 'var(--primary-light)'"
-          @mouseleave="e => e.target.style.backgroundColor = 'transparent'">
+          @mouseenter="elStyle($event, { backgroundColor: 'var(--primary-light)' })"
+          @mouseleave="elStyle($event, { backgroundColor: 'transparent' })">
           <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path v-if="!mobileMenuOpen" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
               d="M4 6h16M4 12h16M4 18h16"></path>
@@ -97,8 +97,8 @@
             <div class="space-y-2 max-h-64 overflow-y-auto">
               <div v-for="test in unfinishedTestsList" :key="test.id"
                 class="p-2 rounded cursor-pointer transition-colors" @click="continueTest(test.id)"
-                @mouseenter="e => e.target.style.backgroundColor = 'var(--bg)'"
-                @mouseleave="e => e.target.style.backgroundColor = 'transparent'">
+                @mouseenter="elStyle($event, { backgroundColor: 'var(--bg)' })"
+                @mouseleave="elStyle($event, { backgroundColor: 'transparent' })">
                 <div class="flex justify-between items-center">
                   <span class="text-sm font-medium" style="color: var(--text);">{{ test.title }}</span>
                   <span class="text-xs" style="color: var(--text-muted);">{{ test.completed }}/{{ test.total }}题</span>
@@ -141,8 +141,8 @@
         <button @click="toggleTheme"
           class="flex items-center gap-2 px-3 py-2 rounded-lg transition-colors w-full text-left"
           style="color: var(--text);"
-          @mouseenter="e => e.target.style.backgroundColor = 'var(--primary-light)'"
-          @mouseleave="e => e.target.style.backgroundColor = 'transparent'">
+          @mouseenter="elStyle($event, { backgroundColor: 'var(--primary-light)' })"
+          @mouseleave="elStyle($event, { backgroundColor: 'transparent' })">
           <svg v-if="isDark" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
               d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
