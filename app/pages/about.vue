@@ -102,13 +102,11 @@
                   <p class="text-sm mt-1" style="color: var(--text-secondary)">
                     全栈开发 · UI设计 · 量表整合 · 技术架构
                   </p>
-                  <div class="flex gap-3 mt-2">
-                    <a
-                      href="https://github.com/TulipQiyi"
-                      class="text-xs"
-                      style="color: var(--special)"
-                      >GitHub</a
-                    >
+                  <div class="flex flex-wrap gap-3 mt-2">
+                    <a href="https://github.com/TulipQiyi" class="text-xs" style="color: var(--special)">GitHub</a>
+                    <a href="https://user.qzone.qq.com/2675256772" class="text-xs" style="color: var(--personality)">QQ空间</a>
+                    <a href="https://space.bilibili.com/1762277941" class="text-xs" style="color: var(--special)">哔哩哔哩</a>
+                    <a href="https://afdian.com/a/justqiyi" class="text-xs" style="color: var(--special)">爱发电</a>
                   </div>
                 </div>
               </div>
@@ -142,13 +140,10 @@
                   <p class="text-sm mt-1" style="color: var(--text-secondary)">
                     前端开发 · 量表内容 · 补充量表
                   </p>
-                  <div class="flex gap-3 mt-2">
-                    <a
-                      href="https://github.com/yunzhu666"
-                      class="text-xs"
-                      style="color: var(--special)"
-                      >GitHub</a
-                    >
+                  <div class="flex flex-wrap gap-3 mt-2">
+                    <a href="https://github.com/yunzhu666" class="text-xs" style="color: var(--special)">GitHub</a>
+                    <a href="https://user.qzone.qq.com/2457483710" class="text-xs" style="color: var(--personality)">QQ空间</a>
+                    <a href="https://space.bilibili.com/526436598" class="text-xs" style="color: var(--special)">哔哩哔哩</a>
                   </div>
                 </div>
               </div>
