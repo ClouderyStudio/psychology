@@ -10,12 +10,6 @@ export default defineNuxtConfig({
   vite: {
     plugins: [tailwindcss()],
   },
-  
-  nitro: {
-    routeRules: {
-      '/api/**': { cors: true }
-    }
-  },
-  
+
   compatibilityDate: '2025-07-15'
 })
