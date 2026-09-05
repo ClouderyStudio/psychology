@@ -82,7 +82,6 @@
           <div class="w-full h-2 rounded-full" style="background-color: var(--primary-light);">
             <div class="h-2 rounded-full" :class="'pa-fill-' + d.band" :style="{ width: barPct(d) + '%' }"></div>
           </div>
-          <div class="pa-bar-marker" v-if="report.chrono != null" :style="{ left: markerPct() + '%' }" :title="'生理年龄 ' + report.chrono"></div>
           <p class="pa-bar-about">{{ d.about }}</p>
           <p class="pa-bar-text" style="color: var(--text-secondary);">{{ d.bandText }}</p>
         </div>
