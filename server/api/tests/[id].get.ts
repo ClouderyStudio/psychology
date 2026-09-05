@@ -431,7 +431,7 @@ export default defineEventHandler(async (event) => {
         type: "seven",
       },
     },
-    psyage: {
+    "psy-age": {
       id: "psy-age",
       title: "心理年龄测验",
       description:
