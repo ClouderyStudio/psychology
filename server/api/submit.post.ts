@@ -47,8 +47,9 @@ export default defineEventHandler(async (event) => {
       });
     }
 
-    // 值域校验：答案必须是数字且在选项分值范围内
+    // 值域校验：答案必须是数字且在选项分值范围内（number 题为可选自由输入，跳过）
     for (const q of questions) {
+      if ((q as any).type === "number") continue;
       const val = answers[q.id];
       if (typeof val !== "number" || Number.isNaN(val)) {
         throw createError({
