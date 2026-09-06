@@ -67,6 +67,28 @@
 <script setup lang="ts">
 const config = useRuntimeConfig()
 const base = (config.public.clouderyApiBase as string) || 'https://localhost:7288'
+const route = useRoute()
+
+function loginRedirectUri() {
+  return window.location.origin + '/admin?login_return=1'
+}
+
+async function handleLoginCallback() {
+  const code = route.query.code as string | undefined
+  const state = route.query.state as string | undefined
+  if (!code || !state) return
+  try {
+    await $fetch(base + '/identity/auth/callback', {
+      method: 'POST',
+      body: { code, state, redirectUri: loginRedirectUri() },
+      credentials: 'include',
+    })
+    if (window.opener) { window.close() }
+    else { auth.value = 'authed'; loadPapers() }
+  } catch (e: any) {
+    error.value = '登录回调失败：' + (e?.data?.message || e?.message || '未知错误')
+  }
+}
 
 const auth = ref<'unknown' | 'checking' | 'authed' | 'unauth'>('unknown')
 const user = ref<any>(null)
@@ -103,7 +125,7 @@ async function login() {
   try {
     const cfg = await $fetch<{ casdoor: { endpoint: string; clientId: string; scope: string }; callbackUri: string }>(base + '/identity/auth/config')
     const s = await $fetch<{ state: string }>(base + '/identity/auth/state', { credentials: 'include' })
-    const p = new URLSearchParams({ client_id: cfg.casdoor.clientId, redirect_uri: cfg.callbackUri, response_type: 'code', scope: cfg.casdoor.scope, state: s.state })
+    const p = new URLSearchParams({ client_id: cfg.casdoor.clientId, redirect_uri: loginRedirectUri(), response_type: 'code', scope: cfg.casdoor.scope, state: s.state })
     window.open(cfg.casdoor.endpoint + '/login/oauth/authorize?' + p.toString(), '_blank')
     stopPolling()
     pollTimer = setInterval(checkAuth, 3000)
@@ -124,7 +146,7 @@ async function loadPapers() {
   loading.value = true
   error.value = ''
   try {
-    papers.value = await $fetch<any[]>(base + '/exam/papers')
+    papers.value = await $fetch<any[]>(base + '/exam/ExamPapers')
   } catch (e: any) {
     error.value = '获取试卷失败：' + (e?.data?.message || e?.message || 'ClouderyApi 不可用')
   } finally { loading.value = false }
@@ -158,9 +180,9 @@ async function save() {
   try {
     const body = { id: formId.value || undefined, name: formName.value.trim(), sections }
     if (editing.value) {
-      await $fetch(base + '/exam/papers/' + formId.value, { method: 'PUT', body, credentials: 'include' })
+      await $fetch(base + '/exam/ExamPapers/' + formId.value, { method: 'PUT', body, credentials: 'include' })
     } else {
-      await $fetch(base + '/exam/papers', { method: 'POST', body, credentials: 'include' })
+      await $fetch(base + '/exam/ExamPapers', { method: 'POST', body, credentials: 'include' })
     }
     editorOpen.value = false
     loadPapers()
@@ -174,7 +196,7 @@ async function save() {
 async function removePaper(p: any) {
   if (!window.confirm('确定删除试卷「' + p.name + '」吗？')) return
   try {
-    await $fetch(base + '/exam/papers/' + p.id, { method: 'DELETE', credentials: 'include' })
+    await $fetch(base + '/exam/ExamPapers/' + p.id, { method: 'DELETE', credentials: 'include' })
     loadPapers()
   } catch (e: any) {
     if (e?.statusCode === 403) error.value = '无管理员权限，操作被拒绝'
@@ -182,6 +204,6 @@ async function removePaper(p: any) {
   }
 }
 
-onMounted(checkAuth)
+onMounted(() => { checkAuth(); handleLoginCallback() })
 onBeforeUnmount(stopPolling)
 </script>

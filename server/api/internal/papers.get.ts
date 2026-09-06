@@ -7,7 +7,7 @@ export default defineEventHandler(async (event) => {
   }
   const { clouderyApiBase } = useRuntimeConfig();
   try {
-    return await $fetch(`${clouderyApiBase}/exam/papers`);
+    return await $fetch(`${clouderyApiBase}/exam/ExamPapers`);
   } catch {
     throw createError({ statusCode: 502, statusMessage: "试卷服务暂不可用" });
   }
