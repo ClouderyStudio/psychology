@@ -314,6 +314,13 @@ function shuffleArr<T>(arr: T[]): T[] {
   return a
 }
 
+// 数字输入题（如生理年龄）固定到最后，不参与打乱
+function pinNumberLast(list: any[]): any[] {
+  const nums = list.filter((q) => q?.type === 'number')
+  const rest = list.filter((q) => q?.type !== 'number')
+  return rest.concat(nums)
+}
+
 // 题目顺序的持久化 / 恢复（保证刷新后顺序一致）
 const orderKey = "test_" + testId + "_order"
 function saveOrder(ids: number[]) {
@@ -344,7 +351,7 @@ watch(
     if (savedOrder && savedOrder.length === t.questions.length) {
       const byId = new Map<number, any>()
       t.questions.forEach((q) => byId.set(q.id, q))
-      allQuestions.value = savedOrder.map((id) => byId.get(id)).filter(Boolean) as any[]
+      allQuestions.value = pinNumberLast(savedOrder.map((id) => byId.get(id)).filter(Boolean) as any[])
     } else {
       allQuestions.value = t.questions.slice()
     }
@@ -357,7 +364,8 @@ function startTest() {
   const t = test.value
   if (!t) return
   if (shuffleOrder.value) {
-    allQuestions.value = shuffleArr(t.questions)
+    // 数字输入题（如生理年龄）固定到最后，不参与打乱
+    allQuestions.value = pinNumberLast(shuffleArr(t.questions))
     saveOrder(allQuestions.value.map((q) => q.id))
   } else {
     allQuestions.value = t.questions.slice()
@@ -534,6 +542,9 @@ onMounted(async () => {
     const totalCount = totalQuestions.value
 
     answers.value = { ...savedAnswers }
+
+    // 有进行中的作答：直接从已恢复（打乱）的顺序继续，跳过开始页
+    started.value = true
 
     if (totalQuestions.value > 0) {
       const answeredIds = Object.keys(savedAnswers).map(Number)
