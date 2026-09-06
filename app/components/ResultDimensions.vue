@@ -23,6 +23,19 @@
         <p v-if="item.desc" class="text-xs mt-2" style="color: var(--text-muted);">{{ item.desc }}</p>
       </div>
     </div>
+    <div v-if="config.highlightCard" class="mt-4 p-4 rounded-lg" style="background-color: var(--primary-light);">
+      <div class="grid sm:grid-cols-2 gap-3">
+        <div>
+          <div class="text-xs" style="color: var(--text-muted);">最明显的症状 / 表现</div>
+          <div class="font-semibold mt-1" style="color: var(--text);">🔴 {{ config.highlightCard.label }}</div>
+          <div class="text-sm mt-1" style="color: var(--primary);">出现频次：{{ config.highlightCard.freq }}</div>
+        </div>
+        <div>
+          <div class="text-xs" style="color: var(--text-muted);">达到“几天以上”的症状数</div>
+          <div class="font-semibold mt-1" style="color: var(--text);">{{ config.highlightCard.endorsedCount }} 项</div>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -53,6 +66,7 @@ const config = computed(() => {
   const s = props.scores || {}
   const items: any[] = []
   let title = '', icon = '📊', color = 'var(--primary)', hint = '', subtitle = '', columns = 'repeat(auto-fill, minmax(240px, 1fr))'
+  let highlightCard: any = null
 
   if (props.testId === 'epq' || props.testId === 'epq-rsc') {
     title = props.testId === 'epq' ? '艾森克人格 (EPQ) · 维度剖面' : '艾森克人格 (EPQ-RSC) · 维度剖面'
@@ -135,8 +149,121 @@ const config = computed(() => {
         display: Math.round(d) + '分',
       })
     })
+  } else if (props.testId === 'sccs') {
+    title = '自我和谐 · 维度剖面'
+    icon = '🪞'
+    color = 'var(--special)'
+    hint = '不和谐越低、灵活性越高、刻板性越低，自我越和谐。'
+    ;['disharmony', 'flexibility', 'rigidity'].forEach((k) => {
+      const d = (s[k] || {}) as any
+      items.push({
+        key: k,
+        name: (d.name as string) || k,
+        value: clamp((Number(d.avg) || 0) / 5 * 100),
+        display: String(Math.round((Number(d.avg) || 0) * 100) / 100) + '/5',
+        level: (Number(d.avg) || 0) >= 4 ? '偏高' : (Number(d.avg) || 0) >= 2.5 ? '中等' : '偏低',
+        desc: (d.desc as string) || '',
+      })
+    })
+    if (s.harmonyIndex != null) subtitle = '综合自我和谐指数 ' + Number(s.harmonyIndex).toFixed(2) + ' / 5.00 → ' + (s.harmonyLevel || '')
+  } else if (props.testId === 'pss') {
+    title = '压力维度 · 不可控感 / 掌控感'
+    icon = '🧘'
+    color = 'var(--symptom)'
+    hint = '每项 0-4 均值：不可控感越高越易累积压力，掌控感越高则抗压越强。'
+    ;['helplessness', 'selfEfficacy'].forEach((k) => {
+      const d = (s[k] || {}) as any
+      const avg = Number(d.avg) || 0
+      items.push({
+        key: k,
+        name: (d.name as string) || k,
+        value: clamp(avg / 4 * 100),
+        display: String(Math.round(avg * 10) / 10) + '/4',
+        level: avg >= 2.5 ? '偏高' : avg >= 1.5 ? '中等' : '偏低',
+        desc: (d.desc as string) || '',
+      })
+    })
+  } else if (props.testId === 'sds') {
+    title = '抑郁症状 · 四类症状群'
+    icon = '🌧️'
+    color = 'var(--symptom)'
+    hint = '按情绪、生理、精神运动与心理四类分组查看症状侧重。'
+    ;['affective', 'somatic', 'psychomotor', 'psychological'].forEach((k) => {
+      const d = (s[k] || {}) as any
+      const avg = Number(d.avg) || 0
+      items.push({
+        key: k,
+        name: (d.name as string) || k,
+        value: clamp(avg / 4 * 100),
+        display: String(Math.round(avg * 100) / 100) + '/4',
+        level: avg >= 2.5 ? '较明显' : '正常范围',
+        desc: (d.desc as string) || '',
+      })
+    })
+  } else if (props.testId === 'sas') {
+    title = '焦虑 · 生理 / 心理两维'
+    icon = '💆'
+    color = 'var(--symptom)'
+    hint = '拆分躯体紧张与精神忧虑两个侧面，了解焦虑主要表现。'
+    ;['somatic', 'psychic'].forEach((k) => {
+      const d = (s[k] || {}) as any
+      const avg = Number(d.avg) || 0
+      items.push({
+        key: k,
+        name: (d.name as string) || k,
+        value: clamp(avg / 4 * 100),
+        display: String(Math.round(avg * 100) / 100) + '/4',
+        level: avg >= 2.5 ? '较明显' : '正常范围',
+        desc: (d.desc as string) || '',
+      })
+    })
+  } else if (props.testId === 'rses') {
+    title = '自尊 · 双因子剖面'
+    icon = '✨'
+    color = 'var(--special)'
+    hint = '自我胜任感与自我接纳（喜欢）两个因子，各 1-4 均值。'
+    ;['competence', 'liking'].forEach((k) => {
+      const d = (s[k] || {}) as any
+      const avg = Number(d.avg) || 0
+      items.push({
+        key: k,
+        name: (d.name as string) || k,
+        value: clamp(avg / 4 * 100),
+        display: String(Math.round(avg * 100) / 100) + '/4',
+        level: avg >= 3 ? '较高' : avg >= 2.5 ? '中等' : '偏低',
+        desc: (d.desc as string) || '',
+      })
+    })
+  } else if (props.testId === 'asrm') {
+    title = '躁狂症状 · 五项剖面'
+    icon = '⚡'
+    color = 'var(--symptom)'
+    hint = '过去一周五项躁狂相关表现，各 0-4 分。'
+    ;['happy', 'confidence', 'sleep', 'talk', 'activity'].forEach((k) => {
+      const d = (s[k] || {}) as any
+      const sc = Number(d.score) || 0
+      items.push({
+        key: k,
+        name: (d.name as string) || k,
+        value: clamp(sc / 4 * 100),
+        display: String(sc) + '/4',
+        level: sc >= 3 ? '明显' : sc >= 2 ? '中等' : '轻微',
+        desc: (d.desc as string) || '',
+      })
+    })
+  } else if (props.testId === 'phq9' || props.testId === 'gad7') {
+    const h = (s.highlight || {}) as any
+    title = props.testId === 'phq9' ? '关键症状' : '主要担忧 / 紧张表现'
+    icon = '🔍'
+    color = 'var(--primary)'
+    hint = '你最明显的症状 / 表现及其出现频次。'
+    highlightCard = {
+      label: (h.label as string) || '—',
+      freq: (h.freq as string) || '—',
+      endorsedCount: Number(h.endorsedCount) || 0,
+    }
   }
-  return { title, icon, color, hint, subtitle, items, columns }
+  return { title, icon, color, hint, subtitle, items, columns, highlightCard }
 })
 </script>
 

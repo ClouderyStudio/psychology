@@ -78,12 +78,52 @@ function scoreRSES(answers: Record<number, number>): ScoringResult {
       "您拥有较高的自尊水平。请保持这份自信，同时避免过度自尊带来的固执，保持真诚倾听与自我成长。";
   }
 
+  // RSES 双因子：自我胜任感(正向 1,2,4,6,7) / 自我接纳(反向 3,5,8,9,10，反向补值 5)
+  const competenceItems = [1, 2, 4, 6, 7];
+  const likingItems = [3, 5, 8, 9, 10];
+  let competenceSum = 0;
+  for (const i of competenceItems) competenceSum += getAnswerValue(answers, i, 0);
+  let likingSum = 0;
+  for (const i of likingItems) likingSum += 5 - getAnswerValue(answers, i, 0);
+  const competenceAvg = competenceSum / competenceItems.length;
+  const likingAvg = likingSum / likingItems.length;
+
+  const competenceDesc =
+    competenceAvg >= 3
+      ? "对自己有能力和价值的肯定较充分，敢于尝试新事物。"
+      : competenceAvg >= 2.5
+        ? "自我胜任感处于一般水平，可多积累成就感。"
+        : "自我胜任感偏弱，建议多记录并认可自己的小成就。";
+  const likingDesc =
+    likingAvg >= 3
+      ? "总体能接纳与喜欢自己，较少自我贬低。"
+      : likingAvg >= 2.5
+        ? "自我接纳程度一般，有时会自我怀疑。"
+        : "自我接纳度偏低，易自我批评，建议练习积极自我对话。";
+
   return {
     totalScore,
     maxScore: 40,
     level,
     suggestion,
     severity: totalScore / 40,
+    dimensionScores: {
+      type: 'rses',
+      competence: {
+        name: '自我胜任感',
+        score: competenceSum,
+        max: 16,
+        avg: competenceAvg,
+        desc: competenceDesc,
+      },
+      liking: {
+        name: '自我接纳 / 喜欢',
+        score: likingSum,
+        max: 16,
+        avg: likingAvg,
+        desc: likingDesc,
+      },
+    },
   };
 }
 
@@ -173,12 +213,31 @@ function scorePHQ9(answers: Record<number, number>): ScoringResult {
       "您的症状较为严重，请立即寻求专业医疗帮助！\n• 尽快预约精神科医生\n• 告知家人或信任的朋友\n• 24小时心理援助热线：希望24热线（400-161-9995）\n• 如情况紧急，请前往医院急诊";
   }
 
+  // PHQ-9 关键症状亮点：最明显的症状及其出现频次
+  const phqLabels = ['兴趣减退', '情绪低落', '睡眠问题', '精力不足', '食欲改变', '自我评价低', '注意力下降', '动作迟缓或烦躁', '自伤念头'];
+  const phqFreq = ['没有', '几天', '超过一半天数', '几乎每天'];
+  let phqTop = 1, phqTopVal = -1, phqEndorsed = 0;
+  for (let i = 1; i <= 9; i++) {
+    const v = getAnswerValue(answers, i, 0);
+    if (v > phqTopVal) { phqTopVal = v; phqTop = i; }
+    if (v >= 2) phqEndorsed++;
+  }
+
   return {
     totalScore,
     maxScore: 27,
     level,
     suggestion,
     severity: totalScore / 27,
+    dimensionScores: {
+      type: 'phq9',
+      highlight: {
+        label: phqLabels[phqTop - 1] as string,
+        freq: phqFreq[Math.min(phqTopVal, 3)] as string,
+        value: phqTopVal,
+        endorsedCount: phqEndorsed,
+      },
+    },
   };
 }
 
@@ -207,12 +266,31 @@ function scoreGAD7(answers: Record<number, number>): ScoringResult {
       "您的焦虑症状较严重，请及时寻求专业帮助！\n• 建议尽快咨询精神科医生\n• 可能需要药物治疗配合心理治疗\n• 建立紧急应对计划\n• 告知亲友您的情况";
   }
 
+  // GAD-7 关键症状亮点：最明显的担忧 / 紧张表现及其频次
+  const gadLabels = ['紧张焦虑', '难以控制担忧', '担忧过多', '难以放松', '坐立不安', '易怒急躁', '预感不详'];
+  const gadFreq = ['完全没有', '几天', '超过一半天数', '几乎每天'];
+  let gadTop = 1, gadTopVal = -1, gadEndorsed = 0;
+  for (let i = 1; i <= 7; i++) {
+    const v = getAnswerValue(answers, i, 0);
+    if (v > gadTopVal) { gadTopVal = v; gadTop = i; }
+    if (v >= 2) gadEndorsed++;
+  }
+
   return {
     totalScore,
     maxScore: 21,
     level,
     suggestion,
     severity: totalScore / 21,
+    dimensionScores: {
+      type: 'gad7',
+      highlight: {
+        label: gadLabels[gadTop - 1] as string,
+        freq: gadFreq[Math.min(gadTopVal, 3)] as string,
+        value: gadTopVal,
+        endorsedCount: gadEndorsed,
+      },
+    },
   };
 }
 
@@ -238,12 +316,52 @@ function scorePSS(answers: Record<number, number>): ScoringResult {
       "您的压力水平较高，需要积极干预。建议：\n• 评估压力来源并制定应对计划\n• 学习压力管理技巧（正念、运动）\n• 寻求心理咨询支持\n• 考虑减少不必要承诺";
   }
 
+  // PSS-10 两因子：不可控感/无助 vs 掌控感/自我效能（因子结构为文献公认）
+  const helplessItems = [1, 2, 3, 6, 9, 10];
+  const efficacyItems = [4, 5, 7, 8];
+  let helplessSum = 0;
+  for (const i of helplessItems) helplessSum += getAnswerValue(answers, i, 0);
+  let efficacySum = 0;
+  for (const i of efficacyItems) efficacySum += 4 - getAnswerValue(answers, i, 0);
+  const helplessAvg = helplessSum / helplessItems.length;
+  const efficacyAvg = efficacySum / efficacyItems.length;
+
+  const helplessDesc =
+    helplessAvg >= 2.5
+      ? "对生活中不可控、难以预料的事感到困扰较多，易累积压力。"
+      : helplessAvg >= 1.5
+        ? "尚能应对生活中的不确定性，偶有失控感。"
+        : "对生活掌控感较强，较少因不可控事件感到压力。";
+  const efficacyDesc =
+    efficacyAvg >= 3
+      ? "面对困难时较有信心，善于自我调节，抗压能力强。"
+      : efficacyAvg >= 2
+        ? "有一定应对技巧，情绪调节能力中等。"
+        : "面对压力时掌控感偏弱，可从学习放松与时间管理中获益。";
+
   return {
     totalScore,
     maxScore: 40,
     level,
     suggestion,
     severity: totalScore / 40,
+    dimensionScores: {
+      type: 'pss',
+      helplessness: {
+        name: '不可控感 / 无助',
+        score: helplessSum,
+        max: 24,
+        avg: helplessAvg,
+        desc: helplessDesc,
+      },
+      selfEfficacy: {
+        name: '掌控感 / 自我效能',
+        score: efficacySum,
+        max: 16,
+        avg: efficacyAvg,
+        desc: efficacyDesc,
+      },
+    },
   };
 }
 
@@ -276,6 +394,23 @@ function scoreSDS(answers: Record<number, number>): ScoringResult {
       "您存在重度抑郁倾向，强烈建议：\n• 立即寻求精神科医生帮助\n• 可能需要药物治疗\n• 告知家人您的状况\n• 如有自伤念头，立即拨打心理援助热线";
   }
 
+  // SDS 四类症状群（文献常用分组，反向题已折算）
+  const revSDS = [2, 5, 6, 11, 12, 14, 16, 17, 18, 20];
+  const sdsGroupDefs = [
+    { key: 'affective', name: '情绪低落', items: [1, 3], hint: '持续悲伤、想哭的情绪体验' },
+    { key: 'somatic', name: '生理症状', items: [2, 4, 5, 7, 8, 9, 10, 13, 15, 19], hint: '睡眠、食欲、精力、便秘、心悸等躯体表现' },
+    { key: 'psychomotor', name: '精神运动', items: [12, 14], hint: '行为迟缓或坐立不安的迟滞 / 激越' },
+    { key: 'psychological', name: '心理症状', items: [6, 11, 16, 17, 18, 20], hint: '无望、易激惹、犹豫、空虚等内心困扰' },
+  ];
+  const sdsDims: Record<string, any> = {};
+  for (const g of sdsGroupDefs) {
+    let sum = 0;
+    for (const i of g.items) sum += revSDS.includes(i) ? 5 - getAnswerValue(answers, i, 0) : getAnswerValue(answers, i, 0);
+    const avg = sum / g.items.length;
+    const desc = avg >= 3.5 ? '表现较明显' : avg >= 2.5 ? '存在一定困扰' : '尚在正常范围';
+    sdsDims[g.key] = { name: g.name, score: Math.round(sum * 100) / 100, max: g.items.length * 4, avg, desc, hint: g.hint };
+  }
+
   return {
     totalScore: standardizedScore,
     maxScore: 100,
@@ -284,6 +419,7 @@ function scoreSDS(answers: Record<number, number>): ScoringResult {
     severity: standardizedScore / 100,
     rawScore,
     standardizedScore,
+    dimensionScores: { type: 'sds', ...sdsDims },
   };
 }
 
@@ -316,6 +452,21 @@ function scoreSAS(answers: Record<number, number>): ScoringResult {
       "您存在重度焦虑倾向，强烈建议：\n• 尽快咨询精神科医生\n• 可能需要药物治疗\n• 学习急性焦虑应对技巧\n• 建立紧急支持系统";
   }
 
+  // SAS 生理 / 心理两维参考拆分（反向题已折算）
+  const revSAS = [5, 9, 13, 17, 19];
+  const sasGroupDefs = [
+    { key: 'somatic', name: '生理焦虑', items: [1, 2, 3, 4, 6, 7, 8, 10, 12, 14, 15, 18], hint: '心慌、颤抖、头晕、出汗等躯体紧张表现' },
+    { key: 'psychic', name: '心理焦虑', items: [5, 9, 11, 13, 16, 17, 19, 20], hint: '担忧、害怕、预感不祥等精神层面的紧张' },
+  ];
+  const sasDims: Record<string, any> = {};
+  for (const g of sasGroupDefs) {
+    let sum = 0;
+    for (const i of g.items) sum += revSAS.includes(i) ? 5 - getAnswerValue(answers, i, 0) : getAnswerValue(answers, i, 0);
+    const avg = sum / g.items.length;
+    const desc = avg >= 3.5 ? '表现较明显' : avg >= 2.5 ? '存在一定紧张' : '尚在正常范围';
+    sasDims[g.key] = { name: g.name, score: Math.round(sum * 100) / 100, max: g.items.length * 4, avg, desc, hint: g.hint };
+  }
+
   return {
     totalScore: standardizedScore,
     maxScore: 100,
@@ -324,6 +475,7 @@ function scoreSAS(answers: Record<number, number>): ScoringResult {
     severity: standardizedScore / 100,
     rawScore,
     standardizedScore,
+    dimensionScores: { type: 'sas', ...sasDims },
   };
 }
 
@@ -806,11 +958,30 @@ function scoreASRM(answers: Record<number, number>): ScoringResult {
 • 如仍有其他心理困扰，可尝试本平台其他相关量表`;
   }
 
+  // ASRM 五项症状剖面（每项 0-4 分）
+  const asrmDims = [
+    { key: 'happy', name: '开心 / 愉悦', desc: '情绪较平时更感快乐与高涨' },
+    { key: 'confidence', name: '自信', desc: '自我感觉更好、更有把握' },
+    { key: 'sleep', name: '睡眠需求减少', desc: '睡眠需求较平时明显减少仍精神' },
+    { key: 'talk', name: '言语增多', desc: '话量增多、语速加快、表达欲强' },
+    { key: 'activity', name: '活动 / 精力增多', desc: '活动与精力较平时明显旺盛' },
+  ];
+  const asymDims: Record<string, any> = {};
+  asrmDims.forEach((d, i) => {
+    asymDims[d.key] = {
+      name: d.name,
+      score: getAnswerValue(answers, i + 1, 0),
+      max: 4,
+      desc: d.desc,
+    };
+  });
+
   return {
     totalScore,
     maxScore,
     level,
     suggestion,
     severity,
+    dimensionScores: { type: 'asrm', ...asymDims },
   };
 }
