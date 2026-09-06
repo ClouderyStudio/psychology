@@ -46,6 +46,7 @@
               </div>
             </div>
             <ResultDimensions v-if="enrichedScale" :scores="result.dimensionScores" :test-id="result.testId" />
+            <ResultPersonality v-if="isPersonality" :report="result" :test-id="result.testId" />
 
             <ResultSeven v-if="isSeven" :report="sevenReport" />
 
@@ -183,6 +184,12 @@ const sevenReport = computed(() => result.value?.sevenReport || null)
 // 判断是否有维度分数
 const hasDimensionScores = computed(() => {
   return result.value?.dimensionScores && Object.keys(result.value.dimensionScores).length > 0
+})
+
+// 人格性格类：是否展示详细解读（16PF / 气质 / EPQ・EPQ-RSC）
+const isPersonality = computed(() => {
+  const id = result.value?.testId
+  return !!id && ['sixteenPF', 'temperament', 'epq', 'epq-rsc'].includes(id)
 })
 
 // 需要展示维度剖面的量表（除文字外还有维度数据）
