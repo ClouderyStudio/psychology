@@ -3,7 +3,7 @@
     <div class="max-w-4xl mx-auto px-4 py-8">
       <div class="flex items-center justify-between flex-wrap gap-3 mb-6">
         <div>
-          <NuxtLink to="/" class="text-sm" style="color: var(--primary);">← 返回首页</NuxtLink>
+          <NuxtLink to="/exam" class="text-sm" style="color: var(--primary);">← 返回试卷</NuxtLink>
           <h1 class="text-2xl font-bold mt-1" style="color: var(--text);">📝 试卷后台管理</h1>
           <p class="text-sm" style="color: var(--text-muted);">试卷数据存储于 ClouderyApi 数据库，经鉴权管理</p>
         </div>

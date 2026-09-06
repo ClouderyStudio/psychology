@@ -270,6 +270,14 @@ const currentAccentLabel = computed(() => accentLabel(accentOptions.find((o) => 
 
 // 打开内部测试弹窗
 const openInternalTest = () => {
+  // 7 天内输过密码（已签发 internal_authed 令牌）则直接进入，无需重复输入
+  const token = useCookie('internal_authed').value
+  if (typeof token === 'string' && token.includes('.')) {
+    internalTestOpen.value = false
+    mobileMenuOpen.value = false
+    router.push('/exam')
+    return
+  }
   internalPassword.value = ''
   passwordError.value = false
   internalTestOpen.value = true
