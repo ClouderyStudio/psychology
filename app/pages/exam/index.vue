@@ -13,6 +13,10 @@
           <p style="color: rgba(255, 255, 255, 0.9)">请选择试卷开始作答</p>
         </div>
 
+        <div class="flex justify-end px-6 py-3">
+          <NuxtLink to="/admin" class="text-sm font-medium hover:underline" style="color: var(--primary);">🔧 试卷管理后台</NuxtLink>
+        </div>
+
         <!-- 试卷列表 -->
         <div class="p-8">
           <div v-if="pending" class="py-16 text-center text-sm" style="color: var(--text-secondary)">加载中…</div>

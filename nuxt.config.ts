@@ -11,5 +11,12 @@ export default defineNuxtConfig({
     plugins: [tailwindcss()],
   },
 
+  runtimeConfig: {
+    clouderyApiBase: process.env.CLOUDERY_API_BASE || 'http://localhost:5171',
+    public: {
+      clouderyApiBase: process.env.NUXT_PUBLIC_CLOUDERY_API_BASE || 'http://localhost:5171',
+    },
+  },
+
   compatibilityDate: '2025-07-15'
 })

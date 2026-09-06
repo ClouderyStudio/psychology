@@ -1,14 +1,16 @@
-import { examPapers } from "../../../data/exam";
+import { $fetch } from "ofetch";
 import { isInternalAuthed } from "../../../utils/internal-auth.event";
 
-export default defineEventHandler((event) => {
+export default defineEventHandler(async (event) => {
   if (!isInternalAuthed(event)) {
     throw createError({ statusCode: 401, statusMessage: "未授权访问" });
   }
   const id = (getRouterParam(event, "id") || "").toLowerCase();
-  const paper = examPapers.find((p: { id: string }) => p.id.toLowerCase() === id);
-  if (!paper) {
-    throw createError({ statusCode: 404, statusMessage: "未找到该试卷" });
+  const { clouderyApiBase } = useRuntimeConfig();
+  try {
+    return await $fetch(`${clouderyApiBase}/exam/papers/${id}`);
+  } catch (e: any) {
+    if (e?.statusCode === 404) throw createError({ statusCode: 404, statusMessage: "未找到该试卷" });
+    throw createError({ statusCode: 502, statusMessage: "试卷服务暂不可用" });
   }
-  return paper;
 });
