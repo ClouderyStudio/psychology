@@ -162,6 +162,8 @@ psychology/
 
 「内部测试」区域（`/exam`，含计算机基础 / 共享群规试卷）与后台管理面板（`/admin`）依赖 **ClouderyApi** 服务：试卷数据存储于 ClouderyApi 的数据库（`ExamPapers` 表，整卷 JSON 单表），由**前端直接请求** ClouderyApi 公开接口 `/exam/ExamPapers` 获取（跨域读，无需登录）。
 
+> 为防作弊：试卷下发给测试端时**不含答案/解析**；交卷后由 ClouderyApi 判分接口（`POST /exam/ExamPapers/{id}/grade`）返回逐题对错与标准答案供核对。
+
 ### 依赖组件
 
 | 组件            | 说明                                                              |

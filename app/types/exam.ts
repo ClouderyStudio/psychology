@@ -28,3 +28,27 @@ export interface ExamPaper {
   name: string;
   sections: ExamSection[];
 }
+
+export interface ExamGradeItem {
+  key: string;
+  type?: "judge" | "single" | "multiple" | "essay";
+  correct: boolean;
+  answered: boolean;
+  points: number;
+  earned: number;
+  /** 标准答案 / 解析（仅判分响应附带，交卷核对时展示） */
+  standardAnswer?: string;
+  note?: string;
+}
+
+export interface ExamGradeResult {
+  totalCount: number;
+  scorableCount: number;
+  essayCount: number;
+  correctCount: number;
+  totalPoints: number;
+  earned: number;
+  accuracy: number;
+  results: ExamGradeItem[];
+}
+

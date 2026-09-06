@@ -94,13 +94,13 @@
                   <div class="flex flex-wrap items-center gap-2">
                     <span class="answer-badge"
                       style="background-color: var(--special-light); color: var(--special-dark)">
-                      正确答案：{{ formatAnswer(question) }}
+                      正确答案：{{ formatAnswer(sIndex, qIndex) }}
                     </span>
                     <span class="answer-badge"
-                      :style="isCorrect(sIndex, qIndex, question)
+                      :style="isCorrect(sIndex, qIndex)
                         ? 'background-color: var(--special-light); color: var(--special-dark)'
                         : 'background-color: #fdecea; color: #c0392b'">
-                      {{ isCorrect(sIndex, qIndex, question) ? '✓' : '✗' }} 你的答案：{{ formatUserAnswer(sIndex, qIndex, question) }}
+                      {{ isCorrect(sIndex, qIndex) ? '✓' : '✗' }} 你的答案：{{ formatUserAnswer(sIndex, qIndex, question) }}
                     </span>
                   </div>
                 </template>
@@ -115,13 +115,13 @@
                   <div>
                     <span class="text-xs font-semibold" style="color: var(--text-muted)">参考答案</span>
                     <p class="mt-1 text-sm whitespace-pre-line leading-relaxed" style="color: var(--text-secondary)">
-                      {{ question.answer }}
+                      {{ standardAnswerOf(sIndex, qIndex) }}
                     </p>
                   </div>
                 </template>
 
-                <p v-if="question.note" class="mt-2 text-xs leading-relaxed" style="color: var(--text-muted)">
-                  💡 {{ question.note }}
+                <p v-if="noteOf(sIndex, qIndex)" class="mt-2 text-xs leading-relaxed" style="color: var(--text-muted)">
+                  💡 {{ noteOf(sIndex, qIndex) }}
                 </p>
               </div>
             </div>
@@ -184,19 +184,19 @@
                 <div class="flex justify-center gap-8 flex-wrap">
                   <div>
                     <div class="text-3xl font-bold" style="color: var(--primary)">
-                      {{ formatPoints(scoreResult.earned) }}<span class="text-base" style="color: var(--text-muted)"> / {{ formatPoints(totalPoints) }} 分</span>
+                      {{ formatPoints(gradeResult?.earned) }}<span class="text-base" style="color: var(--text-muted)"> / {{ formatPoints(totalPoints) }} 分</span>
                     </div>
                     <div class="text-xs mt-1" style="color: var(--text-muted)">得分 / 满分</div>
                   </div>
                   <div>
                     <div class="text-3xl font-bold" style="color: var(--primary)">
-                      {{ scoreResult.correct }}<span class="text-base" style="color: var(--text-muted)"> / {{ scorableCount }} 题</span>
+                      {{ gradeResult?.correctCount }}<span class="text-base" style="color: var(--text-muted)"> / {{ scorableCount }} 题</span>
                     </div>
                     <div class="text-xs mt-1" style="color: var(--text-muted)">答对题数</div>
                   </div>
                   <div>
                     <div class="text-3xl font-bold" style="color: var(--primary)">
-                      {{ accuracy }}%
+                      {{ gradeResult?.accuracy }}%
                     </div>
                     <div class="text-xs mt-1" style="color: var(--text-muted)">正确率</div>
                   </div>
@@ -224,13 +224,16 @@
 </template>
 
 <script setup lang="ts">
-import type { ExamPaper, ExamQuestion } from '~/types/exam'
+import type { ExamPaper, ExamQuestion, ExamGradeResult } from '~/types/exam'
 
 const props = defineProps<{
   paper: ExamPaper
 }>()
 
 const { $toast } = useNuxtApp()
+
+const config = useRuntimeConfig()
+const examApiBase = (config.public.clouderyApiBase as string) || 'https://localhost:7288'
 
 // 判断题选项
 const judgeOptions = [
@@ -244,6 +247,8 @@ const multiAnswers = ref<Record<string, string[]>>({})
 
 const submitted = ref(false)
 const unlocked = ref(false)
+// 服务端判分结果（交卷后获得）
+const gradeResult = ref<ExamGradeResult | null>(null)
 
 // 密码相关
 const randomCode = ref('')
@@ -310,21 +315,20 @@ const toggleMulti = (sIndex: number, qIndex: number, label: string) => {
   multiAnswers.value = { ...multiAnswers.value, [key]: arr }
 }
 
-// 判断某题是否正确
-const isCorrect = (sIndex: number, qIndex: number, question: ExamQuestion) => {
-  const key = questionKey(sIndex, qIndex)
-  if (getType(question) === 'multiple') {
-    const user = (multiAnswers.value[key] || []).slice().sort().join('')
-    const std = question.answer.split('').sort().join('')
-    return user === std
-  }
-  return answers.value[key] === question.answer
-}
+// 判分结果索引（由服务端判分接口返回，交卷后才有）
+const gradeItemOf = (sIndex: number, qIndex: number) =>
+  gradeResult.value?.results?.find(r => r.key === questionKey(sIndex, qIndex))
 
-// 展示标准答案
-const formatAnswer = (question: ExamQuestion) => {
-  if (getType(question) === 'multiple') return question.answer.split('').join('、')
-  return question.answer
+const isCorrect = (sIndex: number, qIndex: number) => !!gradeItemOf(sIndex, qIndex)?.correct
+const standardAnswerOf = (sIndex: number, qIndex: number) => gradeItemOf(sIndex, qIndex)?.standardAnswer || ''
+const noteOf = (sIndex: number, qIndex: number) => gradeItemOf(sIndex, qIndex)?.note
+
+// 展示标准答案（多选拆成顿号分隔）
+const formatAnswer = (sIndex: number, qIndex: number) => {
+  const gi = gradeItemOf(sIndex, qIndex)
+  const ans = gi?.standardAnswer || ''
+  if (gi?.type === 'multiple') return ans.split('').join('、')
+  return ans
 }
 
 // 展示测试者答案
@@ -337,25 +341,7 @@ const formatUserAnswer = (sIndex: number, qIndex: number, question: ExamQuestion
   return answers.value[key] || '未作答'
 }
 
-// 计分
-const scoreResult = computed(() => {
-  let correct = 0
-  let earned = 0
-  scorableItems.value.forEach(it => {
-    if (isCorrect(it.sIndex, it.qIndex, it.question)) {
-      correct++
-      earned += it.section.pointsPerQuestion ?? 1
-    }
-  })
-  return { correct, earned }
-})
-
-const accuracy = computed(() => {
-  if (scorableCount.value === 0) return 0
-  return Math.round((scoreResult.value.correct / scorableCount.value) * 100)
-})
-
-const formatPoints = (n: number) => (Number.isInteger(n) ? String(n) : n.toFixed(1))
+const formatPoints = (n?: number) => { const v = n ?? 0; return Number.isInteger(v) ? String(v) : v.toFixed(1) }
 
 // 生成随机校验码
 function generateCode() {
@@ -390,12 +376,32 @@ async function setupPassword() {
   }
 }
 
-function submitPaper() {
+async function submitPaper() {
   if (!isComplete.value) {
-    $toast.warning(`请完成所有可评分题目后再提交（还剩 ${remainingCount.value} 题）`, '提示')
+    $toast.warning('请完成所有可评分题目后再提交（还剩 ' + remainingCount.value + ' 题）', '提示')
     return
   }
-  submitted.value = true
+  // 组装作答：string（单选/判断/简答）或 string[]（多选）
+  const payload: Record<string, string | string[]> = {}
+  questionItems.value.forEach(it => {
+    const type = getType(it.question)
+    if (type === 'multiple') {
+      const arr = multiAnswers.value[it.key] || []
+      if (arr.length) payload[it.key] = arr
+    } else {
+      const v = answers.value[it.key]
+      if (v) payload[it.key] = v
+    }
+  })
+  try {
+    gradeResult.value = await $fetch<ExamGradeResult>(
+      examApiBase + '/exam/ExamPapers/' + props.paper.id + '/grade',
+      { method: 'POST', body: { answers: payload } }
+    )
+    submitted.value = true
+  } catch {
+    $toast.error('判分失败，请稍后重试', '提示')
+  }
 }
 
 function unlockResult() {
@@ -410,6 +416,7 @@ function unlockResult() {
 function retake() {
   answers.value = {}
   multiAnswers.value = {}
+  gradeResult.value = null
   submitted.value = false
   unlocked.value = false
   passwordInput.value = ''
