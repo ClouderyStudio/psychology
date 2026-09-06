@@ -22,10 +22,9 @@
             <div class="px-4 pb-4 text-sm space-y-3">
               <div>
                 <div class="font-semibold mb-1" style="color: var(--primary);">特征</div>
-                <p style="color: var(--text-secondary);">{{ f.poleData.t }}</p>
-                <p v-if="f.pole === 'mid'" class="mt-1" style="color: var(--text-muted);">中间倾向：{{ f.unit.low.t }} / {{ f.unit.high.t }}</p>
+                <p style="color: var(--text-secondary);">{{ f.feature }}</p>
               </div>
-              <div class="grid sm:grid-cols-2 gap-3">
+              <div v-if="f.pole !== 'mid'" class="grid sm:grid-cols-2 gap-3">
                 <div class="p-3 rounded-lg" style="background-color: var(--bg);">
                   <div class="font-semibold mb-1" style="color: var(--special);">✅ 有利 / 适合</div>
                   <p style="color: var(--text-secondary);">{{ f.poleData.good }}</p>
@@ -35,7 +34,7 @@
                   <p style="color: var(--text-secondary);">{{ f.poleData.bad }}</p>
                 </div>
               </div>
-              <div class="p-3 rounded-lg" style="background-color: var(--primary-light);">
+              <div v-if="f.pole !== 'mid'" class="p-3 rounded-lg" style="background-color: var(--primary-light);">
                 <div class="font-semibold mb-1" style="color: var(--text);">💡 建议</div>
                 <p style="color: var(--text-secondary);">{{ f.poleData.tip }}</p>
               </div>
@@ -124,13 +123,16 @@ const sixteenOrder = ['A', 'B', 'C', 'E', 'F', 'G', 'H', 'I', 'L', 'M', 'N', 'O'
 // ---- 16PF ----
 const factorCards = computed(() => {
   const factors = (s.value.factors as any) || {}
-  return sixteenOrder.map((k) => {
+  const cards = sixteenOrder.map((k) => {
     const unit = (sixteenPFInterpret as any)[k]
     const score = Number(factors[k]) || 5
     const pole = score >= 7 ? 'high' : score <= 4 ? 'low' : 'mid'
     const poleData = (pole === 'high' ? unit.high : pole === 'low' ? unit.low : { t: '', good: '', bad: '', tip: '' }) as any
-    return { key: k, name: unit.name, score, pole, poleData, unit, poleLabel: pole === 'high' ? '偏高' : pole === 'low' ? '偏低' : '中间', open: pole === 'high' }
+    const feature = pole === 'mid' ? '中间倾向：' + unit.low.t + ' ／ ' + unit.high.t : poleData.t
+    return { key: k, name: unit.name, score, pole, poleData, unit, poleLabel: pole === 'high' ? '偏高' : pole === 'low' ? '偏低' : '中间', open: pole === 'high', feature }
   })
+  // 分数从高到低排序：较高与较低的因素排在上面
+  return cards.sort((a, b) => (b.score as number) - (a.score as number))
 })
 const topChips = computed(() => ((s.value.topFactors as any) || []).map((t: any) => ({ key: t.factor, name: t.name, score: t.score })))
 const pillStyle = (f: any) => ({
