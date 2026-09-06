@@ -6,13 +6,13 @@
         <h3 class="font-bold text-lg mb-1 flex items-center" style="color: var(--text);">
           <span class="text-2xl mr-2">🧬</span> 你当前的 16PF 人格画像
         </h3>
-        <p class="text-sm mb-4" style="color: var(--text-muted);">以 1-10 分为准：1-3 分偏向低分特征，4-7 分为中间，8-10 分偏向高分特征。点击左侧数字可展开细则。</p>
+        <p class="text-sm mb-4" style="color: var(--text-muted);">以 1-10 分为准：1-3 分偏向低分特征，4-7 分为中间，8-10 分偏向高分特征。分数偏高的因素已默认展开，点击任意一项可展开/收起细则。</p>
         <div v-if="topChips.length" class="mb-4 flex flex-wrap gap-2">
           <span v-for="c in topChips" :key="c.key" class="text-xs px-3 py-1 rounded-full font-semibold"
             style="background-color: var(--primary-light); color: var(--primary);">{{ c.name }} {{ c.score }}分</span>
         </div>
         <div class="space-y-2">
-          <details v-for="f in factorCards" :key="f.key" class="rounded-lg overflow-hidden" style="background-color: var(--card-bg);">
+          <details v-for="f in factorCards" :key="f.key" :open="f.open" class="rounded-lg overflow-hidden" style="background-color: var(--card-bg);">
             <summary class="px-4 py-3 cursor-pointer select-none flex items-center justify-between gap-2" style="color: var(--text);">
               <span class="flex items-center gap-2 font-semibold"><span class="w-6 text-center text-xs" style="color: var(--primary);">{{ f.key }}</span>{{ f.name }}</span>
               <span class="text-sm" style="color: var(--text-secondary);">
@@ -129,7 +129,7 @@ const factorCards = computed(() => {
     const score = Number(factors[k]) || 5
     const pole = score >= 7 ? 'high' : score <= 4 ? 'low' : 'mid'
     const poleData = (pole === 'high' ? unit.high : pole === 'low' ? unit.low : { t: '', good: '', bad: '', tip: '' }) as any
-    return { key: k, name: unit.name, score, pole, poleData, unit, poleLabel: pole === 'high' ? '偏高' : pole === 'low' ? '偏低' : '中间' }
+    return { key: k, name: unit.name, score, pole, poleData, unit, poleLabel: pole === 'high' ? '偏高' : pole === 'low' ? '偏低' : '中间', open: pole === 'high' }
   })
 })
 const topChips = computed(() => ((s.value.topFactors as any) || []).map((t: any) => ({ key: t.factor, name: t.name, score: t.score })))
