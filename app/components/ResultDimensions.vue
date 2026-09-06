@@ -154,11 +154,17 @@ const config = computed(() => {
     icon = '🪞'
     color = 'var(--special)'
     hint = '不和谐越低、灵活性越高、刻板性越低，自我越和谐。'
+    // 键名 -> 中文（静态映射，兼容历史已存结果，不依赖计分是否下发 name）
+    const sccsNames: Record<string, string> = {
+      disharmony: '自我与经验的不和谐',
+      flexibility: '自我的灵活性',
+      rigidity: '自我的刻板性',
+    }
     ;['disharmony', 'flexibility', 'rigidity'].forEach((k) => {
       const d = (s[k] || {}) as any
       items.push({
         key: k,
-        name: (d.name as string) || k,
+        name: sccsNames[k] || k,
         value: clamp((Number(d.avg) || 0) / 5 * 100),
         display: String(Math.round((Number(d.avg) || 0) * 100) / 100) + '/5',
         level: (Number(d.avg) || 0) >= 4 ? '偏高' : (Number(d.avg) || 0) >= 2.5 ? '中等' : '偏低',
