@@ -65,8 +65,8 @@
                 <p class="text-sm text-white/80 mt-1">完成时间：{{ formatLastResultTime }}</p>
               </div>
               <div class="text-right">
-                <div class="text-3xl font-bold">{{ lastResultDisplayScore }}</div>
-                <div class="text-sm text-white/80">{{ lastResult.level }}</div>
+                <div class="font-bold break-words" :class="isTypeOnly ? 'text-2xl md:text-3xl' : 'text-3xl'">{{ lastResultDisplayScore }}</div>
+                <div v-if="!isTypeOnly" class="text-sm text-white/80">{{ lastResult.level }}</div>
               </div>
             </div>
             <button @click="viewLastResult"
@@ -489,13 +489,18 @@ const formatLastResultTime = computed(() => {
   return `${date.getMonth() + 1}/${date.getDate()} ${date.getHours().toString().padStart(2, '0')}:${date.getMinutes().toString().padStart(2, '0')}`
 })
 
-// 显示分数
+// 以类型/等级呈现而非分数的量表（人格、类型、专项类，分数无意义或无最高分）
+const typeOnlyTests = ['mbti', 'sixteenPF', 'epq', 'epq-rsc', 'temperament', 'seven', 'psyAge']
+const isTypeOnly = computed(() => {
+  const result = lastResult.value
+  return !!result && typeOnlyTests.includes(result.testId)
+})
+
+// 显示分数（类型型量表则显示其类型/等级）
 const lastResultDisplayScore = computed(() => {
   const result = lastResult.value
   if (!result) return '--'
-  if (result.testId === 'mbti') {
-    return result.level || '--'
-  }
+  if (isTypeOnly.value) return result.level || '--'
   return `${result.totalScore}/${result.maxScore}`
 })
 
