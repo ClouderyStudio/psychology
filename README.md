@@ -160,7 +160,7 @@ psychology/
 
 ## 🔐 内部测试（/exam）与后台管理（/admin）
 
-「内部测试」区域（`/exam`，含计算机基础 / 共享群规试卷）与后台管理面板（`/admin`）依赖 **ClouderyApi** 服务：试卷数据存储在 ClouderyApi 的数据库（`ExamPapers` 表，整卷 JSON 单表），由本项目的服务端代理 `server/api/internal/papers*` 转发下发，前端不直接连数据库。
+「内部测试」区域（`/exam`，含计算机基础 / 共享群规试卷）与后台管理面板（`/admin`）依赖 **ClouderyApi** 服务：试卷数据存储于 ClouderyApi 的数据库（`ExamPapers` 表，整卷 JSON 单表），由**前端直接请求** ClouderyApi 公开接口 `/exam/ExamPapers` 获取（跨域读，无需登录）。
 
 ### 依赖组件
 
@@ -175,35 +175,9 @@ psychology/
 | ------------------------------- | ---------------------------------------- | ------------------------- |
 | `NITRO_INTERNAL_TEST_PASSWORD`  | 进入内部测试的访问密码                    | `yunshu`                  |
 | `NITRO_INTERNAL_SECRET`         | 签发访问凭证的 HMAC 签名密钥（生产必设）  | 回退到密码                |
-| `CLOUDERY_API_BASE`             | 服务端代理访问 ClouderyApi 的基地址       | `https://localhost:7288`  |
-| `NUXT_PUBLIC_CLOUDERY_API_BASE` | 前端（/admin）访问 ClouderyApi 的基地址   | `https://localhost:7288`  |
+| `NUXT_PUBLIC_CLOUDERY_API_BASE` | 前端直连 ClouderyApi（/exam 与 /admin）的基地址 | `https://localhost:7288`  |
 
-> 开发环境 ClouderyApi 使用自签 HTTPS 证书：浏览器需 `dotnet dev-certs https --trust`，服务端代理已放行自签证书（见 `server/api/internal/papers*`）。生产环境请填正式域名，并去掉代理的证书放行、不要全局关闭 TLS 校验。
-
-### 后台管理面板（/admin）
-
-- 用 **Casdoor 账号登录**：`GET /identity/auth/state` 取 state → 新窗口跳 Casdoor 登录 → 本站收到 `code` 后 `POST /identity/auth/callback` 建立会话。
-- 试卷**列表 / 新增 / 编辑（JSON）/ 删除**；写操作由 ClouderyApi 端 `[AdminOnly]` 校验（`Authorization:Admins` 白名单中的 CasdoorId）。
-- 首次启用时创建数据表并录入试卷：`dotnet ef database update --context ClouderyApiContext`（迁移 `AddExamPapers` 仅新增 `ExamPapers` 表，兼容既有 schema）。
-
-### 试卷 JSON 结构（sections 数组）
-
-```json
-[ { "title": "一、判断题", "pointsPerQuestion": 0.5,
-  "questions": [ { "text": "题干", "answer": "A", "note": "解析（可选）" } ] } ]
-```
-
-多选题加 `"type": "multiple"`，`answer` 由选项标签组成（如 `"ABC"`）。
-### 环境变量
-
-| 变量                            | 说明                                     | 默认值                    |
-| ------------------------------- | ---------------------------------------- | ------------------------- |
-| `NITRO_INTERNAL_TEST_PASSWORD`  | 进入内部测试的访问密码                    | `yunshu`                  |
-| `NITRO_INTERNAL_SECRET`         | 签发访问凭证的 HMAC 签名密钥（生产必设）  | 回退到密码                |
-| `CLOUDERY_API_BASE`             | 服务端代理访问 ClouderyApi 的基地址       | `https://localhost:7288`  |
-| `NUXT_PUBLIC_CLOUDERY_API_BASE` | 前端（/admin）访问 ClouderyApi 的基地址   | `https://localhost:7288`  |
-
-> 开发环境 ClouderyApi 使用自签 HTTPS 证书：浏览器需 `dotnet dev-certs https --trust`，服务端代理已放行自签证书（见 `server/api/internal/papers*`）。生产环境请填正式域名，并去掉代理的证书放行、不要全局关闭 TLS 校验。
+> 前端跨域直连：需在 ClouderyApi 的 `Cors:AllowedOrigins` 放行本项目站点。开发环境 ClouderyApi 自签证书需在浏览器信任（`dotnet dev-certs https --trust`）。
 
 ### 后台管理面板（/admin）
 

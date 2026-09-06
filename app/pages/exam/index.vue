@@ -57,12 +57,12 @@ useHead({
   title: '内部试卷 - 心灵驿站'
 })
 
-// 试卷数据由服务端受保护接口下发（不在前端 bundle 中）
+// 试卷数据直接请求 ClouderyApi 公开接口（前端跨域访问，无需登录）
+const config = useRuntimeConfig()
+const examApiBase = (config.public.clouderyApiBase as string) || 'https://localhost:7288'
 const { data: papersData, pending } = await useAsyncData('internal-exam-papers', () =>
-  $fetch('/api/internal/papers', {
-    // SSR 时转发 cookie，确保服务端渲染也能通过鉴权
-    headers: useRequestHeaders(['cookie']),
-  }).catch(() => [])
+  $fetch(examApiBase + '/exam/ExamPapers').catch(() => []),
+  { server: false } // 只在浏览器端直连 ClouderyApi，避免 SSR 服务端请求
 )
 const examPapers = computed<ExamPaper[]>(() => (papersData.value as ExamPaper[]) || [])
 

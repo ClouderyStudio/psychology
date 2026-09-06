@@ -12,7 +12,6 @@ export default defineNuxtConfig({
   },
 
   runtimeConfig: {
-    clouderyApiBase: process.env.CLOUDERY_API_BASE || 'https://localhost:7288',
     public: {
       clouderyApiBase: process.env.NUXT_PUBLIC_CLOUDERY_API_BASE || 'https://localhost:7288',
     },

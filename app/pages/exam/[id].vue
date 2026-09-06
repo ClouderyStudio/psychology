@@ -16,15 +16,14 @@
 <script setup lang="ts">
 import type { ExamPaper } from '~/types/exam'
 
-// 试卷数据由服务端受保护接口下发（不在前端 bundle 中）
+const config = useRuntimeConfig()
+const examApiBase = (config.public.clouderyApiBase as string) || 'https://localhost:7288'
 const route = useRoute()
 const paperId = (route.params.id as string) || ''
 const { data: paper, pending } = await useAsyncData<ExamPaper | null>(
   'internal-exam-' + paperId,
   () =>
-    $fetch<ExamPaper | null>('/api/internal/papers/' + paperId, {
-      // SSR 时转发 cookie，确保服务端渲染也能通过鉴权
-      headers: useRequestHeaders(['cookie']),
-    }).catch(() => null),
+    $fetch<ExamPaper | null>(examApiBase + '/exam/ExamPapers/' + paperId).catch(() => null),
+  { server: false } // 只在浏览器直连 ClouderyApi，避免 SSR 服务端请求
 )
 </script>
