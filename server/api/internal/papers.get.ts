@@ -18,6 +18,6 @@ export default defineEventHandler(async (event) => {
     return data;
   } catch (e: any) {
     if (e?.response?.status === 404) throw createError({ statusCode: 404, statusMessage: "未找到该试卷" });
-    throw createError({ statusCode: 502, statusMessage: "试卷服务暂不可用" });
+    throw createError({ statusCode: 502, statusMessage: "试卷服务暂不可用" + e.message });
   }
 });
