@@ -61,6 +61,31 @@
           </div>
         </DevOnly>
 
+        <!-- 开始页：答题前确认是否打乱顺序 -->
+        <template v-if="!started">
+          <div class="rounded-xl overflow-hidden mb-6" style="background-color: var(--card-bg); box-shadow: var(--shadow-lg);">
+            <div class="p-6" style="background-color: var(--primary); color: white;">
+              <h1 class="text-2xl font-bold mb-2">{{ test.title }}</h1>
+              <p style="color: rgba(255,255,255,0.9);">{{ test.instructions }}</p>
+              <p class="text-sm mt-2" style="color: rgba(255,255,255,0.7);">⚠️ 请根据您的真实感受作答，共 {{ totalQuestions }} 题</p>
+            </div>
+            <div class="p-6">
+              <label class="flex items-start p-4 rounded-lg cursor-pointer transition-all" style="background-color: var(--bg);">
+                <input type="checkbox" v-model="shuffleOrder" class="w-4 h-4 mr-3 mt-0.5" :style="{ accentColor: 'var(--primary)' }">
+                <div>
+                  <div class="font-semibold" style="color: var(--text);">🔀 打乱题目顺序</div>
+                  <p class="text-sm mt-1" style="color: var(--text-secondary);">勾选后随机排列题目顺序，降低惯性作答的干扰；不勾选则按原顺序作答。</p>
+                </div>
+              </label>
+              <button @click="startTest" class="w-full mt-4 py-3 rounded-lg font-semibold text-white transition-all"
+                style="background-color: var(--primary); box-shadow: var(--shadow-sm);">
+                开始答题
+              </button>
+            </div>
+          </div>
+        </template>
+
+        <template v-else>
         <!-- 进度条 -->
         <div class="mb-6">
           <div class="flex justify-between text-sm mb-2" style="color: var(--text-secondary);">
@@ -237,6 +262,7 @@
             </button>
           </div>
         </div>
+        </template>
       </div>
     </div>
   </div>
@@ -271,7 +297,79 @@ const answers = ref<Record<number, number>>({})
 const currentPage = ref(1)
 
 // 所有题目
-const allQuestions = computed(() => test.value?.questions || [])
+// 当前题序（初始为题库顺序，可被「打乱」重排）
+const allQuestions = ref<any[]>([])
+const started = ref(false)        // 是否已进入答题（每次进入都先显示开始页询问是否打乱）
+const shuffleOrder = ref(false)   // 开始页勾选：是否打乱题目顺序
+
+// 打乱算法（Fisher-Yates）
+function shuffleArr<T>(arr: T[]): T[] {
+  const a = arr.slice()
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1))
+    const tmp = a[i] as T
+    a[i] = a[j] as T
+    a[j] = tmp
+  }
+  return a
+}
+
+// 题目顺序的持久化 / 恢复（保证刷新后顺序一致）
+const orderKey = "test_" + testId + "_order"
+function saveOrder(ids: number[]) {
+  if (typeof window === "undefined") return
+  try { sessionStorage.setItem(orderKey, JSON.stringify(ids)) } catch (e) { console.error("保存题目顺序失败", e) }
+}
+function loadOrder(): number[] | null {
+  if (typeof window === "undefined") return null
+  try {
+    const raw = sessionStorage.getItem(orderKey)
+    if (!raw) return null
+    const ids = JSON.parse(raw)
+    return Array.isArray(ids) ? (ids as number[]) : null
+  } catch { return null }
+}
+function clearOrder() {
+  if (typeof window === "undefined") return
+  sessionStorage.removeItem(orderKey)
+}
+
+// 题库加载后填充题目顺序；若存在已保存顺序（之前打乱过）则恢复。
+// 注意：不据此自动跳过开始页——每次进入都先询问「是否打乱」。
+watch(
+  () => test.value,
+  (t) => {
+    if (!t || !t.questions) return
+    const savedOrder = loadOrder()
+    if (savedOrder && savedOrder.length === t.questions.length) {
+      const byId = new Map<number, any>()
+      t.questions.forEach((q) => byId.set(q.id, q))
+      allQuestions.value = savedOrder.map((id) => byId.get(id)).filter(Boolean) as any[]
+    } else {
+      allQuestions.value = t.questions.slice()
+    }
+  },
+  { immediate: true }
+)
+
+// 开始答题：按勾选决定是否打乱顺序
+function startTest() {
+  const t = test.value
+  if (!t) return
+  if (shuffleOrder.value) {
+    allQuestions.value = shuffleArr(t.questions)
+    saveOrder(allQuestions.value.map((q) => q.id))
+  } else {
+    allQuestions.value = t.questions.slice()
+    clearOrder()
+  }
+  started.value = true
+  // 若已在恢复的进度中（onMounted 已定位到对应页码），保留该页；否则回到第一页
+  const saved = answerStore.getAnswers()
+  const hasSaved = saved && Object.keys(saved).length > 0
+  if (!hasSaved) currentPage.value = 1
+  if (typeof window !== "undefined") window.scrollTo({ top: 0, behavior: "smooth" })
+}
 const totalQuestions = computed(() => allQuestions.value.length)
 const totalPages = computed(() => Math.ceil(totalQuestions.value / QUESTIONS_PER_PAGE))
 
@@ -285,9 +383,10 @@ const currentPageQuestions = computed(() => {
 // 当前页题目ID列表
 const currentPageQuestionIds = computed(() => currentPageQuestions.value.map(q => q.id))
 
-// 计算全局题号
+// 计算显示题号（按当前题序的位置，打乱后也为连续编号）
 const getGlobalQuestionNumber = (questionId: number) => {
-  return questionId
+  const idx = allQuestions.value.findIndex((q) => q.id === questionId)
+  return idx >= 0 ? idx + 1 : questionId
 }
 
 // number 题（数字输入，如生理年龄）——不计入必答完成度，可留空
@@ -404,8 +503,10 @@ const clearAllAnswers = () => {
         answerStore.setCurrentTest(testId)
       }
 
-      // 重置到第一页
+      // 重置到第一页（回到开始页）
       currentPage.value = 1
+      started.value = false
+      clearOrder()
 
       // 刷新导航栏进度
       if (typeof window !== 'undefined') {
