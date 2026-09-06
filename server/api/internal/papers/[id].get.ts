@@ -8,7 +8,7 @@ export default defineEventHandler(async (event) => {
   const id = (getRouterParam(event, "id") || "").toLowerCase();
   const { clouderyApiBase } = useRuntimeConfig();
   try {
-    return await $fetch(`${clouderyApiBase}/exam/papers/${id}`);
+    return await $fetch(`${clouderyApiBase}/exam/ExamPapers/${id}`);
   } catch (e: any) {
     if (e?.statusCode === 404) throw createError({ statusCode: 404, statusMessage: "未找到该试卷" });
     throw createError({ statusCode: 502, statusMessage: "试卷服务暂不可用" });
