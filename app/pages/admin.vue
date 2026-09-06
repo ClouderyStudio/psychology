@@ -161,12 +161,19 @@ function openCreate() {
   editorOpen.value = true
 }
 
-function openEdit(p: any) {
+async function openEdit(p: any) {
   editing.value = true
   formId.value = p.id
   formName.value = p.name
-  formJson.value = JSON.stringify(p.sections || [], null, 2)
   saveError.value = ''
+  // 公开列表不含答案，编辑用管理员全量接口拉取含答案/解析的完整内容
+  try {
+    const full = await $fetch<any>(base + '/exam/ExamPapers/' + p.id + '/full', { credentials: 'include' })
+    formJson.value = JSON.stringify(full?.sections || [], null, 2)
+  } catch (e: any) {
+    if (e?.statusCode === 401) { auth.value = 'unauth'; return }
+    saveError.value = '加载试卷详情失败：' + (e?.data?.message || e?.message || '未知错误')
+  }
   editorOpen.value = true
 }
 
