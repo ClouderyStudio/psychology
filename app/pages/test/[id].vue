@@ -70,14 +70,10 @@
               <p class="text-sm mt-2" style="color: rgba(255,255,255,0.7);">⚠️ 请根据您的真实感受作答，共 {{ totalQuestions }} 题</p>
             </div>
 
-            <!-- 量表介绍（由来 / 作用 / 适配人群） -->
-            <details v-if="test.intro" class="border-b" style="border-color: var(--primary-light);">
-              <summary class="px-6 py-4 font-semibold cursor-pointer select-none flex items-center justify-between transition-all hover:opacity-80"
-                style="color: var(--text);">
-                <span>📖 量表介绍</span>
-                <span style="color: var(--text-muted);">展开 ▾</span>
-              </summary>
-              <div class="px-6 pb-5 space-y-4 text-sm">
+            <!-- 量表介绍（由来 / 作用 / 适配人群）默认全部展示 -->
+            <div v-if="test.intro" class="border-b px-6 pt-4 pb-5 text-sm" style="border-color: var(--primary-light);">
+              <div class="font-semibold text-base mb-3" style="color: var(--text);">📖 量表介绍</div>
+              <div class="space-y-4">
                 <div v-if="test.intro?.origin">
                   <div class="font-semibold mb-1" style="color: var(--primary);">📜 由来</div>
                   <p class="leading-relaxed" style="color: var(--text-secondary);">{{ test.intro?.origin }}</p>
@@ -91,7 +87,7 @@
                   <p class="leading-relaxed" style="color: var(--text-secondary);">{{ test.intro?.audience }}</p>
                 </div>
               </div>
-            </details>
+            </div>
 
             <div class="p-6">
               <label class="flex items-start p-4 rounded-lg cursor-pointer transition-all" style="background-color: var(--bg);">
