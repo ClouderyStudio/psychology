@@ -66,7 +66,7 @@
 
 <script setup lang="ts">
 const config = useRuntimeConfig()
-const base = (config.public.clouderyApiBase as string) || 'http://localhost:5171'
+const base = (config.public.clouderyApiBase as string) || 'https://localhost:7288'
 
 const auth = ref<'unknown' | 'checking' | 'authed' | 'unauth'>('unknown')
 const user = ref<any>(null)
