@@ -490,7 +490,7 @@ const formatLastResultTime = computed(() => {
 })
 
 // 以类型/等级呈现而非分数的量表（人格、类型、专项类，分数无意义或无最高分）
-const typeOnlyTests = ['mbti', 'sixteenPF', 'epq', 'epq-rsc', 'temperament', 'seven', 'psyAge']
+const typeOnlyTests = ['mbti', 'sixteenPF', 'epq', 'epq-rsc', 'temperament', 'seven', 'psy-age']
 const isTypeOnly = computed(() => {
   const result = lastResult.value
   return !!result && typeOnlyTests.includes(result.testId)
