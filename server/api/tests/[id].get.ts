@@ -83,6 +83,7 @@ import {
   psyAgeOptions,
   psyAgeQuestions,
 } from "~~/server/utils/questions/psy-age-questions";
+import { testIntros } from "~~/server/utils/test-intros";
 
 // 按题目 id 升序排序（题库文件顺序可能与出题顺序不同）
 function sortQuestionsById<T extends { id: number }>(questions: T[]): T[] {
@@ -462,8 +463,9 @@ export default defineEventHandler(async (event) => {
     });
   }
 
+  const intro = testIntros[id as string];
   return {
     success: true,
-    data: test,
+    data: intro ? { ...test, intro } : test,
   };
 });

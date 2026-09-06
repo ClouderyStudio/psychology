@@ -15,6 +15,15 @@ export interface Question {
   max?: number;
 }
 
+export interface ScaleIntro {
+  /** 由来：量表的编制依据 / 理论来源 */
+  origin: string;
+  /** 作用：量表测量什么、结果如何解读 */
+  purpose: string;
+  /** 适配人群：适合哪些人使用及注意事项 */
+  audience: string;
+}
+
 export interface Test {
   id: string;
   title: string;
@@ -24,6 +33,8 @@ export interface Test {
   scoringRules: {
     type: string;
   };
+  /** 量表介绍（由来 / 作用 / 适配人群），可选 */
+  intro?: ScaleIntro;
 }
 
 // SCL-90 维度分数类型
