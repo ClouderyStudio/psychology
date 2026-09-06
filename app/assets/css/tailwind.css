@@ -150,6 +150,300 @@
   }
 }
 
+/* ===================== 多色彩主题 ===================== */
+/* 通过 data-accent 切换配色（每色均适配亮/暗模式；不加则用默认天青） */
+/* 症状类跟随主色，维度颜色跟随对应分类色 */
+
+[data-accent="emerald"] {
+  --primary: #2f8f6b;
+  --primary-light: #e2f4ec;
+  --primary-dark: #23705a;
+  --primary-tag: #cfeadd;
+  --personality: #7d8fc4;
+  --personality-light: #edeff9;
+  --personality-dark: #5f6fa8;
+  --personality-tag: #e0e3f2;
+  --special: #c98a3f;
+  --special-light: #fbf2e4;
+  --special-dark: #a06a2e;
+  --special-tag: #f0e0c4;
+  /* 症状类跟随主色；维度跟随对应分类色 */
+  --symptom: var(--primary);
+  --symptom-light: var(--primary-light);
+  --symptom-dark: var(--primary-dark);
+  --symptom-tag: var(--primary-tag);
+  --disharmony: var(--primary);
+  --disharmony-light: var(--primary-light);
+  --disharmony-dark: var(--primary-dark);
+  --flexibility: var(--special);
+  --flexibility-light: var(--special-light);
+  --flexibility-dark: var(--special-dark);
+  --rigidity: var(--personality);
+  --rigidity-light: var(--personality-light);
+  --rigidity-dark: var(--personality-dark);
+}
+
+[data-accent="emerald"][data-theme="dark"] {
+  --primary: #7fc0a0;
+  --primary-light: #173028;
+  --primary-dark: #a5d6b8;
+  --primary-tag: #1f4a3a;
+  --personality: #9aa8d8;
+  --personality-light: #1c1e38;
+  --personality-dark: #b6c2ec;
+  --personality-tag: #262b52;
+  --special: #d9a35c;
+  --special-light: #2a2015;
+  --special-dark: #e8c084;
+  --special-tag: #3a2e1c;
+  /* 症状类跟随主色；维度跟随对应分类色 */
+  --symptom: var(--primary);
+  --symptom-light: var(--primary-light);
+  --symptom-dark: var(--primary-dark);
+  --symptom-tag: var(--primary-tag);
+  --disharmony: var(--primary);
+  --disharmony-light: var(--primary-light);
+  --disharmony-dark: var(--primary-dark);
+  --flexibility: var(--special);
+  --flexibility-light: var(--special-light);
+  --flexibility-dark: var(--special-dark);
+  --rigidity: var(--personality);
+  --rigidity-light: var(--personality-light);
+  --rigidity-dark: var(--personality-dark);
+}
+
+[data-accent="violet"] {
+  --primary: #7b6b9e;
+  --primary-light: #f0edf6;
+  --primary-dark: #5d4f7f;
+  --primary-tag: #e3ddee;
+  --personality: #9e6bb0;
+  --personality-light: #f6edf8;
+  --personality-dark: #7f4f92;
+  --personality-tag: #ecddf2;
+  --special: #6f9e6b;
+  --special-light: #ecf6ed;
+  --special-dark: #55804f;
+  --special-tag: #ddeedd;
+  /* 症状类跟随主色；维度跟随对应分类色 */
+  --symptom: var(--primary);
+  --symptom-light: var(--primary-light);
+  --symptom-dark: var(--primary-dark);
+  --symptom-tag: var(--primary-tag);
+  --disharmony: var(--primary);
+  --disharmony-light: var(--primary-light);
+  --disharmony-dark: var(--primary-dark);
+  --flexibility: var(--special);
+  --flexibility-light: var(--special-light);
+  --flexibility-dark: var(--special-dark);
+  --rigidity: var(--personality);
+  --rigidity-light: var(--personality-light);
+  --rigidity-dark: var(--personality-dark);
+}
+
+[data-accent="violet"][data-theme="dark"] {
+  --primary: #a99cc9;
+  --primary-light: #1e1a2e;
+  --primary-dark: #c4b6dd;
+  --primary-tag: #2a2350;
+  --personality: #c49ad6;
+  --personality-light: #2c1a34;
+  --personality-dark: #d8b2e6;
+  --personality-tag: #402550;
+  --special: #8fc59b;
+  --special-light: #1a2a1e;
+  --special-dark: #aadbb6;
+  --special-tag: #1e3626;
+  /* 症状类跟随主色；维度跟随对应分类色 */
+  --symptom: var(--primary);
+  --symptom-light: var(--primary-light);
+  --symptom-dark: var(--primary-dark);
+  --symptom-tag: var(--primary-tag);
+  --disharmony: var(--primary);
+  --disharmony-light: var(--primary-light);
+  --disharmony-dark: var(--primary-dark);
+  --flexibility: var(--special);
+  --flexibility-light: var(--special-light);
+  --flexibility-dark: var(--special-dark);
+  --rigidity: var(--personality);
+  --rigidity-light: var(--personality-light);
+  --rigidity-dark: var(--personality-dark);
+}
+
+[data-accent="sunset"] {
+  --primary: #c97b3f;
+  --primary-light: #faf0e4;
+  --primary-dark: #a35f2e;
+  --primary-tag: #f2e0cc;
+  --personality: #a86b6e;
+  --personality-light: #f8ecec;
+  --personality-dark: #864f52;
+  --personality-tag: #eedfdf;
+  --special: #6f9e6b;
+  --special-light: #ecf6ed;
+  --special-dark: #55804f;
+  --special-tag: #ddeedd;
+  /* 症状类跟随主色；维度跟随对应分类色 */
+  --symptom: var(--primary);
+  --symptom-light: var(--primary-light);
+  --symptom-dark: var(--primary-dark);
+  --symptom-tag: var(--primary-tag);
+  --disharmony: var(--primary);
+  --disharmony-light: var(--primary-light);
+  --disharmony-dark: var(--primary-dark);
+  --flexibility: var(--special);
+  --flexibility-light: var(--special-light);
+  --flexibility-dark: var(--special-dark);
+  --rigidity: var(--personality);
+  --rigidity-light: var(--personality-light);
+  --rigidity-dark: var(--personality-dark);
+}
+
+[data-accent="sunset"][data-theme="dark"] {
+  --primary: #d99a5e;
+  --primary-light: #2a1d12;
+  --primary-dark: #e8b583;
+  --primary-tag: #3a2a1a;
+  --personality: #cca0a4;
+  --personality-light: #2c1c1e;
+  --personality-dark: #ddb6ba;
+  --personality-tag: #40282c;
+  --special: #8fc59b;
+  --special-light: #1a2a1e;
+  --special-dark: #aadbb6;
+  --special-tag: #1e3626;
+  /* 症状类跟随主色；维度跟随对应分类色 */
+  --symptom: var(--primary);
+  --symptom-light: var(--primary-light);
+  --symptom-dark: var(--primary-dark);
+  --symptom-tag: var(--primary-tag);
+  --disharmony: var(--primary);
+  --disharmony-light: var(--primary-light);
+  --disharmony-dark: var(--primary-dark);
+  --flexibility: var(--special);
+  --flexibility-light: var(--special-light);
+  --flexibility-dark: var(--special-dark);
+  --rigidity: var(--personality);
+  --rigidity-light: var(--personality-light);
+  --rigidity-dark: var(--personality-dark);
+}
+
+[data-accent="rose"] {
+  --primary: #c45a7a;
+  --primary-light: #fbeef2;
+  --primary-dark: #9e4560;
+  --primary-tag: #f3dce4;
+  --personality: #7b6b9e;
+  --personality-light: #f0edf6;
+  --personality-dark: #5d4f7f;
+  --personality-tag: #e3ddee;
+  --special: #6f9e6b;
+  --special-light: #ecf6ed;
+  --special-dark: #55804f;
+  --special-tag: #ddeedd;
+  /* 症状类跟随主色；维度跟随对应分类色 */
+  --symptom: var(--primary);
+  --symptom-light: var(--primary-light);
+  --symptom-dark: var(--primary-dark);
+  --symptom-tag: var(--primary-tag);
+  --disharmony: var(--primary);
+  --disharmony-light: var(--primary-light);
+  --disharmony-dark: var(--primary-dark);
+  --flexibility: var(--special);
+  --flexibility-light: var(--special-light);
+  --flexibility-dark: var(--special-dark);
+  --rigidity: var(--personality);
+  --rigidity-light: var(--personality-light);
+  --rigidity-dark: var(--personality-dark);
+}
+
+[data-accent="rose"][data-theme="dark"] {
+  --primary: #d98aa0;
+  --primary-light: #2a1830;
+  --primary-dark: #eaaec0;
+  --primary-tag: #402038;
+  --personality: #a99cc9;
+  --personality-light: #1e1a2e;
+  --personality-dark: #c4b6dd;
+  --personality-tag: #2a2350;
+  --special: #8fc59b;
+  --special-light: #1a2a1e;
+  --special-dark: #aadbb6;
+  --special-tag: #1e3626;
+  /* 症状类跟随主色；维度跟随对应分类色 */
+  --symptom: var(--primary);
+  --symptom-light: var(--primary-light);
+  --symptom-dark: var(--primary-dark);
+  --symptom-tag: var(--primary-tag);
+  --disharmony: var(--primary);
+  --disharmony-light: var(--primary-light);
+  --disharmony-dark: var(--primary-dark);
+  --flexibility: var(--special);
+  --flexibility-light: var(--special-light);
+  --flexibility-dark: var(--special-dark);
+  --rigidity: var(--personality);
+  --rigidity-light: var(--personality-light);
+  --rigidity-dark: var(--personality-dark);
+}
+
+[data-accent="teal"] {
+  --primary: #2f8f8f;
+  --primary-light: #e1f4f4;
+  --primary-dark: #237070;
+  --primary-tag: #cfe9e9;
+  --personality: #6f8fb0;
+  --personality-light: #edf3f8;
+  --personality-dark: #55708e;
+  --personality-tag: #dde8f0;
+  --special: #c98a6f;
+  --special-light: #fbf1ec;
+  --special-dark: #a06a4f;
+  --special-tag: #f0e0d8;
+  /* 症状类跟随主色；维度跟随对应分类色 */
+  --symptom: var(--primary);
+  --symptom-light: var(--primary-light);
+  --symptom-dark: var(--primary-dark);
+  --symptom-tag: var(--primary-tag);
+  --disharmony: var(--primary);
+  --disharmony-light: var(--primary-light);
+  --disharmony-dark: var(--primary-dark);
+  --flexibility: var(--special);
+  --flexibility-light: var(--special-light);
+  --flexibility-dark: var(--special-dark);
+  --rigidity: var(--personality);
+  --rigidity-light: var(--personality-light);
+  --rigidity-dark: var(--personality-dark);
+}
+
+[data-accent="teal"][data-theme="dark"] {
+  --primary: #7fc1c1;
+  --primary-light: #173030;
+  --primary-dark: #a5d9d9;
+  --primary-tag: #1f4a4a;
+  --personality: #94b3d4;
+  --personality-light: #1b2330;
+  --personality-dark: #b0caec;
+  --personality-tag: #243650;
+  --special: #d9a184;
+  --special-light: #2a1f1a;
+  --special-dark: #e8c0a2;
+  --special-tag: #3a2a22;
+  /* 症状类跟随主色；维度跟随对应分类色 */
+  --symptom: var(--primary);
+  --symptom-light: var(--primary-light);
+  --symptom-dark: var(--primary-dark);
+  --symptom-tag: var(--primary-tag);
+  --disharmony: var(--primary);
+  --disharmony-light: var(--primary-light);
+  --disharmony-dark: var(--primary-dark);
+  --flexibility: var(--special);
+  --flexibility-light: var(--special-light);
+  --flexibility-dark: var(--special-dark);
+  --rigidity: var(--personality);
+  --rigidity-light: var(--personality-light);
+  --rigidity-dark: var(--personality-dark);
+}
+
 html {
   font-family:
     "Recursive Mn Csl St Med",

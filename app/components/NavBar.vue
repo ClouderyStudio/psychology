@@ -46,6 +46,32 @@
             </svg>
           </button>
 
+          <!-- 主题配色选择 -->
+          <div ref="accentWrap" class="relative z-40">
+            <button @click="accentOpen = !accentOpen"
+              class="w-8 h-8 rounded-full flex items-center justify-center transition-all"
+              :style="{ backgroundColor: 'var(--primary-light)' }"
+              :title="'切换主题配色（当前：' + currentAccentLabel + '）'"
+              @mouseenter="elStyle($event, { boxShadow: '0 0 0 2px ' + currentAccentColor })"
+              @mouseleave="elStyle($event, { boxShadow: 'none' })">
+              <span class="w-4 h-4 rounded-full inline-block" :style="{ backgroundColor: currentAccentColor }"></span>
+            </button>
+            <div v-if="accentOpen" class="absolute right-0 top-full mt-2 w-48 rounded-xl p-3"
+              style="background-color: var(--card-bg); box-shadow: var(--shadow-lg);">
+              <div class="text-xs font-medium mb-2" style="color: var(--text-secondary);">主题配色（亮/暗适配）</div>
+              <div class="grid grid-cols-3 gap-2">
+                <button v-for="opt in accentOptions" :key="opt.id"
+                  class="flex flex-col items-center gap-1 rounded-lg p-2 transition-all"
+                  :style="{ backgroundColor: 'var(--bg)' }"
+                  @click="setAccent(opt.id); accentOpen = false">
+                  <span class="w-6 h-6 rounded-full inline-block border"
+                    :style="{ backgroundColor: opt.color, borderColor: 'var(--border)', boxShadow: accent === opt.id ? '0 0 0 2px ' + opt.color : 'none' }"></span>
+                  <span class="text-[11px] leading-tight text-center" style="color: var(--text);">{{ accentLabel(opt) }}</span>
+                </button>
+              </div>
+            </div>
+          </div>
+
           <!-- 进度指示器 -->
           <ClientOnly>
             <div v-if="hasUnfinishedTests" class="relative ml-2 cursor-pointer"
@@ -154,6 +180,18 @@
           <span class="text-sm">{{ isDark ? '浅色模式' : '深色模式' }}</span>
         </button>
 
+        <!-- 移动端主题配色 -->
+        <div class="pt-2 mt-1 space-y-1.5">
+          <div class="text-xs font-medium" style="color: var(--text-secondary);">主题配色</div>
+          <div class="flex items-center gap-2">
+            <button v-for="opt in accentOptions" :key="opt.id"
+              class="w-7 h-7 rounded-full flex items-center justify-center transition-all"
+              :style="{ backgroundColor: opt.color, boxShadow: accent === opt.id ? '0 0 0 2px var(--text)' : 'none' }"
+              :title="opt.label" @click="setAccent(opt.id)">
+            </button>
+          </div>
+        </div>
+
         <!-- 移动端进度显示 -->
         <ClientOnly>
           <div v-if="hasUnfinishedTests" class="pt-2 mt-2 border-t" style="border-color: var(--primary-light);">
@@ -207,7 +245,7 @@
 const router = useRouter()
 const route = useRoute()
 const { $toast, $confirm } = useNuxtApp()
-const { isDark, toggle: toggleTheme } = useTheme()
+const { isDark, toggle: toggleTheme, accent, setAccent, accentOptions } = useTheme()
 
 // 内部测试访问凭证由服务端 /api/internal/auth 签发，客户端无需直接读写 cookie
 
@@ -223,6 +261,12 @@ const internalPassword = ref('')
 const passwordError = ref(false)
 const passwordInput = ref<HTMLInputElement | null>(null)
 const internalAuthSubmitting = ref(false)
+// 主题配色下拉状态
+const accentOpen = ref(false)
+const accentWrap = ref<HTMLElement | null>(null)
+const accentLabel = (o: { label: string }) => (o.label.split(' · ')[0] as string) || o.label
+const currentAccentColor = computed(() => accentOptions.find((o) => o.id === accent.value)?.color || '#5b8c9e')
+const currentAccentLabel = computed(() => accentLabel(accentOptions.find((o) => o.id === accent.value) || { label: '天青' }))
 
 // 打开内部测试弹窗
 const openInternalTest = () => {
@@ -394,6 +438,9 @@ onMounted(() => {
     const target = event.target as HTMLElement
     if (!target.closest('.relative') && !target.closest('.md\\:hidden')) {
       showProgressPanel.value = false
+    }
+    if (accentWrap.value && !accentWrap.value.contains(target)) {
+      accentOpen.value = false
     }
   }
   document.addEventListener('click', handleClickOutside)
