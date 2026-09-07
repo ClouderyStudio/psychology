@@ -16,8 +16,9 @@ export const useAnswerStore = defineStore("answer", {
   }),
 
   actions: {
-    setAnswer(questionId: number, value: number) {
-      this.answers[questionId] = value;
+    // 整体替换答案集并保存一次（单一数据源，删除/新增保持一致）
+    setAnswers(newAnswers: Record<number, number>) {
+      this.answers = newAnswers;
       this.saveToSession();
     },
 
@@ -134,30 +135,6 @@ export const useAnswerStore = defineStore("answer", {
           this.answers = {};
         }
       }
-    },
-
-    clearSession() {
-      if (typeof window !== "undefined" && this.currentTestId) {
-        try {
-          sessionStorage.removeItem(`test_${this.currentTestId}_answers`);
-        } catch (e) {
-          console.error("清除进度失败", e);
-        }
-      }
-    },
-
-    hasUnfinishedTest(testId: string): boolean {
-      if (typeof window === "undefined") return false;
-      try {
-        const saved = sessionStorage.getItem(`test_${testId}_answers`);
-        if (saved) {
-          const answers = JSON.parse(saved);
-          return Object.keys(answers).length > 0;
-        }
-      } catch (e) {
-        console.error("检查进度失败", e);
-      }
-      return false;
     },
   },
 });

@@ -257,14 +257,14 @@
               下一页 →
             </button>
 
-            <button v-else @click="submitTest" :disabled="!isComplete"
+            <button v-else @click="submitTest" :disabled="!isComplete || isSubmitting"
               class="flex-1 py-3 rounded-lg font-semibold transition-all disabled:opacity-50 disabled:cursor-not-allowed"
               :style="{
-                backgroundColor: isComplete ? 'var(--primary)' : 'var(--text-muted)',
+                backgroundColor: isComplete && !isSubmitting ? 'var(--primary)' : 'var(--text-muted)',
                 color: 'white',
                 boxShadow: 'var(--shadow-sm)'
               }">
-              {{ isComplete ? '提交测评' : `还需完成 ${remainingCount} 题` }}
+              {{ isSubmitting ? '提交中…' : (isComplete ? '提交测评' : `还需完成 ${remainingCount} 题`) }}
             </button>
           </div>
         </div>
@@ -321,6 +321,7 @@ const currentPage = ref(1)
 const allQuestions = ref<any[]>([])
 const started = ref(false)        // 是否已进入答题（每次进入都先显示开始页询问是否打乱）
 const shuffleOrder = ref(false)   // 开始页勾选：是否打乱题目顺序
+const isSubmitting = ref(false)   // 提交中锁：防止重复提交
 
 // 打乱算法（Fisher-Yates）
 function shuffleArr<T>(arr: T[]): T[] {
@@ -467,41 +468,13 @@ const clearCurrentPageAnswers = () => {
     title: '确认清除',
     message: `确定要清除当前页（第 ${currentPage.value} 页）的 ${toClearCount} 个答案吗？此操作不可恢复。`,
     onConfirm: () => {
-      // 清除当前页的所有答案
+      // 删除当前页答案后重建对象触发响应式；由 watch(answers) 整体同步 store 与 sessionStorage
       currentPageQuestionIds.value.forEach(id => {
         if (answers.value[id] !== undefined) {
           delete answers.value[id]
         }
       })
-
-      // 创建新的答案对象以触发响应式
-      const newAnswers = { ...answers.value }
-      answers.value = newAnswers
-
-      // 直接操作 sessionStorage 和 store
-      if (typeof window !== 'undefined') {
-        if (Object.keys(newAnswers).length === 0) {
-          // 如果没有答案直接删除 sessionStorage
-          sessionStorage.removeItem(`test_${testId}_answers`)
-          // 清空 store
-          answerStore.clearAnswers()
-          answerStore.setCurrentTest(testId)
-        } else {
-          // 更新 sessionStorage
-          sessionStorage.setItem(`test_${testId}_answers`, JSON.stringify(newAnswers))
-          // 更新 store
-          answerStore.clearAnswers()
-          answerStore.setCurrentTest(testId)
-          Object.entries(newAnswers).forEach(([id, value]) => {
-            answerStore.setAnswer(parseInt(id), value)
-          })
-        }
-      }
-
-      // 刷新导航栏进度
-      if (typeof window !== 'undefined') {
-        window.dispatchEvent(new CustomEvent('refreshProgress'))
-      }
+      answers.value = { ...answers.value }
 
       $toast.success(`已清除第 ${currentPage.value} 页的 ${toClearCount} 个答案`, '完成')
     }
@@ -519,27 +492,13 @@ const clearAllAnswers = () => {
     title: '确认清除',
     message: `确定要清除所有 ${answeredCount.value} 个答案吗？此操作不可恢复。`,
     onConfirm: () => {
-      // 清空答案
+      // 清空答案对象触发响应式；由 watch(answers) 整体清空 store 与 sessionStorage
       answers.value = {}
-
-      // 直接操作 sessionStorage 和 store
-      if (typeof window !== 'undefined') {
-        // 删除 sessionStorage
-        sessionStorage.removeItem(`test_${testId}_answers`)
-        // 清空 store
-        answerStore.clearAnswers()
-        answerStore.setCurrentTest(testId)
-      }
 
       // 重置到第一页（回到开始页）
       currentPage.value = 1
       started.value = false
       clearOrder()
-
-      // 刷新导航栏进度
-      if (typeof window !== 'undefined') {
-        window.dispatchEvent(new CustomEvent('refreshProgress'))
-      }
 
       $toast.success('已清除所有答案', '完成')
     }
@@ -568,7 +527,7 @@ onMounted(async () => {
 
     if (totalQuestions.value > 0) {
       const answeredIds = Object.keys(savedAnswers).map(Number)
-      const lastAnsweredId = Math.max(...answeredIds)
+      const lastAnsweredId = answeredIds.reduce((max, id) => (id > max ? id : max), 0)
       const questionIndex = allQuestions.value.findIndex(q => q.id === lastAnsweredId)
       if (questionIndex !== -1) {
         currentPage.value = Math.floor(questionIndex / QUESTIONS_PER_PAGE) + 1
@@ -585,11 +544,9 @@ onMounted(async () => {
   }
 })
 
-// 监听答案变化，自动保存
+// 监听答案变化，整体同步 store 与 sessionStorage 并刷新进度
 watch(answers, (newAnswers) => {
-  Object.entries(newAnswers).forEach(([id, value]) => {
-    answerStore.setAnswer(parseInt(id), value)
-  })
+  answerStore.setAnswers(newAnswers)
   // 实时刷新“未完成的测评”进度（NavBar 下拉与首页卡片）
   if (typeof window !== 'undefined') {
     window.dispatchEvent(new CustomEvent('refreshProgress'))
@@ -666,6 +623,7 @@ function goBack() {
 
 // 提交测评
 async function submitTest() {
+  if (isSubmitting.value) return
   if (!isComplete.value) {
     $toast.warning(`请完成所有题目后再提交（还剩 ${remainingCount.value} 题）`, '提示')
     return
@@ -675,6 +633,8 @@ async function submitTest() {
     title: '确认提交',
     message: '确定要提交测评吗？提交后将无法修改答案。',
     onConfirm: async () => {
+      if (isSubmitting.value) return
+      isSubmitting.value = true
       try {
         $toast.info('正在提交中，请稍候...', '提交中')
 
@@ -700,9 +660,14 @@ async function submitTest() {
           $toast.success('测评提交成功！', '完成')
           await router.push('/result')
         }
-      } catch (error) {
+      } catch (error: any) {
         console.error('提交失败', error)
-        $toast.error('提交失败，请稍后重试', '错误')
+        $toast.error(
+          error?.data?.statusMessage || error?.data?.message || '提交失败，请稍后重试',
+          '错误',
+        )
+      } finally {
+        isSubmitting.value = false
       }
     }
   })
@@ -736,13 +701,8 @@ const quickCompleteAll = () => {
         }
       }
 
-      // 应用答案
+      // 应用答案（watch(answers) 会整体同步 store 与 sessionStorage）
       answers.value = newAnswers
-
-      // 保存到 store
-      Object.entries(newAnswers).forEach(([id, value]) => {
-        answerStore.setAnswer(parseInt(id), value)
-      })
 
       // 跳转到最后一页
       currentPage.value = totalPages.value
@@ -775,10 +735,6 @@ const quickCompleteCurrentPage = () => {
 
   answers.value = newAnswers
 
-  Object.entries(newAnswers).forEach(([id, value]) => {
-    answerStore.setAnswer(parseInt(id), value)
-  })
-
   $toast.success(`已完成当前页 ${currentPageQuestions.value.length} 道题目`, '调试完成')
   window.dispatchEvent(new CustomEvent('refreshProgress'))
 }
@@ -796,10 +752,6 @@ const completeCurrentPageWithFirstOption = () => {
 
   answers.value = newAnswers
 
-  Object.entries(newAnswers).forEach(([id, value]) => {
-    answerStore.setAnswer(parseInt(id), value)
-  })
-
   $toast.success(`当前页已全部选第一个选项`, '调试完成')
 }
 
@@ -815,10 +767,6 @@ const completeCurrentPageWithLastOption = () => {
   }
 
   answers.value = newAnswers
-
-  Object.entries(newAnswers).forEach(([id, value]) => {
-    answerStore.setAnswer(parseInt(id), value)
-  })
 
   $toast.success(`当前页已全部选最后一个选项`, '调试完成')
 }
