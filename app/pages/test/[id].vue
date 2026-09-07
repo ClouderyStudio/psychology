@@ -637,18 +637,11 @@ const jumpToPage = () => {
 
 const goToPage = (page: number) => {
   if (page === -1) return
-
   if (page === currentPage.value) return
 
-  if (page < currentPage.value) {
-    currentPage.value = page
-    jumpPage.value = page
-    window.scrollTo({ top: 0, behavior: 'smooth' })
-  } else {
-    currentPage.value = page
-    jumpPage.value = page
-    window.scrollTo({ top: 0, behavior: 'smooth' })
-  }
+  currentPage.value = page
+  jumpPage.value = page
+  window.scrollTo({ top: 0, behavior: 'smooth' })
 }
 
 // 监听当前页变化，同步 jumpPage
@@ -685,7 +678,7 @@ async function submitTest() {
       try {
         $toast.info('正在提交中，请稍候...', '提交中')
 
-        const { data } = await useFetch('/api/submit', {
+        const result = await $fetch('/api/submit', {
           method: 'POST',
           body: {
             testId,
@@ -693,16 +686,16 @@ async function submitTest() {
           }
         })
 
-        if (data.value?.success) {
+        if (result?.success) {
           if (typeof window !== 'undefined') {
             sessionStorage.removeItem(`test_${testId}_answers`)
             window.dispatchEvent(new CustomEvent('refreshProgress'))
-            window.dispatchEvent(new CustomEvent('newResult'))  // 新增：触发新结果事件
+            window.dispatchEvent(new CustomEvent('newResult'))  // 触发新结果事件
           }
 
           answerStore.clearAnswers()
 
-          answerStore.setResult(data.value.data)
+          answerStore.setResult(result.data)
 
           $toast.success('测评提交成功！', '完成')
           await router.push('/result')

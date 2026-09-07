@@ -428,21 +428,12 @@ function startTest(testId: string, reset: boolean = false) {
       }
     })
   } else {
-    // 检查是否有保存的进度
-    const saved = sessionStorage.getItem(`test_${testId}_answers`)
-    if (saved) {
-      answerStore.setCurrentTest(testId)
-      router.push(`/test/${testId}`)
-      setTimeout(() => {
-        isNavigating = false
-      }, 500)
-    } else {
-      answerStore.setCurrentTest(testId)
-      router.push(`/test/${testId}`)
-      setTimeout(() => {
-        isNavigating = false
-      }, 500)
-    }
+    // 进入测评页（进度由 /test/[id] 自动从 sessionStorage 恢复）
+    answerStore.setCurrentTest(testId)
+    router.push(`/test/${testId}`)
+    setTimeout(() => {
+      isNavigating = false
+    }, 500)
   }
 }
 
