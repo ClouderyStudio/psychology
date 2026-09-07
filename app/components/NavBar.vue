@@ -413,12 +413,6 @@ const loadUnfinishedTests = async () => {
 }
 
 onMounted(() => {
-  // 被内部测试路由守卫拦回首页时，自动弹出密码框
-  if (route.query.internal === '1') {
-    openInternalTest()
-    router.replace({ path: '/', query: {} })
-  }
-
   window.addEventListener('scroll', () => {
     isScrolled.value = window.scrollY > 10
   })
