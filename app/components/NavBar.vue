@@ -247,7 +247,7 @@ const route = useRoute()
 const { $toast, $confirm } = useNuxtApp()
 const { isDark, toggle: toggleTheme, accent, setAccent, accentOptions } = useTheme()
 
-// 内部测试访问凭证由服务端 /api/internal/auth 签发，客户端无需直接读写 cookie
+// 内部测试访问凭证由服务端 /api/internal/auth 校验签发，客户端只负责展示密码框
 
 // 滚动状态
 const isScrolled = ref(false)
@@ -289,7 +289,7 @@ const closeInternalTest = () => {
   internalTestOpen.value = false
 }
 
-// 提交密码：交由服务端校验并签发 HttpOnly 凭证
+// 提交密码：交由服务端校验并签发访问凭证
 const submitInternalPassword = async () => {
   if (internalAuthSubmitting.value) return
   internalAuthSubmitting.value = true
@@ -707,4 +707,5 @@ defineExpose({
 .internal-fade-leave-to .internal-modal-card {
   transform: translateY(-20px);
 }
+
 </style>
