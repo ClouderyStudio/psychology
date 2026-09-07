@@ -231,3 +231,151 @@ describe("评分边界与维度补充", () => {
   });
 });
 
+describe("人格类量表补充（temperament / EPQ / EPQ-RSC / MBTI / 16PF）", () => {
+  // —— 气质类型：维度题号映射与典型度 ——
+  it("temperament：只作答抑郁质题（值1）→ 一般抑郁质，维度得分正确", () => {
+    const a: Record<number, number> = {};
+    [3, 5, 12, 15, 20, 24, 28, 32, 35, 37, 41, 47, 51, 53, 59].forEach((i) => (a[i] = 1));
+    const r = calculateScore({ testId: "temperament", answers: a });
+    expect(r.dimensionScores?.melancholic?.score).toBe(15);
+    expect(r.dimensionScores?.primaryType).toBe("melancholic");
+    expect(r.dimensionScores?.typicalLevel).toBe("一般");
+    expect(r.totalScore).toBe(15);
+    expect(r.level).toBe("一般抑郁质");
+  });
+
+  it("temperament：抑郁质全 5 → 典型抑郁质（分差≥4 判定单一气质）", () => {
+    const a: Record<number, number> = {};
+    [3, 5, 12, 15, 20, 24, 28, 32, 35, 37, 41, 47, 51, 53, 59].forEach((i) => (a[i] = 5));
+    const r = calculateScore({ testId: "temperament", answers: a });
+    expect(r.dimensionScores?.melancholic?.score).toBe(75);
+    expect(r.dimensionScores?.typicalLevel).toBe("典型");
+    expect(r.level).toBe("典型抑郁质");
+  });
+
+  it("temperament：四维均作答为 1 → 全同分，判为混合气质、四维 15 分", () => {
+    const r = calculateScore({ testId: "temperament", answers: full(60, 1) });
+    expect(r.dimensionScores?.choleric?.score).toBe(15);
+    expect(r.dimensionScores?.sanguine?.score).toBe(15);
+    expect(r.dimensionScores?.phlegmatic?.score).toBe(15);
+    expect(r.dimensionScores?.melancholic?.score).toBe(15);
+    expect(r.level).toMatch(/混合型/);
+  });
+
+  // —— EPQ（88 题）：维度映射 / 反向计分 / 原始分 ——
+  it("EPQ：全部答『是』→ 各量表原始分 (E18 / N24 / P12 / L5)", () => {
+    const a: Record<number, number> = {};
+    for (let i = 1; i <= 88; i++) a[i] = 1;
+    const r = calculateScore({ testId: "epq", answers: a });
+    expect(r.dimensionScores?.E?.raw).toBe(18);
+    expect(r.dimensionScores?.N?.raw).toBe(24);
+    expect(r.dimensionScores?.P?.raw).toBe(12);
+    expect(r.dimensionScores?.L?.raw).toBe(5);
+    expect(r.level).toMatch(/型人格$/);
+  });
+
+  it("EPQ：全部答『否』→ 反向题计 1，原始分 (E3 / N0 / P11 / L15)", () => {
+    // E 反向题 21,29,45 共 3 题；N 全正向 0；P 反向 11 题；L 反向 15 题
+    const a: Record<number, number> = {};
+    for (let i = 1; i <= 88; i++) a[i] = 0;
+    const r = calculateScore({ testId: "epq", answers: a });
+    expect(r.dimensionScores?.E?.raw).toBe(3);
+    expect(r.dimensionScores?.N?.raw).toBe(0);
+    expect(r.dimensionScores?.P?.raw).toBe(11);
+    expect(r.dimensionScores?.L?.raw).toBe(15);
+  });
+
+  // —— EPQ-RSC（48 题）：原始分与总分 ——
+  it("EPQ-RSC：全部答『是』→ 原始分 (E11 / N12 / P5 / L3)，总分=E", () => {
+    const a: Record<number, number> = {};
+    for (let i = 1; i <= 48; i++) a[i] = 1;
+    const r = calculateScore({ testId: "epq-rsc", answers: a });
+    expect(r.dimensionScores?.E?.raw).toBe(11);
+    expect(r.dimensionScores?.N?.raw).toBe(12);
+    expect(r.dimensionScores?.P?.raw).toBe(5);
+    expect(r.dimensionScores?.L?.raw).toBe(3);
+    expect(r.totalScore).toBe(11);
+    expect(r.level).toMatch(/倾向$/);
+  });
+
+  // —— MBTI：类型结构不变量 ——
+  it("MBTI：level 为规范四字母且与 dimensionScores.type 一致", () => {
+    const r = calculateScore({ testId: "mbti", answers: {} });
+    const type = r.level as string;
+    expect(type).toMatch(/^[EI][SN][TF][JP]$/);
+    expect(r.dimensionScores?.type).toBe(type);
+    expect("EI".includes(r.dimensionScores?.E_I?.result)).toBe(true);
+    expect("SN".includes(r.dimensionScores?.S_N?.result)).toBe(true);
+    expect("TF".includes(r.dimensionScores?.T_F?.result)).toBe(true);
+    expect("JP".includes(r.dimensionScores?.J_P?.result)).toBe(true);
+    expect(r.totalScore).toBeGreaterThanOrEqual(0);
+    expect(r.totalScore).toBeLessThanOrEqual(100);
+  });
+
+  // —— 16PF：因素标准分与次级因素结构 ——
+  it("16PF：16 个因素标准分均落在 1–10，次级因素 X1–X4 齐全", () => {
+    const r = calculateScore({ testId: "sixteenPF", answers: {} });
+    const factors = r.dimensionScores?.factors ?? {};
+    ["A", "B", "C", "E", "F", "G", "H", "I", "L", "M", "N", "O", "Q1", "Q2", "Q3", "Q4"].forEach((k) => {
+      expect(Number.isFinite(factors[k])).toBe(true);
+      expect(factors[k]).toBeGreaterThanOrEqual(1);
+      expect(factors[k]).toBeLessThanOrEqual(10);
+    });
+    expect(r.dimensionScores?.topFactors?.length).toBe(3);
+    expect(Object.keys(r.dimensionScores?.secondaryFactors ?? {})).toContain("X1");
+    expect(Object.keys(r.dimensionScores?.secondaryFactors ?? {})).toContain("X4");
+    expect(r.level).toMatch(/型人格$/);
+  });
+});
+
+describe("自我和谐 / 情绪智力 / 基本心理需求（SCCS、IPIP-EIS、BPNS）", () => {
+  // —— SCCS 自我和谐量表（35 题，灵活性维度反向）——
+  it("SCCS：全 1 → 高度和谐、百分制 100；灵活性维度反向折算均分为 5", () => {
+    const r = calculateScore({ testId: "sccs", answers: full(35, 1) });
+    expect(r.level).toBe("高度和谐");
+    expect(r.totalScore).toBe(100);
+    expect(r.maxScore).toBe(100);
+    expect(r.dimensionScores?.disharmony?.avg).toBe(1);
+    expect(r.dimensionScores?.flexibility?.avg).toBe(5);
+    expect(r.dimensionScores?.rigidity?.avg).toBe(1);
+    expect(r.dimensionScores?.harmonyIndex).toBe(5);
+  });
+
+  it("SCCS：全 5 → 严重不和谐；不和谐与刻板维度均分为 5", () => {
+    const r = calculateScore({ testId: "sccs", answers: full(35, 5) });
+    expect(r.level).toBe("严重不和谐");
+    expect(r.totalScore).toBe(20);
+    expect(r.dimensionScores?.disharmony?.avg).toBe(5);
+    expect(r.dimensionScores?.flexibility?.avg).toBe(1);
+    expect(r.dimensionScores?.rigidity?.avg).toBe(5);
+  });
+
+  // —— IPIP-EIS：测谎题与结构 ——
+  it("IPIP-EIS：测谎题全 5 → 判定作答无效；7 个维度齐全", () => {
+    const a: Record<number, number> = { 1: 3, 12: 5, 24: 5, 62: 5 };
+    const r = calculateScore({ testId: "ipip-eis", answers: a });
+    expect(r.dimensionScores?.isValid).toBe(false);
+    expect(r.dimensionScores?.lieScore).toBe(5);
+    expect(Object.keys(r.dimensionScores?.dimensions ?? {})).toHaveLength(7);
+  });
+
+  it("IPIP-EIS：测谎题全 1 → 判定作答有效", () => {
+    const a: Record<number, number> = { 1: 3, 12: 1, 24: 1, 62: 1 };
+    const r = calculateScore({ testId: "ipip-eis", answers: a });
+    expect(r.dimensionScores?.isValid).toBe(true);
+  });
+
+  // —— BPNS：三维度基本心理需求 ——
+  it("BPNS：三维度与整体等级结构齐全、总分百分制", () => {
+    const r = calculateScore({ testId: "bpns", answers: { 1: 4, 2: 4, 3: 4 } });
+    expect(["autonomy", "competence", "relatedness"].every((k) => k in (r.dimensionScores ?? {}))).toBe(true);
+    // 整体等级使用 getOverallLevel 的四档文案
+    expect(["心理需求满足良好", "心理需求基本满足", "心理需求部分满足", "心理需求满足不足"]).toContain(r.level);
+    // 各维度等级使用独立文案
+    for (const k of ["autonomy", "competence", "relatedness"]) {
+      expect(["高度满足", "基本满足", "部分满足", "满足不足"]).toContain(r.dimensionScores?.[k]?.level);
+    }
+    expect(r.maxScore).toBe(100);
+  });
+});
+

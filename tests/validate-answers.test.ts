@@ -47,4 +47,21 @@ describe("validateAnswers 边界", () => {
   it("无题目列表时视为通过（不做校验）", () => {
     expect(validateAnswers([], { 5: 1 })).toBeNull();
   });
+
+  it("number 题给出数值 → 通过（自由输入不限定范围）", () => {
+    expect(validateAnswers(questions, { 1: 2, 2: 1, 3: 88 })).toBeNull();
+  });
+
+  it("额外题号即便值为 0 仍被拒绝", () => {
+    expect(validateAnswers(questions, { 1: 1, 2: 1, 0: 0 })).toMatch(/题号：0/);
+  });
+
+  it("答案为正无穷 → 返回格式错误", () => {
+    expect(validateAnswers(questions, { 1: Infinity, 2: 1 })).toMatch(/第 1 题/);
+  });
+
+  it("恰好等于选项上限 → 通过；超出上限 → 拒绝", () => {
+    expect(validateAnswers(questions, { 1: 3, 2: 1 })).toBeNull();
+    expect(validateAnswers(questions, { 1: 4, 2: 1 })).toMatch(/第 1 题/);
+  });
 });
