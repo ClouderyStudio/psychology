@@ -68,7 +68,6 @@ export interface TestResult {
   level: string;
   suggestion: string;
   severity: number;
-  personalizedAdvice?: string;
   timestamp: string;
   rawScore?: number;
   standardizedScore?: number;

@@ -479,20 +479,6 @@ function scoreSAS(answers: Record<number, number>): ScoringResult {
   };
 }
 
-// 生成个性化建议
-export function generatePersonalizedAdvice(
-  result: ScoringResult,
-  testTitle: string,
-): string {
-  if (result.severity > 0.7) {
-    return `根据${testTitle}的评估结果，您的得分较高。请重视这个信号，考虑寻求专业心理健康服务。记住，寻求帮助是勇气和智慧的表现。`;
-  } else if (result.severity > 0.4) {
-    return `您的得分处于中等水平。建议关注自我照顾，尝试一些压力管理技巧，如规律运动、正念练习。如果需要，可以寻求心理咨询师的支持。`;
-  } else {
-    return `您的评估结果良好。保持健康的生活方式，定期关注自己的心理状态，预防胜于治疗。`;
-  }
-}
-
 // SCCS 评分函数
 function scoreSCCS(answers: Record<number, number>): ScoringResult {
   // 初始化各维度分数
