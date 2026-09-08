@@ -47,7 +47,7 @@ export const isiQuestions: ISIQuestion[] = [
   { id: 1, text: "请评估您过去 2 周入睡困难的严重程度。", dimension: "onset", reverse: false },
   { id: 2, text: "请评估您过去 2 周维持睡眠的困难程度（夜间易醒、醒来后难以再入睡）。", dimension: "maintenance", reverse: false },
   { id: 3, text: "请评估您过去 2 周早醒问题的严重程度（比预期更早醒来且无法再入睡）。", dimension: "early", reverse: false },
-  { id: 4, text: "请评估您过去 2 周对当前睡眠模式的满意程度。", dimension: "satisfaction", reverse: false },
+  { id: 4, text: "请评估您过去 2 周对当前睡眠模式的满意程度。", dimension: "satisfaction", reverse: true },
   { id: 5, text: "请评估过去 2 周睡眠问题对您日间功能（如精力、注意力、情绪等）的影响程度。", dimension: "daytime", reverse: false },
   { id: 6, text: "请评估过去 2 周睡眠问题对您生活质量的影响程度。", dimension: "qol", reverse: false },
   { id: 7, text: "请评估过去 2 周您因睡眠问题而感到苦恼或担忧的程度。", dimension: "worry", reverse: false },
