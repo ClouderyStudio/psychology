@@ -388,34 +388,39 @@ describe("SIOSS / BIS-11 / BPAQ / YMRS / ISI 计分（2026-09 新增）", () => 
     expect(r.maxScore).toBe(21);
     expect(r.level).toBe("存在自杀意念（筛查阳性）");
     expect(r.dimensionScores?.hopeless?.score).toBe(12);
+    expect(r.dimensionScores?.hopeless?.max).toBe(12);
     expect(r.dimensionScores?.optimism?.score).toBe(0);
+    expect(r.dimensionScores?.optimism?.max).toBe(5); // 含题22
     expect(r.dimensionScores?.sleep?.score).toBe(3);
-    expect(r.dimensionScores?.suicideHistory).toBe(true);
+    expect(r.dimensionScores?.sleep?.max).toBe(4);
+    expect(r.dimensionScores?.dangerEndorsed).toBe(true); // 题11/17/22/26 任一条目答"是"
     expect(r.dimensionScores?.concealment?.score).toBe(0);
     expect(r.dimensionScores?.concealment?.valid).toBe(true);
     expect(r.dimensionScores?.reliability).toBe("reliable");
   });
 
-  it("SIOSS：掩饰题如实答『是』、其余答『否』→ 总分 5、未检出，乐观反向 4 分", () => {
+  it("SIOSS：掩饰题如实答『是』、其余答『否』→ 总分 5、未检出，乐观反向 4/5", () => {
     const a: Record<number, number> = {};
     [6, 9, 13, 15, 25].forEach((i) => (a[i] = 1)); // 5 条掩饰题答"是"
     const r = calculateScore({ testId: "sioss", answers: a });
     expect(r.totalScore).toBe(5); // 仅 5 条反向题（1,5,7,10,21）答"否"各计 1
     expect(r.level).toBe("未检出明显自杀意念");
     expect(r.dimensionScores?.concealment?.score).toBe(0);
-    expect(r.dimensionScores?.optimism?.score).toBe(4); // 乐观感缺失 4/4
+    expect(r.dimensionScores?.optimism?.score).toBe(4); // 1/7/10/21 反向答"否"得 1；题 22 不作答正向=0
+    expect(r.dimensionScores?.optimism?.max).toBe(5);
     expect(r.dimensionScores?.hopeless?.score).toBe(0);
-    expect(r.dimensionScores?.suicideHistory).toBe(false);
+    expect(r.dimensionScores?.dangerEndorsed).toBe(false);
   });
 
   it("SIOSS：题 22（曾经自杀过）答『是』→ 总分不足 12 仍触发危险信号分支", () => {
     const a: Record<number, number> = {};
     [6, 9, 13, 15, 25].forEach((i) => (a[i] = 1));
-    a[22] = 1;
+    a[22] = 1; // 题 22 归入乐观因子，正向计分
     const r = calculateScore({ testId: "sioss", answers: a });
     expect(r.totalScore).toBe(6);
     expect(r.level).toBe("存在需要关注的自杀相关危险信号");
-    expect(r.dimensionScores?.suicideHistory).toBe(true);
+    expect(r.dimensionScores?.optimism?.score).toBe(5); // 1/7/10/21 反向答"否"=4 + 题 22 正向答"是"=1
+    expect(r.dimensionScores?.dangerEndorsed).toBe(true);
   });
 
   it("SIOSS：全选『否』→ 掩饰分 5/5，判定作答不可靠", () => {

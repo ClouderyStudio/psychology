@@ -15,16 +15,14 @@ export function scoreSIOSS(answers: Record<number, number>): ScoringResult {
   const reverseItems = new Set([1, 5, 6, 7, 9, 10, 13, 15, 21, 25]);
   const concealmentItems = [6, 9, 13, 15, 25]; // 掩饰因子（不计入总分）
   const hopelessItems = [2, 3, 4, 8, 11, 14, 16, 17, 19, 20, 23, 26]; // 绝望
-  const optimismItems = [1, 7, 10, 21]; // 乐观（反向：得分越高乐观感越缺乏）
+  const optimismItems = [1, 7, 10, 21, 22]; // 乐观（反向：得分越高乐观感越缺乏，含题22"我曾经自杀过"）
   const sleepItems = [5, 12, 18, 24]; // 睡眠
-  const historyItems = [22]; // 既往自杀行为
   const dangerItems = [11, 17, 22, 26]; // 强烈危险信号条目
 
   let totalScore = 0;
   let hopeless = 0;
   let optimism = 0;
   let sleep = 0;
-  let history = 0;
   let concealment = 0;
 
   for (let i = 1; i <= 26; i++) {
@@ -39,7 +37,6 @@ export function scoreSIOSS(answers: Record<number, number>): ScoringResult {
     if (hopelessItems.includes(i)) hopeless += scored;
     else if (optimismItems.includes(i)) optimism += scored;
     else if (sleepItems.includes(i)) sleep += scored;
-    else if (historyItems.includes(i)) history += scored;
   }
 
   const maxScore = 21;
@@ -66,7 +63,7 @@ export function scoreSIOSS(answers: Record<number, number>): ScoringResult {
     suggestion = `您的SIOSS总分为 ${totalScore}/${maxScore} 分，达到自杀意念筛查阳性标准（≥12 分）。${concealmentNote}
 
 【分数构成】
-• 绝望感：${hopeless}/12 | 乐观感缺乏（反向）：${optimism}/4 | 睡眠困扰：${sleep}/4 | 既往自杀行为：${history === 1 ? "有" : "无"}
+• 绝望感：${hopeless}/12 | 乐观感缺乏（反向）：${optimism}/5 | 睡眠困扰：${sleep}/4
 
 【结果解读】
 • 本结果提示您近期可能存在较明显的自杀意念
@@ -111,11 +108,11 @@ export function scoreSIOSS(answers: Record<number, number>): ScoringResult {
     // 有效作答且总分不高、无危险信号
     level = "未检出明显自杀意念";
     severity = Math.min(0.4, (totalScore / maxScore) * 0.6);
-    suggestion = `您的SIOSS总分为 ${totalScore}/${maxScore} 分，低于筛查阳性标准（≥12 分），本次评估未提示明显的自杀意念。
+    suggestion = `你的SIOSS总分为 ${totalScore}/${maxScore} 分，低于筛查阳性标准（≥12 分），本次评估未提示明显的自杀意念。
 
 【分数构成】
-• 绝望感：${hopeless}/12 | 乐观感缺乏（反向）：${optimism}/4 | 睡眠困扰：${sleep}/4 | 既往自杀行为：${history === 1 ? "有" : "无"}
-（题22"我曾经自杀过"答"是"计1分并计入总分）
+• 绝望感：${hopeless}/12 | 乐观感缺乏（反向）：${optimism}/5 | 睡眠困扰：${sleep}/4
+（题22"我曾经自杀过"答"是"计1分，归入乐观因子，对应较低乐观感维度）
 
 【说明】
 • 本量表反映的是您作答时的心理状态；自杀意念可能随情绪、压力和生活处境而波动
@@ -131,11 +128,11 @@ export function scoreSIOSS(answers: Record<number, number>): ScoringResult {
     severity,
     dimensionScores: {
       hopeless: { score: hopeless, max: 12 },
-      optimism: { score: optimism, max: 4, note: "反向计分：得分越高提示乐观感越缺乏" },
+      optimism: { score: optimism, max: 5, note: "反向计分：得分越高提示乐观感越缺乏（含题22既往自杀史条目）" },
       sleep: { score: sleep, max: 4 },
-      suicideHistory: history === 1,
       concealment: { score: concealment, max: 5, valid: !unreliable },
       reliability: unreliable ? "unreliable" : "reliable",
+      dangerEndorsed, // 题11/17/22/26任一条目被肯定答"是" → 危险信号
     },
   };
 }

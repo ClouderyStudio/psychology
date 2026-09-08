@@ -176,10 +176,10 @@ const config = computed(() => {
     title = 'SIOSS · 因子剖面'
     icon = '🆘'
     color = 'var(--symptom)'
-    hint = '绝望感与乐观感缺乏得分越高风险越高；既往自杀行为是最关键的危险信号。'
+    hint = '绝望感与乐观感缺乏得分越高风险越高；题 11/17/22/26 中的任一条目被肯定回答都将视为危险信号。'
     const siossDefs = [
       ['hopeless', '绝望感', 12],
-      ['optimism', '乐观感缺乏（反向）', 4],
+      ['optimism', '乐观感缺乏（反向）', 5],
       ['sleep', '睡眠困扰', 4],
     ] as const
     siossDefs.forEach(([k, name, max]) => {
@@ -193,8 +193,8 @@ const config = computed(() => {
         level: max === 12 ? (sc >= 8 ? '偏高' : sc >= 4 ? '中等' : '偏低') : (sc >= 3 ? '偏高' : sc >= 2 ? '中等' : '偏低'),
       })
     })
-    if (s.suicideHistory) {
-      subtitle = '⚠️ 您报告了既往自杀行为——请务必认真对待，尽快寻求专业评估与支持（全国心理援助热线 12356）。'
+    if (s.dangerEndorsed) {
+      subtitle = '⚠️ 您对强烈危险信号条目（"想结束自己的生命""我曾经自杀过"等）作出了肯定回答——请务必认真对待，尽快寻求专业评估与支持（全国心理援助热线 12356）。'
     } else if ((s.concealment || {}).valid === false) {
       subtitle = '⚠️ 掩饰维度得分 ' + (s.concealment?.score ?? 0) + '/5（≥4 判定无效），本次结果参考价值有限，建议如实重测。'
     } else if ((s.concealment || {}).valid === true) {

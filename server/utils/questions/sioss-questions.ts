@@ -11,8 +11,7 @@ export type SIOSSDimension =
   | "hopeless" // 绝望因子
   | "optimism" // 乐观因子（反向：回答"否"提示缺乏乐观感）
   | "sleep" // 睡眠因子
-  | "concealment" // 掩饰因子（测谎，不计入总分）
-  | "suicide-history"; // 既往自杀行为条目（题22）
+  | "concealment"; // 掩饰因子（测谎，不计入总分）
 
 export interface SIOSSQuestion {
   id: number;
@@ -26,13 +25,13 @@ export interface SIOSSQuestion {
 //
 // 分量表结构（共26题）：
 //   绝望  (12题)：2,3,4,8,11,14,16,17,19,20,23,26
-//   乐观  ( 4题)：1,7,10,21（反向计分，回答"否"计1分）
+//   乐观  ( 5题)：1,7,10,21,22（反向计分，回答"否"计1分）
 //   睡眠  ( 4题)：5,12,18,24
 //   掩饰  ( 5题)：6,9,13,15,25（测谎维度，不计入总分；≥4分提示作答不真实）
-//   既往自杀行为（1题）：22
 // 计分说明：每题仅"是/否"二选一。其中10题（1,5,6,7,9,10,13,15,21,25）
-// 回答"否"计1分，其余16题回答"是"计1分。
-// 自杀意念总分 = 绝望+乐观+睡眠+题22，满分21分；总分≥12分判定为存在自杀意念。
+// 回答"否"计1分，其余16题（含题22"我曾经自杀过"，归入乐观因子正向计分）回答"是"计1分。
+// 自杀意念总分 = 绝望+乐观+睡眠，满分21分；总分≥12分判定为存在自杀意念。
+// 注：题11、17、22、26为强烈危险信号条目，答"是"应额外关注。
 export const siossQuestions: SIOSSQuestion[] = [
   { id: 1, text: "在我的日常生活中，充满了使我感兴趣的事情。", dimension: "optimism" },
   { id: 2, text: "我深信生活对我是残酷的。", dimension: "hopeless" },
@@ -55,7 +54,7 @@ export const siossQuestions: SIOSSQuestion[] = [
   { id: 19, text: "我觉得我的生活是失败的。", dimension: "hopeless" },
   { id: 20, text: "我总是将事情看得严重些。", dimension: "hopeless" },
   { id: 21, text: "我对将来抱有希望。", dimension: "optimism" },
-  { id: 22, text: "我曾经自杀过。", dimension: "suicide-history" },
+  { id: 22, text: "我曾经自杀过。", dimension: "optimism" },
   { id: 23, text: "有时我觉得我就要垮了。", dimension: "hopeless" },
   { id: 24, text: "有些时期我因忧虑而失眠。", dimension: "sleep" },
   { id: 25, text: "我曾损坏或遗失过别人的东西。", dimension: "concealment" },
