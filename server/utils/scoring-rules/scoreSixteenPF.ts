@@ -3,8 +3,8 @@ import {
   getCorrectAnswer,
   isReverseQuestion,
   sixteenPFFactors,
-} from "#imports";
-import { ScoringResult } from "../score";
+} from "../questions/sixteenPF-questions";
+import type { ScoringResult } from "../score";
 
 // 16PF 评分函数
 export function scoreSixteenPF(answers: Record<number, number>): ScoringResult {

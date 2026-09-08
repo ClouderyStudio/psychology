@@ -39,9 +39,9 @@ export function scoreIPIPEIS(answers: Record<number, number>): ScoringResult {
         // 反向计分：1→5, 2→4, 3→3, 4→2, 5→1
         score = 6 - value;
       }
-      dimScores[question.dimension].total += score;
-      dimScores[question.dimension].count++;
-      dimScores[question.dimension].raw += value;
+      dimScores[question.dimension]!.total += score;
+      dimScores[question.dimension]!.count++;
+      dimScores[question.dimension]!.raw += value;
     }
   });
 
@@ -50,15 +50,15 @@ export function scoreIPIPEIS(answers: Record<number, number>): ScoringResult {
   const dimRawAverages: Record<string, number> = {};
 
   for (const dim of dimensions) {
-    const avg = dimScores[dim].total / dimScores[dim].count;
+    const avg = dimScores[dim]!.total / dimScores[dim]!.count;
     dimAverages[dim] = Math.round(avg * 100) / 100;
     dimRawAverages[dim] =
-      Math.round((dimScores[dim].raw / dimScores[dim].count) * 100) / 100;
+      Math.round((dimScores[dim]!.raw / dimScores[dim]!.count) * 100) / 100;
   }
 
   // 总分（各维度平均分的平均值，转换为百分制）
   const totalAvg =
-    dimensions.reduce((sum, dim) => sum + dimAverages[dim], 0) /
+    dimensions.reduce((sum, dim) => sum + dimAverages[dim]!, 0) /
     dimensions.length;
   const totalScore = Math.round((totalAvg / 5) * 100);
 
@@ -76,7 +76,7 @@ export function scoreIPIPEIS(answers: Record<number, number>): ScoringResult {
 
   // 确定主要特征
   const sortedDims = [...dimensions].sort(
-    (a, b) => dimAverages[b] - dimAverages[a],
+    (a, b) => dimAverages[b]! - dimAverages[a]!,
   );
   const primaryDim = sortedDims[0];
 
@@ -163,9 +163,9 @@ function generateIPIPEISReport(
   // 积极表达
   report += `1. 积极表达：${scores.positive_express}分（满分5分）\n`;
   report += `   ${
-    scores.positive_express >= 4
+    scores.positive_express! >= 4
       ? "✓ 您善于表达积极情绪，能够自然地分享快乐。"
-      : scores.positive_express >= 3
+      : scores.positive_express! >= 3
         ? "○ 您能够适度表达积极情绪，有时会保留自己的感受。"
         : "⚠️ 您较少表达积极情绪，可以尝试更多地与他人分享快乐。"
   }\n\n`;
@@ -173,9 +173,9 @@ function generateIPIPEISReport(
   // 消极表达
   report += `2. 消极表达：${scores.negative_express}分（满分5分）\n`;
   report += `   ${
-    scores.negative_express >= 4
+    scores.negative_express! >= 4
       ? "⚠️ 您倾向于外显地表达消极情绪，建议学习更适当的情绪表达方式。"
-      : scores.negative_express >= 3
+      : scores.negative_express! >= 3
         ? "○ 您能够适度表达消极情绪，在需要时能够控制情绪外露。"
         : "✓ 您能够较好地控制消极情绪的表达，情绪稳定。"
   }\n\n`;
@@ -183,9 +183,9 @@ function generateIPIPEISReport(
   // 注意情绪
   report += `3. 注意情绪：${scores.attention}分（满分5分）\n`;
   report += `   ${
-    scores.attention >= 4
+    scores.attention! >= 4
       ? "✓ 您善于觉察和分析自己的情绪变化，有良好的情绪洞察力。"
-      : scores.attention >= 3
+      : scores.attention! >= 3
         ? "○ 您能够关注自己的情绪状态，但有时会忽略细微的情绪变化。"
         : "⚠️ 您较少关注自己的情绪，建议增加情绪觉察练习。"
   }\n\n`;
@@ -193,9 +193,9 @@ function generateIPIPEISReport(
   // 情绪性决策
   report += `4. 情绪性决策：${scores.emotional_decision}分（满分5分）\n`;
   report += `   ${
-    scores.emotional_decision >= 4
+    scores.emotional_decision! >= 4
       ? "✓ 您在做决定时会倾听内心的感受，兼顾理性与情感。"
-      : scores.emotional_decision >= 3
+      : scores.emotional_decision! >= 3
         ? "○ 您决策时主要依赖理性，有时会忽略感受的指引。"
         : "⚠️ 您倾向于完全依据理性决策，可以尝试关注感受传递的信息。"
   }\n\n`;
@@ -203,9 +203,9 @@ function generateIPIPEISReport(
   // 反应性快乐
   report += `5. 反应性快乐：${scores.reactive_joy}分（满分5分）\n`;
   report += `   ${
-    scores.reactive_joy >= 4
+    scores.reactive_joy! >= 4
       ? "✓ 您很容易被他人的快乐感染，能够共享他人的喜悦。"
-      : scores.reactive_joy >= 3
+      : scores.reactive_joy! >= 3
         ? "○ 您能够感受到他人的快乐，但有时不太容易受影响。"
         : "⚠️ 您较少被他人的快乐情绪影响，可以尝试更多地开放自己。"
   }\n\n`;
@@ -213,9 +213,9 @@ function generateIPIPEISReport(
   // 反应性抑郁
   report += `6. 反应性抑郁：${scores.reactive_sadness}分（满分5分）\n`;
   report += `   ${
-    scores.reactive_sadness >= 4
+    scores.reactive_sadness! >= 4
       ? "⚠️ 您容易被他人的不幸深深触动，需要注意保持情绪边界。"
-      : scores.reactive_sadness >= 3
+      : scores.reactive_sadness! >= 3
         ? "○ 您能够感受他人的痛苦，同时也能够保持适当的情感距离。"
         : "✓ 您能够保持情感边界，不容易被负面情绪淹没。"
   }\n\n`;
@@ -223,9 +223,9 @@ function generateIPIPEISReport(
   // 同理心关注
   report += `7. 同理心关注：${scores.empathy}分（满分5分）\n`;
   report += `   ${
-    scores.empathy >= 4
+    scores.empathy! >= 4
       ? "✓ 您善于理解和关心他人的感受，具有良好的共情能力。"
-      : scores.empathy >= 3
+      : scores.empathy! >= 3
         ? "○ 您能够关心他人，但有时可能不够深入。"
         : "⚠️ 您较少关注他人的情感需求，可以尝试更多地换位思考。"
   }\n\n`;

@@ -14,7 +14,7 @@
 const { init } = useTheme()
 
 useHead({
-  title: '心理测评中心',
+  title: '心灵驿站 | 心理测评中心',
   meta: [
     { name: 'description', content: '专业的心理健康测评工具，提供抑郁、焦虑、压力等专业量表评估' },
     { name: 'viewport', content: 'width=device-width, initial-scale=1' }

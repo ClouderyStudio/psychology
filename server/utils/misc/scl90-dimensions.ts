@@ -146,7 +146,7 @@ function getLevelInfo(average: number): { level: string; description: string } {
   // 处理边界情况：average >= 5 或 average === 5
   if (average >= 5) {
     const lastLevel = scl90DimensionLevels[scl90DimensionLevels.length - 1];
-    return { level: lastLevel.level, description: lastLevel.description };
+    return { level: lastLevel!.level, description: lastLevel!.description };
   }
   // 默认返回中等水平
   return { level: "中等", description: "该维度存在一定问题，值得关注" };

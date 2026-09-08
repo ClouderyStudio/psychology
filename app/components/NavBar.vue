@@ -34,8 +34,8 @@
             class="w-8 h-8 rounded-full flex items-center justify-center transition-all"
             style="color: var(--text-secondary);"
             :title="isDark ? '切换到浅色模式' : '切换到深色模式'"
-            @mouseenter="e => { e.target.style.backgroundColor = 'var(--primary-light)'; e.target.style.color = 'var(--primary)' }"
-            @mouseleave="e => { e.target.style.backgroundColor = 'transparent'; e.target.style.color = 'var(--text-secondary)' }">
+            @mouseenter="elStyle($event, { backgroundColor: 'var(--primary-light)', color: 'var(--primary)' })"
+            @mouseleave="elStyle($event, { backgroundColor: 'transparent', color: 'var(--text-secondary)' })">
             <svg v-if="isDark" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                 d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
@@ -46,14 +46,40 @@
             </svg>
           </button>
 
+          <!-- 主题配色选择 -->
+          <div ref="accentWrap" class="relative z-40">
+            <button @click="accentOpen = !accentOpen"
+              class="w-8 h-8 rounded-full flex items-center justify-center transition-all"
+              :style="{ backgroundColor: 'var(--primary-light)' }"
+              :title="'切换主题配色（当前：' + currentAccentLabel + '）'"
+              @mouseenter="elStyle($event, { boxShadow: '0 0 0 2px ' + currentAccentColor })"
+              @mouseleave="elStyle($event, { boxShadow: 'none' })">
+              <span class="w-4 h-4 rounded-full inline-block" :style="{ backgroundColor: currentAccentColor }"></span>
+            </button>
+            <div v-if="accentOpen" class="absolute right-0 top-full mt-2 w-48 rounded-xl p-3"
+              style="background-color: var(--card-bg); box-shadow: var(--shadow-lg);">
+              <div class="text-xs font-medium mb-2" style="color: var(--text-secondary);">主题配色（亮/暗适配）</div>
+              <div class="grid grid-cols-3 gap-2">
+                <button v-for="opt in accentOptions" :key="opt.id"
+                  class="flex flex-col items-center gap-1 rounded-lg p-2 transition-all"
+                  :style="{ backgroundColor: 'var(--bg)' }"
+                  @click="setAccent(opt.id); accentOpen = false">
+                  <span class="w-6 h-6 rounded-full inline-block border"
+                    :style="{ backgroundColor: opt.color, borderColor: 'var(--border)', boxShadow: accent === opt.id ? '0 0 0 2px ' + opt.color : 'none' }"></span>
+                  <span class="text-[11px] leading-tight text-center" style="color: var(--text);">{{ accentLabel(opt) }}</span>
+                </button>
+              </div>
+            </div>
+          </div>
+
           <!-- 进度指示器 -->
           <ClientOnly>
             <div v-if="hasUnfinishedTests" class="relative ml-2 cursor-pointer"
               @click.stop="showProgressPanel = !showProgressPanel">
               <div class="w-8 h-8 rounded-full flex items-center justify-center transition-all"
                 style="background-color: var(--warning-bg);"
-                @mouseenter="e => e.target.style.backgroundColor = 'var(--warning-border)'"
-                @mouseleave="e => e.target.style.backgroundColor = 'var(--warning-bg)'">
+                @mouseenter="elStyle($event, { backgroundColor: 'var(--warning-border)' })"
+                @mouseleave="elStyle($event, { backgroundColor: 'var(--warning-bg)' })">
                 <span class="text-sm">📋</span>
               </div>
               <span class="absolute -top-1 -right-1 w-4 h-4 rounded-full text-xs flex items-center justify-center"
@@ -62,12 +88,23 @@
               </span>
             </div>
           </ClientOnly>
+
+          <!-- 内部测试入口 -->
+          <button @click="openInternalTest" class="internal-test-entry" title="内部测试">
+            <span>🔐</span> 内部测试
+          </button>
+
+          <!-- 测试历史入口 -->
+          <NuxtLink to="/history" class="nav-link history-entry" :class="{ active: isActive('/history') }"
+            title="查看所有测试历史">
+            🕘 测试历史
+          </NuxtLink>
         </div>
 
         <!-- 移动端菜单按钮 -->
         <button @click="toggleMobileMenu" class="md:hidden p-2 rounded-lg transition-colors" style="color: var(--text);"
-          @mouseenter="e => e.target.style.backgroundColor = 'var(--primary-light)'"
-          @mouseleave="e => e.target.style.backgroundColor = 'transparent'">
+          @mouseenter="elStyle($event, { backgroundColor: 'var(--primary-light)' })"
+          @mouseleave="elStyle($event, { backgroundColor: 'transparent' })">
           <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path v-if="!mobileMenuOpen" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
               d="M4 6h16M4 12h16M4 18h16"></path>
@@ -92,8 +129,8 @@
             <div class="space-y-2 max-h-64 overflow-y-auto">
               <div v-for="test in unfinishedTestsList" :key="test.id"
                 class="p-2 rounded cursor-pointer transition-colors" @click="continueTest(test.id)"
-                @mouseenter="e => e.target.style.backgroundColor = 'var(--bg)'"
-                @mouseleave="e => e.target.style.backgroundColor = 'transparent'">
+                @mouseenter="elStyle($event, { backgroundColor: 'var(--bg)' })"
+                @mouseleave="elStyle($event, { backgroundColor: 'transparent' })">
                 <div class="flex justify-between items-center">
                   <span class="text-sm font-medium" style="color: var(--text);">{{ test.title }}</span>
                   <span class="text-xs" style="color: var(--text-muted);">{{ test.completed }}/{{ test.total }}题</span>
@@ -126,13 +163,22 @@
           @click="mobileMenuOpen = false">
           心理资源
         </NuxtLink>
+        <NuxtLink to="/history" class="mobile-nav-link" :class="{ 'mobile-active': isActive('/history') }"
+          @click="mobileMenuOpen = false">
+          🕘 测试历史
+        </NuxtLink>
+
+        <!-- 移动端内部测试入口 -->
+        <button @click="openInternalTest" class="mobile-nav-link text-left">
+          🔐 内部测试
+        </button>
 
         <!-- 移动端主题切换 -->
         <button @click="toggleTheme"
           class="flex items-center gap-2 px-3 py-2 rounded-lg transition-colors w-full text-left"
           style="color: var(--text);"
-          @mouseenter="e => e.target.style.backgroundColor = 'var(--primary-light)'"
-          @mouseleave="e => e.target.style.backgroundColor = 'transparent'">
+          @mouseenter="elStyle($event, { backgroundColor: 'var(--primary-light)' })"
+          @mouseleave="elStyle($event, { backgroundColor: 'transparent' })">
           <svg v-if="isDark" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
               d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
@@ -143,6 +189,18 @@
           </svg>
           <span class="text-sm">{{ isDark ? '浅色模式' : '深色模式' }}</span>
         </button>
+
+        <!-- 移动端主题配色 -->
+        <div class="pt-2 mt-1 space-y-1.5">
+          <div class="text-xs font-medium" style="color: var(--text-secondary);">主题配色</div>
+          <div class="flex items-center gap-2">
+            <button v-for="opt in accentOptions" :key="opt.id"
+              class="w-7 h-7 rounded-full flex items-center justify-center transition-all"
+              :style="{ backgroundColor: opt.color, boxShadow: accent === opt.id ? '0 0 0 2px var(--text)' : 'none' }"
+              :title="opt.label" @click="setAccent(opt.id)">
+            </button>
+          </div>
+        </div>
 
         <!-- 移动端进度显示 -->
         <ClientOnly>
@@ -167,6 +225,29 @@
         </ClientOnly>
       </div>
     </div>
+
+    <!-- 内部测试密码弹窗 -->
+    <Teleport to="body">
+      <Transition name="internal-fade">
+        <div v-if="internalTestOpen" class="internal-modal-overlay" @click="closeInternalTest">
+          <div class="internal-modal-card" @click.stop>
+            <div class="internal-modal-icon">🔐</div>
+            <div class="internal-modal-body">
+              <h3 class="internal-modal-title">内部测试</h3>
+              <p class="internal-modal-message">此区域仅限内部人员访问，请输入访问密码</p>
+              <input ref="passwordInput" v-model="internalPassword" type="password" class="internal-modal-input"
+                placeholder="请输入密码" autocomplete="off" @keyup.enter="submitInternalPassword" />
+              <p v-if="passwordError" class="internal-modal-error">⚠️ 密码错误，请重试</p>
+              <div class="internal-modal-buttons">
+                <button class="internal-modal-btn internal-modal-btn-cancel" @click="closeInternalTest">取消</button>
+                <button class="internal-modal-btn internal-modal-btn-confirm" @click="submitInternalPassword">进入</button>
+              </div>
+            </div>
+            <button class="internal-modal-close" @click="closeInternalTest">✕</button>
+          </div>
+        </div>
+      </Transition>
+    </Teleport>
   </nav>
 </template>
 
@@ -174,7 +255,9 @@
 const router = useRouter()
 const route = useRoute()
 const { $toast, $confirm } = useNuxtApp()
-const { isDark, toggle: toggleTheme } = useTheme()
+const { isDark, toggle: toggleTheme, accent, setAccent, accentOptions } = useTheme()
+
+// 内部测试访问凭证由服务端 /api/internal/auth 校验签发，客户端只负责展示密码框
 
 // 滚动状态
 const isScrolled = ref(false)
@@ -182,6 +265,60 @@ const isScrolled = ref(false)
 const mobileMenuOpen = ref(false)
 // 进度面板状态
 const showProgressPanel = ref(false)
+// 内部测试弹窗状态
+const internalTestOpen = ref(false)
+const internalPassword = ref('')
+const passwordError = ref(false)
+const passwordInput = ref<HTMLInputElement | null>(null)
+const internalAuthSubmitting = ref(false)
+// 主题配色下拉状态
+const accentOpen = ref(false)
+const accentWrap = ref<HTMLElement | null>(null)
+const accentLabel = (o: { label: string }) => (o.label.split(' · ')[0] as string) || o.label
+const currentAccentColor = computed(() => accentOptions.find((o) => o.id === accent.value)?.color || '#5b8c9e')
+const currentAccentLabel = computed(() => accentLabel(accentOptions.find((o) => o.id === accent.value) || { label: '天青' }))
+
+// 打开内部测试弹窗
+const openInternalTest = () => {
+  // 7 天内输过密码（已签发 internal_authed 令牌）则直接进入，无需重复输入
+  const token = useCookie('internal_authed').value
+  if (typeof token === 'string' && token.includes('.')) {
+    internalTestOpen.value = false
+    mobileMenuOpen.value = false
+    router.push('/exam')
+    return
+  }
+  internalPassword.value = ''
+  passwordError.value = false
+  internalTestOpen.value = true
+  nextTick(() => passwordInput.value?.focus())
+}
+
+// 关闭内部测试弹窗
+const closeInternalTest = () => {
+  internalTestOpen.value = false
+}
+
+// 提交密码：交由服务端校验并签发访问凭证
+const submitInternalPassword = async () => {
+  if (internalAuthSubmitting.value) return
+  internalAuthSubmitting.value = true
+  passwordError.value = false
+  try {
+    await $fetch('/api/internal/auth', {
+      method: 'POST',
+      body: { password: internalPassword.value },
+    })
+    internalTestOpen.value = false
+    mobileMenuOpen.value = false
+    router.push('/exam')
+  } catch (e: any) {
+    passwordError.value = true
+    $toast.error(e?.data?.statusMessage || '密码错误，请重试', '内部测试')
+  } finally {
+    internalAuthSubmitting.value = false
+  }
+}
 
 // 未完成测评数据
 const unfinishedTestsList = ref<Array<{ id: string; title: string; completed: number; total: number }>>([])
@@ -314,6 +451,9 @@ onMounted(() => {
     if (!target.closest('.relative') && !target.closest('.md\\:hidden')) {
       showProgressPanel.value = false
     }
+    if (accentWrap.value && !accentWrap.value.contains(target)) {
+      accentOpen.value = false
+    }
   }
   document.addEventListener('click', handleClickOutside)
 
@@ -386,4 +526,190 @@ defineExpose({
   font-weight: 600;
   background-color: var(--primary-light);
 }
+
+/* 内部测试入口按钮 */
+.internal-test-entry {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin-left: 4px;
+  padding: 6px 12px;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-muted);
+  border: 1px dashed var(--primary-light);
+  background: none;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.internal-test-entry:hover {
+  color: var(--primary);
+  background-color: var(--primary-light);
+  border-color: var(--primary);
+}
+
+/* 内部测试密码弹窗 */
+.internal-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: var(--overlay-bg, rgba(58, 53, 64, 0.5));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  backdrop-filter: blur(4px);
+}
+
+.internal-modal-card {
+  background-color: var(--card-bg);
+  border-radius: 16px;
+  padding: 24px;
+  width: 100%;
+  max-width: 380px;
+  display: flex;
+  gap: 16px;
+  box-shadow: var(--shadow-xl);
+  animation: internal-modal-in 0.3s ease;
+}
+
+.internal-modal-icon {
+  font-size: 28px;
+  flex-shrink: 0;
+}
+
+.internal-modal-body {
+  flex: 1;
+}
+
+.internal-modal-title {
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--text);
+  margin-bottom: 8px;
+}
+
+.internal-modal-message {
+  font-size: 14px;
+  color: var(--text-secondary);
+  line-height: 1.5;
+  margin-bottom: 16px;
+}
+
+.internal-modal-input {
+  width: 100%;
+  padding: 10px 12px;
+  border-radius: 8px;
+  border: 1px solid var(--primary-light);
+  background-color: var(--bg);
+  color: var(--text);
+  font-size: 14px;
+  outline: none;
+  box-sizing: border-box;
+  transition: border-color 0.2s;
+}
+
+.internal-modal-input:focus {
+  border-color: var(--primary);
+}
+
+.internal-modal-error {
+  margin-top: 8px;
+  font-size: 13px;
+  color: var(--warning-text);
+}
+
+.internal-modal-buttons {
+  display: flex;
+  gap: 12px;
+  justify-content: flex-end;
+  margin-top: 16px;
+}
+
+.internal-modal-btn {
+  padding: 8px 20px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+  border: none;
+}
+
+.internal-modal-btn-confirm {
+  background-color: var(--primary);
+  color: white;
+}
+
+.internal-modal-btn-confirm:hover {
+  background-color: var(--primary-dark);
+}
+
+.internal-modal-btn-cancel {
+  background-color: var(--bg);
+  color: var(--text-secondary);
+}
+
+.internal-modal-btn-cancel:hover {
+  background-color: var(--primary-light);
+}
+
+.internal-modal-close {
+  background: none;
+  border: none;
+  font-size: 18px;
+  cursor: pointer;
+  color: var(--text-muted);
+  padding: 4px;
+  width: 28px;
+  height: 28px;
+  border-radius: 8px;
+  transition: all 0.2s;
+  flex-shrink: 0;
+}
+
+.internal-modal-close:hover {
+  background-color: var(--bg);
+  color: var(--text);
+}
+
+@keyframes internal-modal-in {
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.internal-fade-enter-active,
+.internal-fade-leave-active {
+  transition: opacity 0.3s ease;
+}
+
+.internal-fade-enter-from,
+.internal-fade-leave-to {
+  opacity: 0;
+}
+
+.internal-fade-enter-active .internal-modal-card,
+.internal-fade-leave-active .internal-modal-card {
+  transition: transform 0.3s ease;
+}
+
+.internal-fade-enter-from .internal-modal-card {
+  transform: translateY(-20px);
+}
+
+.internal-fade-leave-to .internal-modal-card {
+  transform: translateY(-20px);
+}
+
 </style>

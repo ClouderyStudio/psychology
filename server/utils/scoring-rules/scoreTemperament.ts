@@ -1,4 +1,4 @@
-import { ScoringResult } from "../score";
+import type { ScoringResult } from "../score";
 
 // 气质类型评分函数
 export function scoreTemperament(

@@ -17,7 +17,7 @@
             <span class="text-4xl">🧠</span>
           </div>
           <h1 class="text-3xl font-bold mb-2">关于我们</h1>
-          <p style="color: rgba(255, 255, 255, 0.9)">专业的心理健康测评平台</p>
+          <p style="color: rgba(255, 255, 255, 0.9)">心理健康测评与自我筛查平台</p>
         </div>
 
         <!-- 内容 -->
@@ -45,10 +45,37 @@
               <span>📋</span> 专业量表
             </h2>
             <p class="leading-relaxed" style="color: var(--text-secondary)">
-              平台提供多种国际通用的专业心理测评量表，包括抑郁筛查(PHQ-9)、焦虑筛查(GAD-7)、
-              压力感知(PSS-10)、症状自评(SCL-90)、抑郁自评(SDS)和焦虑自评(SAS)等，
-              均由专业心理学团队审核和维护。
+              平台汇集多种国际通用的心理测评量表，包括抑郁筛查(PHQ-9)、焦虑筛查(GAD-7)、
+              压力感知(PSS-10)、症状自评(SCL-90)、抑郁自评(SDS)和焦虑自评(SAS)，以及
+              解离、强迫、创伤后应激（PTSD）与焦虑障碍严重度等量表。
+              量表内容参考专业文献与公开资料整理，仅供自我筛查与了解参考，不构成医学诊断。
             </p>
+          </div>
+
+          <!-- 量表来源 -->
+          <div>
+            <h2
+              class="text-2xl font-bold mb-3 flex items-center gap-2"
+              style="color: var(--text)"
+            >
+              <span>📚</span> 量表来源
+            </h2>
+            <p class="text-sm leading-relaxed" style="color: var(--text-secondary)">
+              各量表题项参考其原始文献/官方版本整理，平台为自评简化版，仅供自我筛查，不构成医学诊断。以下为主要量表的参考来源（部分）：
+            </p>
+            <ul class="space-y-1 text-sm mt-2" style="color: var(--text-secondary)">
+              <li>• PHQ-9 抑郁筛查 / GAD-7 焦虑筛查：Spitzer、Kroenke &amp; Williams（1999/2006，官方网 phqscreeners.com）</li>
+              <li>• PSS-10 压力感知：Cohen 等（1983）；SCL-90 症状自评：Derogatis（1977）</li>
+              <li>• SDS / SAS 自评：Zung（1965 / 1971）；BDC 伯恩斯抑郁清单：Burns</li>
+              <li>• MDQ 心境障碍：Hirschfeld 等（2000）；ASRM：Altman 等（1997）；YMRS：Young 等（1978）</li>
+              <li>• RSES 自尊：Rosenberg（1965）；ISI 失眠：Morin 等（2006）</li>
+              <li>• Y-BOCS：Goodman 等（1989，xinlixue.cn）；OCI-R：Foa 等（2002，公共领域，novopsych.com）</li>
+              <li>• DES-II：Carlson &amp; Putnam（1993）；SDQ-20：Nijenhuis 等（1998）；MID-60：Dell（2006，traumadissociation.com 可查）</li>
+              <li>• 创伤后应激（NSESSS）、惊恐/社交焦虑/特定恐怖症/广场恐怖/分离焦虑严重度：APA DSM-5-TR 成人严重度量表（psychiatry.org Assessment Measures）</li>
+              <li>• 16PF：Cattell（1949）；EPQ：Eysenck（1975）；MBTI：Myers &amp; Briggs（基于荣格类型论）</li>
+              <li>• BIS-11：Barratt/Patton 等；BPAQ：Buss &amp; Perry（1992）；BPNS：Deci &amp; Ryan 自我决定理论（selfdeterminationtheory.org）</li>
+              <li>• 心理年龄、情绪稳定性等：平台自研或改编</li>
+            </ul>
           </div>
 
           <!-- 隐私保护 -->
@@ -60,8 +87,9 @@
               <span>🔒</span> 隐私保护
             </h2>
             <p class="leading-relaxed" style="color: var(--text-secondary)">
-              我们高度重视您的隐私安全。所有测评数据仅保存在您的浏览器中，
-              不会上传到服务器，确保您的心理健康信息完全由您自己掌控。
+              我们高度重视您的隐私安全。作答数据保存在您的浏览器本地；
+              仅在提交时上传到服务端用于即时评分，服务端不持久化存储任何测评数据，
+              您的心理健康信息由您自己掌控。
             </p>
           </div>
 
@@ -80,7 +108,7 @@
             >
               <div class="flex items-center gap-4">
                 <div
-                  class="w-16 h-16 rounded-full flex items-center justify-center text-3xl"
+                  class="w-16 h-16 shrink-0 rounded-full flex items-center justify-center text-3xl"
                   style="background-color: var(--primary); color: white"
                 >
                   <img
@@ -102,13 +130,11 @@
                   <p class="text-sm mt-1" style="color: var(--text-secondary)">
                     全栈开发 · UI设计 · 量表整合 · 技术架构
                   </p>
-                  <div class="flex gap-3 mt-2">
-                    <a
-                      href="https://github.com/TulipQiyi"
-                      class="text-xs"
-                      style="color: var(--special)"
-                      >GitHub</a
-                    >
+                  <div class="flex flex-wrap gap-3 mt-2">
+                    <a href="https://github.com/TulipQiyi" class="text-xs" style="color: var(--special)">GitHub</a>
+                    <a href="https://user.qzone.qq.com/2675256772" class="text-xs" style="color: var(--personality)">QQ空间</a>
+                    <a href="https://space.bilibili.com/1762277941" class="text-xs" style="color: var(--special)">哔哩哔哩</a>
+                    <a href="https://afdian.com/a/justqiyi" class="text-xs" style="color: var(--personality)">爱发电</a>
                   </div>
                 </div>
               </div>
@@ -120,7 +146,7 @@
             >
               <div class="flex items-center gap-4">
                 <div
-                  class="w-16 h-16 rounded-full flex items-center justify-center text-3xl"
+                  class="w-16 h-16 shrink-0 rounded-full flex items-center justify-center text-3xl"
                   style="background-color: var(--special); color: white"
                 >
                   <img
@@ -142,63 +168,65 @@
                   <p class="text-sm mt-1" style="color: var(--text-secondary)">
                     前端开发 · 量表内容 · 补充量表
                   </p>
+                  <div class="flex flex-wrap gap-3 mt-2">
+                    <a href="https://github.com/yunzhu666" class="text-xs" style="color: var(--special)">GitHub</a>
+                    <a href="https://user.qzone.qq.com/2457483710" class="text-xs" style="color: var(--personality)">QQ空间</a>
+                    <a href="https://space.bilibili.com/526436598" class="text-xs" style="color: var(--special)">哔哩哔哩</a>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div
+              class="developer-card p-4 rounded-lg mb-4"
+              style="background-color: var(--bg)"
+            >
+              <div class="flex items-center gap-4">
+                <div
+                  class="w-16 h-16 shrink-0 rounded-full flex items-center justify-center text-3xl"
+                  style="background-color: var(--disharmony); color: white"
+                >
+                  <img
+                    src="https://q1.qlogo.cn/g?b=qq&nk=3353739856&s=100"
+                    class="w-full h-full rounded-full object-cover"
+                  />
+                </div>
+                <div>
+                  <div class="flex items-center gap-2 flex-wrap">
+                    <span class="text-xl font-bold" style="color: var(--text)"
+                      >AnonUsAl</span
+                    >
+                    <span
+                      class="text-xs px-2 py-1 rounded-full"
+                      style="background-color: var(--disharmony); color: white"
+                      >全栈开发</span
+                    >
+                  </div>
+                  <p class="text-sm mt-1" style="color: var(--text-secondary)">
+                    全栈开发 · 技术贡献
+                  </p>
                   <div class="flex gap-3 mt-2">
                     <a
-                      href="https://github.com/yunzhu666"
+                      href="https://github.com/AnonUsAl/"
                       class="text-xs"
                       style="color: var(--special)"
                       >GitHub</a
+                    >
+                    <a
+                      href="https://user.qzone.qq.com/3353739856"
+                      class="text-xs"
+                      style="color: var(--personality)"
+                      >QQ空间</a
                     >
                   </div>
                 </div>
               </div>
             </div>
 
-            <div class="developer-card p-4 rounded-lg mb-4" style="background-color: var(--bg);">
-              <div class="flex items-center gap-4">
-                <div class="w-16 h-16 rounded-full flex items-center justify-center text-3xl"
-                  style="background-color: var(--disharmony); color: white;">
-                  <img src="https://q1.qlogo.cn/g?b=qq&nk=3353739856&s=100"
-                    class="w-full h-full rounded-full object-cover" />
-                </div>
-                <div>
-                  <div class="flex items-center gap-2 flex-wrap">
-                    <span class="text-xl font-bold" style="color: var(--text);">AnonUsAl</span>
-                    <span class="text-xs px-2 py-1 rounded-full"
-                      style="background-color: var(--disharmony); color: white;">全栈开发</span>
-                  </div>
-                  <p class="text-sm mt-1" style="color: var(--text-secondary);">
-                    全栈开发 · 技术贡献
-                  </p>
-                  <div class="flex gap-3 mt-2">
-                    <a href="https://github.com/AnonUsAl/" class="text-xs" style="color: var(--special);">GitHub</a>
-                    <a href="https://user.qzone.qq.com/3353739856" class="text-xs" style="color: var(--personality);">QQ空间</a>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <div class="supporter-card p-4 rounded-lg" style="background-color: var(--bg);">
-              <div class="flex items-center gap-4">
-                <div class="w-16 h-16 rounded-full flex items-center justify-center text-3xl"
-                  style="background-color: var(--personality); color: white;">
-                  <img src="https://q1.qlogo.cn/g?b=qq&nk=1770464015&s=100"
-                    class="w-full h-full rounded-full object-cover" />
-                </div>
-                <div>
-                  <div class="flex items-center gap-2 flex-wrap">
-                    <span class="text-xl font-bold" style="color: var(--text);">Olivia</span>
-                    <span class="text-xs px-2 py-1 rounded-full"
-                      style="background-color: var(--personality); color: white;">❤ 主要支持者</span>
-                  </div>
-                  <p class="text-sm mt-1" style="color: var(--text-secondary);">
-                    用户体验代表 · 提供宝贵反馈 · 鼓励和支持
-                  </p>
-                </div>
-              </div>
-            </div>
-
-            <div class="mt-3 text-center text-xs" style="color: var(--text-muted);">
+            <div
+              class="mt-3 text-center text-xs"
+              style="color: var(--text-muted)"
+            >
               感谢其他所有为本平台提供支持和建议的朋友们
             </div>
           </div>

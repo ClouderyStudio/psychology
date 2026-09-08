@@ -144,8 +144,9 @@
         <p class="text-xs mt-2" style="color: var(--text-muted)">
           如果您有严重心理困扰，请及时寻求专业心理医生帮助
         </p>
-        <p class="text-xs mt-2" style="color: var(--text-muted);">
-          本网站由 AnonUsAl、柒屹 在 云竹 和 Olivia 的帮助下开发和维护，数据由公开资源整理而来
+        <p class="text-xs mt-2" style="color: var(--text-muted)">
+          本网站由云术工作室的 AnonUsAl、柒屹、云竹
+          开发和维护，数据由公开资源整理而来
         </p>
         <!-- 构建时间 -->
         <ClientOnly>

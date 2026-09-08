@@ -10,12 +10,12 @@ export default defineNuxtConfig({
   vite: {
     plugins: [tailwindcss()],
   },
-  
-  nitro: {
-    routeRules: {
-      '/api/**': { cors: true }
-    }
+
+  runtimeConfig: {
+    public: {
+      clouderyApiBase: process.env.NUXT_PUBLIC_CLOUDERY_API_BASE || 'https://localhost:7288',
+    },
   },
-  
+
   compatibilityDate: '2025-07-15'
 })

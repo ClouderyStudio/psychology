@@ -65,8 +65,8 @@
                 <p class="text-sm text-white/80 mt-1">完成时间：{{ formatLastResultTime }}</p>
               </div>
               <div class="text-right">
-                <div class="text-3xl font-bold">{{ lastResultDisplayScore }}</div>
-                <div class="text-sm text-white/80">{{ lastResult.level }}</div>
+                <div class="font-bold break-words" :class="isTypeOnly ? 'text-2xl md:text-3xl' : 'text-3xl'">{{ lastResultDisplayScore }}</div>
+                <div v-if="!isTypeOnly" class="text-sm text-white/80">{{ lastResult.level }}</div>
               </div>
             </div>
             <button @click="viewLastResult"
@@ -88,6 +88,34 @@
             部分量表题目较多，请在安静、不受打扰的环境下完成，以确保结果的有效性。
           </div>
         </div>
+      </div>
+
+      <!-- 搜索框 -->
+      <div class="search-section max-w-4xl mx-auto mb-6">
+        <div class="relative">
+          <span class="absolute left-4 top-1/2 -translate-y-1/2 text-lg" style="color: var(--text-muted);">🔍</span>
+          <input v-model="searchQuery" type="text" placeholder="搜索量表名称、英文名或描述…"
+            class="w-full pl-12 pr-12 py-3 rounded-xl text-sm focus:outline-none"
+            style="background-color: var(--card-bg); color: var(--text); box-shadow: var(--shadow-sm); border: 1px solid transparent;"
+            @focus="onSearchFocus" @blur="onSearchBlur" />
+          <button v-if="searchQuery" @click="searchQuery = ''"
+            class="absolute right-3 top-1/2 -translate-y-1/2 w-7 h-7 rounded-full flex items-center justify-center text-sm"
+            style="color: var(--text-muted);" title="清空搜索">✕</button>
+        </div>
+      </div>
+
+      <!-- 标签筛选 -->
+      <div v-if="allTags.length" class="tag-filter flex flex-wrap justify-center gap-2 mb-6 max-w-4xl mx-auto">
+        <button v-for="tag in allTags" :key="tag" @click="activeTag = activeTag === tag ? '' : tag"
+          class="tag-chip px-3 py-1.5 rounded-full text-xs transition-all duration-200 cursor-pointer"
+          :style="getTagChipStyle(tag)">
+          {{ tag }}
+        </button>
+        <button v-if="activeTag" @click="activeTag = ''"
+          class="tag-chip px-3 py-1.5 rounded-full text-xs"
+          style="background-color: var(--card-bg); color: var(--text-secondary); box-shadow: var(--shadow-sm);">
+          ✕ 清除标签
+        </button>
       </div>
 
       <!-- 分类筛选按钮 -->
@@ -156,16 +184,16 @@
               <button @click="startTest(test.id, false)"
                 class="flex-1 py-2.5 rounded-lg font-semibold transition-all text-sm"
                 :style="{ backgroundColor: getButtonColor(test.category), color: 'white' }"
-                @mouseenter="e => e.target.style.backgroundColor = getButtonHoverColor(test.category)"
-                @mouseleave="e => e.target.style.backgroundColor = getButtonColor(test.category)">
+                @mouseenter="elStyle($event, { backgroundColor: getButtonHoverColor(test.category) })"
+                @mouseleave="elStyle($event, { backgroundColor: getButtonColor(test.category) })">
                 {{ unfinishedTests[test.id] ? '继续测评' : '开始测评' }}
               </button>
 
               <button v-if="unfinishedTests[test.id]" @click="startTest(test.id, true)"
                 class="px-4 py-2.5 rounded-lg font-semibold transition-all text-sm"
                 style="background-color: var(--card-bg); color: var(--text-secondary); box-shadow: var(--shadow-sm);"
-                @mouseenter="e => e.target.style.backgroundColor = 'var(--bg)'"
-                @mouseleave="e => e.target.style.backgroundColor = 'var(--card-bg)'">
+                @mouseenter="elStyle($event, { backgroundColor: 'var(--bg)' })"
+                @mouseleave="elStyle($event, { backgroundColor: 'var(--card-bg)' })">
                 重置
               </button>
             </div>
@@ -176,15 +204,20 @@
       <!-- 无结果提示 -->
       <div v-if="filteredTests.length === 0" class="no-results text-center py-12">
         <div class="no-results-emoji text-6xl mb-4">🔍</div>
-        <p style="color: var(--text-secondary);">该分类下暂无量表，请切换筛选条件查看</p>
+        <p style="color: var(--text-secondary);">未找到匹配的量表，试试调整分类、标签或搜索关键词</p>
+        <button v-if="activeTag || searchQuery || activeFilter !== 'all'" @click="resetFilters"
+          class="mt-4 px-4 py-2 rounded-lg text-sm transition-colors"
+          style="background-color: var(--card-bg); color: var(--text-secondary); box-shadow: var(--shadow-sm);">
+          清除筛选条件
+        </button>
       </div>
 
       <!-- 清空所有进度按钮 -->
       <div v-if="hasAnyUnfinished" class="text-center mt-8">
         <button @click="clearAllProgress" class="px-4 py-2 rounded-lg text-sm transition-colors"
           style="background-color: var(--card-bg); color: var(--text-muted); box-shadow: var(--shadow-sm);"
-          @mouseenter="e => e.target.style.backgroundColor = 'var(--bg)'"
-          @mouseleave="e => e.target.style.backgroundColor = 'var(--card-bg)'">
+          @mouseenter="elStyle($event, { backgroundColor: 'var(--bg)' })"
+          @mouseleave="elStyle($event, { backgroundColor: 'var(--card-bg)' })">
           🗑️ 清空所有测评进度
         </button>
       </div>
@@ -214,13 +247,55 @@ const categories = [
 // 当前筛选
 const activeFilter = ref('all')
 
-// 筛选后的测评列表
-const filteredTests = computed(() => {
-  if (activeFilter.value === 'all') {
-    return tests.value
-  }
-  return tests.value.filter(test => test.category === activeFilter.value)
+// 当前搜索关键词
+const searchQuery = ref('')
+
+// 当前标签筛选
+const activeTag = ref('')
+
+// 全部标签（去重、排序，来自所有量表）
+const allTags = computed(() => {
+  const set = new Set<string>()
+  tests.value.forEach((test) => (test.tags || []).forEach((t) => set.add(t)))
+  return [...set].sort((a, b) => a.localeCompare(b, 'zh'))
 })
+
+// 筛选后的测评列表（分类 + 标签 + 搜索）
+const filteredTests = computed(() => {
+  const q = searchQuery.value.trim().toLowerCase()
+  return tests.value.filter((test) => {
+    const catOk = activeFilter.value === 'all' || test.category === activeFilter.value
+    const tagOk = !activeTag.value || test.tags.includes(activeTag.value)
+    const searchOk = !q || [test.title, test.englishName, test.description]
+      .some((f) => (f || '').toLowerCase().includes(q))
+    return catOk && tagOk && searchOk
+  })
+})
+
+// 标签筛选按钮样式
+const getTagChipStyle = (tag: string) => {
+  if (activeTag.value === tag) {
+    return { backgroundColor: 'var(--primary-dark)', color: 'white', boxShadow: 'var(--shadow-sm)' }
+  }
+  return { backgroundColor: 'var(--card-bg)', color: 'var(--text-secondary)', boxShadow: 'var(--shadow-sm)' }
+}
+
+// 重置所有筛选条件
+const resetFilters = () => {
+  activeFilter.value = 'all'
+  activeTag.value = ''
+  searchQuery.value = ''
+}
+
+// 搜索框聚焦/失焦时边框高亮
+const onSearchFocus = (e: FocusEvent) => {
+  const el = e.target as HTMLInputElement
+  el.style.borderColor = 'var(--primary)'
+}
+const onSearchBlur = (e: FocusEvent) => {
+  const el = e.target as HTMLInputElement
+  el.style.borderColor = 'transparent'
+}
 
 // 获取唯一分类数量
 const uniqueCategories = computed(() => {
@@ -353,21 +428,12 @@ function startTest(testId: string, reset: boolean = false) {
       }
     })
   } else {
-    // 检查是否有保存的进度
-    const saved = sessionStorage.getItem(`test_${testId}_answers`)
-    if (saved) {
-      answerStore.setCurrentTest(testId)
-      router.push(`/test/${testId}`)
-      setTimeout(() => {
-        isNavigating = false
-      }, 500)
-    } else {
-      answerStore.setCurrentTest(testId)
-      router.push(`/test/${testId}`)
-      setTimeout(() => {
-        isNavigating = false
-      }, 500)
-    }
+    // 进入测评页（进度由 /test/[id] 自动从 sessionStorage 恢复）
+    answerStore.setCurrentTest(testId)
+    router.push(`/test/${testId}`)
+    setTimeout(() => {
+      isNavigating = false
+    }, 500)
   }
 }
 
@@ -414,13 +480,18 @@ const formatLastResultTime = computed(() => {
   return `${date.getMonth() + 1}/${date.getDate()} ${date.getHours().toString().padStart(2, '0')}:${date.getMinutes().toString().padStart(2, '0')}`
 })
 
-// 显示分数
+// 以类型/等级呈现而非分数的量表（人格、类型、专项类，分数无意义或无最高分）
+const typeOnlyTests = ['mbti', 'sixteenPF', 'epq', 'epq-rsc', 'temperament', 'seven', 'psy-age']
+const isTypeOnly = computed(() => {
+  const result = lastResult.value
+  return !!result && typeOnlyTests.includes(result.testId)
+})
+
+// 显示分数（类型型量表则显示其类型/等级）
 const lastResultDisplayScore = computed(() => {
   const result = lastResult.value
   if (!result) return '--'
-  if (result.testId === 'mbti') {
-    return result.level || '--'
-  }
+  if (isTypeOnly.value) return result.level || '--'
   return `${result.totalScore}/${result.maxScore}`
 })
 

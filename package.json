@@ -8,16 +8,16 @@
     "generate": "nuxt generate",
     "preview": "nuxt preview",
     "postinstall": "nuxt prepare",
-    "generate-build-time": "node scripts/generate-build-time.cjs"
+    "generate-build-time": "node scripts/generate-build-time.cjs",
+    "test": "vitest run"
   },
-  "packageManager": "pnpm@11.3.0",
+  "packageManager": "pnpm@12.2.1",
   "dependencies": {
-    "@pinia/nuxt": "^0.11.3",
+    "@pinia/nuxt": "1.0.2",
     "@tailwindcss/postcss": "^4.3.0",
     "nprogress": "^0.2.0",
     "nuxt": "^4.4.5",
-    "pinia": "^3.0.4",
-    "pnpm": "^11.20.0",
+    "pinia": "^4.0.3",
     "tailwindcss": "^4.3.0",
     "vue": "^3.5.34",
     "vue-router": "^5.0.6"
@@ -25,6 +25,9 @@
   "devDependencies": {
     "@tailwindcss/vite": "^4.3.3",
     "@types/node": "^25.8.0",
-    "@types/nprogress": "^0.2.3"
+    "@types/nprogress": "^0.2.3",
+    "typescript": "^5.8.0",
+    "vitest": "^3.2.4",
+    "vue-tsc": "^3.3.11"
   }
 }

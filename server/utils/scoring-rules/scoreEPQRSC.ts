@@ -1,5 +1,5 @@
-import { epqRscScales } from "#imports";
-import { ScoringResult } from "../score";
+import { epqRscScales } from "../questions/epq-rsc-questions";
+import type { ScoringResult } from "../score";
 
 export type EPQRSCScaleKey = keyof typeof epqRscScales;
 

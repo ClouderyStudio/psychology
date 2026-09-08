@@ -1,6 +1,6 @@
 <template>
   <div class="min-h-screen py-12" style="background-color: var(--bg);">
-    <div class="container mx-auto px-4" :class="isMBTI ? 'max-w-5xl' : 'max-w-3xl'">
+    <div class="container mx-auto px-4" :class="isMBTI || isSeven || isPsyAge ? 'max-w-5xl' : 'max-w-3xl'">
       <ClientOnly>
         <div v-if="isLoading" class="text-center py-12">
           <div class="text-2xl" style="color: var(--text-secondary);">加载中...</div>
@@ -16,224 +16,30 @@
             <p class="text-sm mt-2 text-white/70">测评时间：{{ formattedTime }}</p>
           </div>
 
+          <!-- SIOSS 正式模式：风险等级横幅 -->
+          <div v-if="isFormalTest && siossRisk" class="px-8 pt-6"
+            :class="siossRisk.kind === 'danger' ? 'formal-risk-banner formal-risk-banner--danger'
+              : siossRisk.kind === 'warn' ? 'formal-risk-banner formal-risk-banner--warn'
+              : 'formal-risk-banner formal-risk-banner--ok'">
+            <div style="display:flex; align-items:center; gap:12px; margin-bottom: 6px;">
+              <span :class="siossRisk.kind === 'danger' ? 'formal-seal formal-seal--danger'
+                : siossRisk.kind === 'warn' ? 'formal-seal formal-seal--accent'
+                : 'formal-seal formal-seal--ok'">
+                {{ siossRisk.kind === 'danger' ? '■ 高风险 ■' : siossRisk.kind === 'warn' ? '■ 警惕 ■' : '■ 提示 ■' }}
+              </span>
+              <span style="font-size: 13px; letter-spacing: 0.2em; color: var(--text-muted);">RISK ASSESSMENT · 风险等级</span>
+            </div>
+            <div class="formal-risk-banner-title">{{ siossRisk.title }}</div>
+            <div class="formal-risk-banner-desc">{{ siossRisk.desc }}</div>
+            <div class="formal-risk-banner-footer">
+              请将这份结果带给专业人员进行评估；如有持续痛苦或出现结束生命的念头，请立即拨打下方危机援助热线。
+            </div>
+          </div>
+
           <!-- 分数展示 -->
           <div class="p-8">
-            <div v-if="isMBTI" class="mbti-report space-y-6">
-              <section class="mbti-hero">
-                <div>
-                  <p class="mbti-eyebrow">人格类型概览</p>
-                  <h1 class="mbti-type">{{ result.level }}</h1>
-                  <p class="mbti-type-name">{{ mbtiReport?.typeName }}</p>
-                </div>
-                <div class="mbti-hero-stats">
-                  <div>
-                    <span>内在</span>
-                    <strong>{{ mbtiReport?.innerOuterProfile?.innerType || '--' }}</strong>
-                  </div>
-                  <div>
-                    <span>外在</span>
-                    <strong>{{ mbtiReport?.innerOuterProfile?.outerType || '--' }}</strong>
-                  </div>
-                  <div>
-                    <span>一致度</span>
-                    <strong>{{ mbtiReport?.innerOuterProfile?.consistency ?? '--' }}%</strong>
-                  </div>
-                </div>
-              </section>
-
-              <section class="mbti-section">
-                <div class="mbti-section-head">
-                  <div>
-                    <h3>相近类型参考</h3>
-                    <p>根据四个维度的临界变化生成，用来观察结果附近的可能类型。</p>
-                  </div>
-                </div>
-                <div class="mbti-type-strip">
-                  <div v-for="(type, index) in mbtiReport?.nineGrid || []" :key="`${type}-${index}`"
-                    class="mbti-type-pill" :class="{ 'is-active': type === result.level }">
-                    {{ type }}
-                  </div>
-                </div>
-              </section>
-
-              <section class="mbti-section">
-                <div class="mbti-section-head">
-                  <div>
-                    <h3>心理功能分布</h3>
-                    <p>自然倾向更接近自发偏好，代偿倾向更接近环境适应和应对策略。</p>
-                  </div>
-                </div>
-                <div class="grid md:grid-cols-2 gap-5">
-                  <div class="mbti-score-panel">
-                    <h4>自然倾向</h4>
-                    <div class="space-y-3">
-                      <div v-for="item in mbtiReport?.functionScores?.natural || []" :key="item.code">
-                        <div class="mbti-score-row">
-                          <span>{{ item.label }}</span>
-                          <strong>{{ item.percent }}%</strong>
-                        </div>
-                        <div class="mbti-meter">
-                          <div :style="{ width: `${item.percent * 4}%`, backgroundColor: 'var(--personality)' }"></div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                  <div class="mbti-score-panel">
-                    <h4>适应倾向</h4>
-                    <div class="space-y-3">
-                      <div v-for="item in mbtiReport?.functionScores?.compensatory || []" :key="item.code">
-                        <div class="mbti-score-row">
-                          <span>{{ item.label }}</span>
-                          <strong>{{ item.percent }}%</strong>
-                        </div>
-                        <div class="mbti-meter">
-                          <div :style="{ width: `${item.percent * 4}%`, backgroundColor: 'var(--special)' }"></div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-                <p class="mbti-note">{{ mbtiReport?.note }}</p>
-              </section>
-
-              <section class="mbti-section">
-                <div class="mbti-section-head">
-                  <div>
-                    <h3>四维偏好</h3>
-                    <p>每一组都表示你更习惯使用的一侧，并不代表另一侧缺失。</p>
-                  </div>
-                </div>
-                <div class="mbti-preference-list">
-                  <div v-for="item in mbtiReport?.preferences || []" :key="item.title" class="mbti-preference-item">
-                    <div class="font-semibold mb-3" style="color: var(--text);">{{ item.title }}</div>
-                    <div class="grid md:grid-cols-2 gap-3">
-                      <div class="mbti-choice" :class="{ 'is-selected': isPreferenceSelected(item, 'left') }">
-                        <div class="font-medium" style="color: var(--text);">{{ item.left }}</div>
-                        <p class="text-sm mt-1" style="color: var(--text-secondary);">{{ item.leftDesc }}</p>
-                      </div>
-                      <div class="mbti-choice" :class="{ 'is-selected': isPreferenceSelected(item, 'right') }">
-                        <div class="font-medium" style="color: var(--text);">{{ item.right }}</div>
-                        <p class="text-sm mt-1" style="color: var(--text-secondary);">{{ item.rightDesc }}</p>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </section>
-
-              <section class="mbti-section">
-                <div class="flex flex-col md:flex-row md:items-start md:justify-between gap-4 mb-5">
-                  <div>
-                    <h3 class="mbti-inline-title">内在与外在性格</h3>
-                    <p class="mbti-soft-text">{{ mbtiReport?.innerOuterProfile?.summary }}</p>
-                  </div>
-                  <div class="mbti-consistency">
-                    <strong>{{ mbtiReport?.innerOuterProfile?.consistency }}%</strong>
-                    <span>{{ mbtiReport?.innerOuterProfile?.status }}</span>
-                  </div>
-                </div>
-
-                <div class="grid md:grid-cols-2 gap-3 mb-5">
-                  <div class="mbti-identity-box">
-                    <p class="text-sm mb-1" style="color: var(--text-muted);">内在性格</p>
-                    <div class="text-3xl font-bold" style="color: var(--text);">{{
-                      mbtiReport?.innerOuterProfile?.innerType }}</div>
-                    <p class="text-sm mt-1" style="color: var(--text-secondary);">{{
-                      mbtiReport?.innerOuterProfile?.innerTypeName }}</p>
-                  </div>
-                  <div class="mbti-identity-box">
-                    <p class="text-sm mb-1" style="color: var(--text-muted);">外在表现</p>
-                    <div class="text-3xl font-bold" style="color: var(--text);">{{
-                      mbtiReport?.innerOuterProfile?.outerType }}</div>
-                    <p class="text-sm mt-1" style="color: var(--text-secondary);">{{
-                      mbtiReport?.innerOuterProfile?.outerTypeName }}</p>
-                  </div>
-                </div>
-
-                <div class="space-y-3">
-                  <div v-for="item in mbtiReport?.innerOuterProfile?.dimensions || []" :key="item.key"
-                    class="mbti-inner-row">
-                    <div class="flex items-center justify-between gap-3 mb-3">
-                      <div>
-                        <div class="font-semibold" style="color: var(--text);">{{ item.title }}</div>
-                        <p class="text-xs" style="color: var(--text-muted);">{{ item.left }} / {{ item.right }}</p>
-                      </div>
-                      <span class="text-xs px-2 py-1 rounded-full"
-                        :style="{ backgroundColor: item.aligned ? 'var(--primary-light)' : 'var(--warning-bg)', color: item.aligned ? 'var(--personality)' : 'var(--warning-text)' }">
-                        {{ item.aligned ? '一致' : '有差异' }}
-                      </span>
-                    </div>
-                    <div class="grid md:grid-cols-2 gap-3">
-                      <div>
-                        <div class="flex justify-between text-sm mb-1">
-                          <span style="color: var(--text-secondary);">内在 {{ item.innerLetter }}</span>
-                          <span style="color: var(--text-muted);">{{ item.innerPercent }}%</span>
-                        </div>
-                        <div class="mbti-meter">
-                          <div :style="{ width: `${item.innerPercent}%`, backgroundColor: 'var(--personality)' }"></div>
-                        </div>
-                      </div>
-                      <div>
-                        <div class="flex justify-between text-sm mb-1">
-                          <span style="color: var(--text-secondary);">外在 {{ item.outerLetter }}</span>
-                          <span style="color: var(--text-muted);">{{ item.outerPercent }}%</span>
-                        </div>
-                        <div class="mbti-meter">
-                          <div :style="{ width: `${item.outerPercent}%`, backgroundColor: 'var(--special)' }"></div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </section>
-
-              <section class="mbti-section">
-                <h3 class="mbti-inline-title">环境适应方式</h3>
-                <div class="flex flex-col md:flex-row md:items-end md:justify-between gap-3">
-                  <div>
-                    <div class="text-2xl font-bold" style="color: var(--text);">{{ mbtiReport?.mask?.name }}</div>
-                    <p class="mt-2" style="color: var(--text-secondary);">你在现阶段更容易调用的应对方式</p>
-                  </div>
-                  <div class="grid grid-cols-2 gap-3 text-center">
-                    <div class="mbti-mini-stat">
-                      <div class="text-xl font-bold" style="color: var(--text);">{{ mbtiReport?.mask?.rarity }}</div>
-                      <div class="text-xs" style="color: var(--text-muted);">{{ result.level }}占比</div>
-                    </div>
-                    <div class="mbti-mini-stat">
-                      <div class="text-xl font-bold" style="color: var(--text);">{{ mbtiReport?.mask?.maskRatio }}</div>
-                      <div class="text-xs" style="color: var(--text-muted);">适应方式占比</div>
-                    </div>
-                  </div>
-                </div>
-              </section>
-
-              <section class="mbti-section">
-                <h3 class="mbti-inline-title">结果说明</h3>
-                <div class="space-y-4">
-                  <div v-for="section in mbtiProfileSections" :key="section.title">
-                    <h4 class="font-semibold mb-1" style="color: var(--text);">{{ section.title }}</h4>
-                    <p style="color: var(--text-secondary);">{{ section.text }}</p>
-                  </div>
-                </div>
-              </section>
-
-              <section class="mbti-section">
-                <h3 class="mbti-inline-title">人格构成</h3>
-                <div class="grid md:grid-cols-2 gap-4">
-                  <div v-for="role in mbtiReport?.functionStack?.roles || []" :key="role.title" class="mbti-role-box">
-                    <p class="text-sm" style="color: var(--text-muted);">{{ role.title }} | {{ role.subtitle }}</p>
-                    <div class="text-2xl font-bold my-2" style="color: var(--text);">{{ role.label }}{{ role.function }}
-                    </div>
-                    <p class="text-sm mb-2" style="color: var(--text-secondary);">{{ role.description }}</p>
-                    <p class="text-sm font-medium" style="color: var(--personality);">它关心的是：{{ role.question }}</p>
-                  </div>
-                </div>
-              </section>
-
-              <section class="mbti-section">
-                <h3 class="mbti-inline-title">阅读提示</h3>
-                <p class="whitespace-pre-line" style="color: var(--text-secondary);">{{ mbtiUnderstanding }}</p>
-              </section>
-            </div>
+            <ResultMbti v-if="isMBTI" :report="mbtiReport" :level="result.level" />
+            <ResultPsyAge v-if="isPsyAge" :report="psyAgeReport" />
 
             <!-- 分数指示器 -->
             <div v-if="canScore" class="text-center mb-8">
@@ -252,48 +58,24 @@
             </div>
 
             <!-- 等级标签 -->
-            <div v-if="!isMBTI" class="text-center mb-6">
+            <div v-if="!isMBTI && !isSeven && !isPsyAge" class="text-center mb-6">
               <div v-if="!canScore" class="text-2xl font-semibold mb-2" style="color: var(--text);">你的测评结果是:</div>
 
               <div class="inline-block px-6 py-2 rounded-full text-lg font-semibold" :class="levelColorClass">
                 {{ result.level }}
               </div>
             </div>
+            <ResultDimensions v-if="enrichedScale" :scores="result.dimensionScores" :test-id="result.testId" />
+            <ResultPersonality v-if="isPersonality" :report="result" :test-id="result.testId" />
 
-            <!-- SCL-90 维度详情 -->
-            <div v-if="isSCL90 && hasDimensionScores" class="mt-6 p-4 rounded-lg" style="background-color: var(--bg);">
-              <h3 class="font-bold text-lg mb-4 flex items-center" style="color: var(--text);">
-                <span class="text-2xl mr-2">📊</span>
-                SCL-90 各维度评分详情
-              </h3>
-              <div class="space-y-3">
-                <div v-for="dim in scl90DimensionList" :key="dim.key" class="p-3 rounded-lg"
-                  :style="{ backgroundColor: 'var(--card-bg)' }">
-                  <div class="flex justify-between items-center mb-2">
-                    <div class="flex items-center gap-2">
-                      <span>{{ dim.icon }}</span>
-                      <span class="font-medium" style="color: var(--text);">{{ dim.name }}</span>
-                    </div>
-                    <div class="flex items-center gap-2">
-                      <span class="text-sm" style="color: var(--text-secondary);">均分: {{ getDimAverage(dim.key)
-                        }}</span>
-                      <span class="text-xs px-2 py-1 rounded-full" :class="getLevelClass(getDimLevel(dim.key))">
-                        {{ getDimLevel(dim.key) }}
-                      </span>
-                    </div>
-                  </div>
-                  <div class="w-full rounded-full h-2" style="background-color: var(--primary-light);">
-                    <div class="rounded-full h-2 transition-all duration-500"
-                      :style="{ width: getDimPercentage(dim.key) + '%', backgroundColor: getLevelColor(getDimLevel(dim.key)) }">
-                    </div>
-                  </div>
-                  <p class="text-xs mt-2" style="color: var(--text-muted);">{{ getDimDescription(dim.key) }}</p>
-                </div>
-              </div>
-            </div>
+            <ResultSeven v-if="isSeven" :report="sevenReport" />
+
+            <ResultScl90 v-if="isSCL90 && hasDimensionScores" :scores="result.dimensionScores" />
+            <ResultMid60 v-if="isMid60" :result="result" />
+            <ResultDes2 v-if="isDES2" :result="result" />
 
             <!-- 建议内容 -->
-            <div v-if="!isMBTI" class="rounded-lg p-6 mb-6" style="background-color: var(--primary-light);">
+            <div v-if="!isMBTI && !isSeven && !isPsyAge" class="rounded-lg p-6 mb-6" style="background-color: var(--primary-light);">
               <h3 class="font-bold text-lg mb-3 flex items-center" style="color: var(--text);">
                 <span class="text-2xl mr-2">💡</span>
                 专业建议
@@ -315,14 +97,29 @@
 
             <!-- 资源链接 -->
             <div v-if="!isMBTI" class="rounded-lg p-4 mb-6"
-              style="background-color: var(--warning-bg); border-left: 4px solid var(--warning-border);">
-              <h4 class="font-semibold mb-2" style="color: var(--text);">📞 需要帮助？</h4>
-              <p class="text-sm" style="color: var(--warning-text);">
-                如果您感到困扰，可以联系以下专业资源：<br>
-                • 希望24热线：400-161-9995（全国心理援助）<br>
-                • 北京心理危机研究与干预中心：010-82951332<br>
-                • 简单心理、壹心理等平台寻求专业咨询
-              </p>
+              :style="isFormalTest ? '' : 'background-color: var(--warning-bg); border-left: 4px solid var(--warning-border);'">
+              <template v-if="isFormalTest">
+                <div class="formal-resource-card-title">
+                  <span style="font-size: 18px;">📞</span>
+                  <span>危机援助资源（24 小时）</span>
+                </div>
+                <ul class="formal-resource-list">
+                  <li><b>全国心理援助热线</b> · <a href="tel:12356">12356</a>（24 小时，免费，由国家卫健委统一管理）</li>
+                  <li><b>希望 24 热线</b> · <a href="tel:400-161-9995">400-161-9995</a>（24 小时）</li>
+                  <li><b>北京心理危机研究与干预中心</b> · <a href="tel:010-82951332">010-82951332</a></li>
+                  <li><b>紧急医疗救援</b> · <a href="tel:120">120</a>（或前往就近医院急诊）</li>
+                  <li><b>青少年台</b> · <a href="tel:12355">12355</a></li>
+                </ul>
+              </template>
+              <template v-else>
+                <h4 class="font-semibold mb-2" style="color: var(--text);">📞 需要帮助？</h4>
+                <p class="text-sm" style="color: var(--warning-text);">
+                  如果您感到困扰，可以联系以下专业资源：<br>
+                  • 希望24热线：400-161-9995（全国心理援助）<br>
+                  • 北京心理危机研究与干预中心：010-82951332<br>
+                  • 简单心理、壹心理等平台寻求专业咨询
+                </p>
+              </template>
             </div>
 
             <!-- 操作按钮 -->
@@ -356,7 +153,6 @@
 
 <script setup lang="ts">
 import { useAnswerStore } from '~/stores/answer'
-import type { SCL90DimensionScores } from '~/types/test'
 
 const router = useRouter()
 const answerStore = useAnswerStore()
@@ -364,6 +160,10 @@ const answerStore = useAnswerStore()
 // 获取结果
 const result = ref<any>(null)
 const isLoading = ref(true)
+
+// 高敏感量表（自杀 / 自伤类）使用正式模式，与测试页共用 FORMAL_TESTS
+const FORMAL_TESTS = ['sioss']
+const isFormalTest = computed(() => FORMAL_TESTS.includes(result.value?.testId))
 
 // 判断应该计分
 const canScore = ref(false)
@@ -397,7 +197,9 @@ const loadResult = async () => {
     const { data } = await useFetch('/api/tests/list')
     const testList = (data.value as any)?.data || []
     const found = testList.find((el: any) => el.id === testId)
-    canScore.value = found ? found.category === 'symptom' || found.category === 'special' : false
+    // 人格性格类量表通常无总分，不展示分数环；BIS/BPAQ 虽属人格特质类但有总分
+    const scoredPersonality = ['bis', 'bpaq'].includes(testId)
+    canScore.value = found ? found.category === 'symptom' || found.category === 'special' || scoredPersonality : false
   } catch (e) {
     canScore.value = false
   }
@@ -413,96 +215,59 @@ const isSCL90 = computed(() => result.value?.testId === 'scl90')
 // 判断是否为 MBTI
 const isMBTI = computed(() => result.value?.testId === 'mbti')
 
+// 判断是否为 七宗罪与七美德
+const isSeven = computed(() => result.value?.testId === 'seven')
+const isPsyAge = computed(() => result.value?.testId === 'psy-age')
+const isMid60 = computed(() => result.value?.testId === 'mid60')
+const isDES2 = computed(() => result.value?.testId === 'des2')
+const isSdq20 = computed(() => result.value?.testId === 'sdq20')
+const isYbocs = computed(() => result.value?.testId === 'ybocs')
+const isOcir = computed(() => result.value?.testId === 'ocir')
+const isPtsd = computed(() => result.value?.testId === 'ptsd')
+const isPanic = computed(() => result.value?.testId === 'panic')
+const isSocial = computed(() => result.value?.testId === 'social')
+const isPhobia = computed(() => result.value?.testId === 'phobia')
+const isAgora = computed(() => result.value?.testId === 'agora')
+const isSepanx = computed(() => result.value?.testId === 'sepanx')
+const psyAgeReport = computed(() => result.value?.psyAgeReport)
+
 const mbtiReport = computed(() => result.value?.mbtiReport || null)
 
-const mbtiProfileSections = computed(() => {
-  const profile = mbtiReport.value?.profile
-  if (!profile) return []
-  return [
-    { title: '关于你', text: profile.about },
-    { title: '构想与执行', text: profile.execution },
-    { title: '让远见贴近内心', text: profile.inner },
-    { title: '隐藏的另一面', text: profile.hidden },
-    { title: '面具与人格', text: profile.mask }
-  ]
+const sevenReport = computed(() => result.value?.sevenReport || null)
+
+// SIOSS 风险等级（与 scoreSIOSS.level 同步）：阳性 / 危险信号 / 作答无效 / 阴性
+const siossRisk = computed(() => {
+  if (result.value?.testId !== 'sioss') return null
+  const level = String(result.value?.level || '')
+  const ds = result.value?.dimensionScores || {}
+  if (level.includes('筛查阳性') || level.includes('自杀意念（')) {
+    return { kind: 'danger', badge: '筛查阳性', title: '高风险 · 请尽快寻求专业评估', desc: '本结果提示您近期可能存在较明显的自杀意念。SIOSS 为筛查工具，不能替代临床诊断，但请您尽快将这份结果带给专业人员进行评估，并告知一位您信任的人。' }
+  }
+  if (level.includes('危险信号')) {
+    return { kind: 'warn', badge: '危险信号', title: '存在需要关注的自杀相关危险信号', desc: '即便总分未达阳性标准，您对部分关键条目（"想结束自己的生命""我曾经自杀过""有时我想一死了之"等）作出了肯定回答——这是必须严肃对待的危险信号，请尽快寻求专业评估，而不是"再等等看"。' }
+  }
+  if ((ds.concealment || {}).valid === false || level.includes('参考价值有限')) {
+    return { kind: 'warn', badge: '结果参考有限', title: '本次结果参考价值有限', desc: '您的掩饰（测谎）维度得分偏高，说明作答时可能没有完全如实回答。请在安心、私密的环境下重新如实作答一次——这本身也是对您自己的保护。' }
+  }
+  return { kind: 'ok', badge: '本次未检出明显自杀意念', title: '本次未检出明显自杀意念', desc: '自杀意念可能随情绪、压力和生活处境而波动。如果某一天您感到痛苦难以承受，或脑海中出现死亡相关念头，请不要忽视，可向信任的人倾诉，或拨打 12356 心理援助热线。' }
 })
-
-const mbtiUnderstanding = `一、实验背景
-我们聚焦的是心理能量层面的动力与阻力，会允许每个人的阴影功能呈现“投射后的形状”。因此，部分非阶梯状的八维分布是预期内的可能性。
-
-二、八维得分可以如何解读？
-重要：所有分数的高低都与认知能力以及发展水平无关。自然状态更接近人格底色，代偿状态更接近外界需要、自我保护、训练经历或情境代入。
-
-三、可能的误测原因
-1. 因为明显不认同一边，而强烈选择了另一边并不完全认同的选项。
-2. 近期状态较为特殊，很难区分自己的内在需求和环境的需求。
-3. 基于“我是否可以这样”作答，而没有基于“这是否完全是我”来考虑。
-
-四、九宫格是什么
-九宫格采用九种不同的人格算法进行综合比对，得出最可能的人格类型。
-
-五、人格面具与人格的关系
-人格面具代表现阶段想成为的样子，它与真我人格以及八维分布之间没有必然联系，也可能随着心境与环境发生变化。`
 
 // 判断是否有维度分数
 const hasDimensionScores = computed(() => {
   return result.value?.dimensionScores && Object.keys(result.value.dimensionScores).length > 0
 })
 
-// SCL-90 维度列表
-const scl90DimensionList = [
-  { key: 'somatization', name: '躯体化', icon: '💪' },
-  { key: 'obsessive', name: '强迫症状', icon: '🔄' },
-  { key: 'interpersonal', name: '人际关系敏感', icon: '👥' },
-  { key: 'depression', name: '抑郁', icon: '😔' },
-  { key: 'anxiety', name: '焦虑', icon: '😰' },
-  { key: 'hostility', name: '敌对', icon: '😠' },
-  { key: 'phobic', name: '恐怖', icon: '😨' },
-  { key: 'paranoid', name: '偏执', icon: '🔍' },
-  { key: 'psychotic', name: '精神病性', icon: '🧠' },
-  { key: 'additional', name: '其他', icon: '📋' }
-]
+// 人格性格类：是否展示详细解读（16PF / 气质 / EPQ・EPQ-RSC）
+const isPersonality = computed(() => {
+  const id = result.value?.testId
+  return !!id && ['sixteenPF', 'temperament', 'epq', 'epq-rsc'].includes(id)
+})
 
-// 获取维度分数对象
-const getDimensionScores = (): SCL90DimensionScores | null => {
-  return result.value?.dimensionScores as SCL90DimensionScores || null
-}
-
-// 获取维度均分
-const getDimAverage = (dimKey: string): string => {
-  const scores = getDimensionScores()
-  if (scores && scores[dimKey as keyof SCL90DimensionScores]) {
-    return scores[dimKey as keyof SCL90DimensionScores].average.toFixed(2)
-  }
-  return '0.00'
-}
-
-// 获取维度等级
-const getDimLevel = (dimKey: string): string => {
-  const scores = getDimensionScores()
-  if (scores && scores[dimKey as keyof SCL90DimensionScores]) {
-    return scores[dimKey as keyof SCL90DimensionScores].level
-  }
-  return '未知'
-}
-
-// 获取维度描述
-const getDimDescription = (dimKey: string): string => {
-  const scores = getDimensionScores()
-  if (scores && scores[dimKey as keyof SCL90DimensionScores]) {
-    return scores[dimKey as keyof SCL90DimensionScores].description
-  }
-  return ''
-}
-
-// 获取维度百分比
-const getDimPercentage = (dimKey: string): number => {
-  const scores = getDimensionScores()
-  if (scores && scores[dimKey as keyof SCL90DimensionScores]) {
-    return (scores[dimKey as keyof SCL90DimensionScores].average / 5) * 100
-  }
-  return 0
-}
+// 需要展示维度剖面的量表（除文字外还有维度数据）
+const enrichedScale = computed(() => {
+  const id = result.value?.testId
+  return !!id && ['epq', 'epq-rsc', 'temperament', 'bpns', 'ipip-eis', 'sixteenPF', 'sccs', 'pss', 'sds', 'sas', 'rses', 'asrm', 'phq9', 'gad7', 'sioss', 'bis', 'bpaq', 'mid60', 'des2', 'sdq20', 'ybocs', 'ocir', 'ptsd', 'panic', 'social', 'phobia', 'agora', 'sepanx'].includes(id) && hasDimensionScores.value
+})
 
 // 显示分数（处理 MBTI 等特殊量表）
 const displayScore = computed(() => {
@@ -578,15 +343,6 @@ const getLevelColor = (level: string) => {
   }
   return colors[level] || '#9ca3af'
 }
-
-const isPreferenceSelected = (item: any, side: 'left' | 'right') => {
-  const firstLetters: Record<'left' | 'right', string[]> = {
-    left: ['E', 'S', 'T', 'J'],
-    right: ['I', 'N', 'F', 'P']
-  }
-  return firstLetters[side].includes(item.selected)
-}
-
 const setButtonBg = (event: Event, color: string) => {
   const target = event.currentTarget
   if (target instanceof HTMLElement) {
@@ -616,228 +372,3 @@ function goHome() {
   router.push('/')
 }
 </script>
-
-<style scoped>
-.mbti-report {
-  color: var(--text);
-}
-
-.mbti-hero,
-.mbti-section {
-  border: 1px solid var(--border);
-  border-radius: 12px;
-  background: var(--card-bg);
-}
-
-.mbti-hero {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
-  gap: 24px;
-  align-items: end;
-  padding: 28px;
-  background:
-    linear-gradient(135deg, rgba(123, 107, 142, 0.12), rgba(94, 140, 111, 0.08)),
-    var(--card-bg);
-}
-
-.mbti-eyebrow {
-  margin-bottom: 10px;
-  color: var(--text-muted);
-  font-size: 13px;
-}
-
-.mbti-type {
-  color: var(--text);
-  font-size: clamp(56px, 12vw, 104px);
-  font-weight: 800;
-  line-height: 0.92;
-  letter-spacing: 0;
-}
-
-.mbti-type-name {
-  margin-top: 14px;
-  color: var(--text-secondary);
-  font-size: 16px;
-}
-
-.mbti-hero-stats {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(82px, 1fr));
-  gap: 10px;
-}
-
-.mbti-hero-stats div,
-.mbti-mini-stat,
-.mbti-identity-box,
-.mbti-score-panel,
-.mbti-role-box,
-.mbti-inner-row,
-.mbti-preference-item {
-  border: 1px solid var(--border);
-  border-radius: 10px;
-  background: var(--card-bg);
-}
-
-.mbti-hero-stats div {
-  padding: 12px;
-  text-align: center;
-}
-
-.mbti-hero-stats span,
-.mbti-consistency span {
-  display: block;
-  color: var(--text-muted);
-  font-size: 12px;
-}
-
-.mbti-hero-stats strong {
-  display: block;
-  margin-top: 4px;
-  color: var(--text);
-  font-size: 20px;
-}
-
-.mbti-section {
-  padding: 22px;
-}
-
-.mbti-section-head {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 16px;
-  margin-bottom: 18px;
-}
-
-.mbti-section-head h3,
-.mbti-inline-title {
-  margin: 0;
-  color: var(--text);
-  font-size: 18px;
-  font-weight: 700;
-}
-
-.mbti-section-head p,
-.mbti-soft-text,
-.mbti-note {
-  color: var(--text-secondary);
-  font-size: 14px;
-}
-
-.mbti-type-strip {
-  display: grid;
-  grid-template-columns: repeat(9, minmax(0, 1fr));
-  gap: 8px;
-}
-
-.mbti-type-pill {
-  min-height: 44px;
-  border: 1px solid var(--border);
-  border-radius: 10px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: var(--text-secondary);
-  background: var(--bg);
-  font-weight: 700;
-}
-
-.mbti-type-pill.is-active {
-  border-color: var(--personality);
-  color: #fff;
-  background: var(--personality);
-}
-
-.mbti-score-panel,
-.mbti-preference-item,
-.mbti-inner-row,
-.mbti-role-box {
-  padding: 16px;
-}
-
-.mbti-score-panel h4 {
-  margin-bottom: 14px;
-  color: var(--text);
-  font-weight: 700;
-}
-
-.mbti-score-row {
-  display: flex;
-  justify-content: space-between;
-  gap: 12px;
-  margin-bottom: 5px;
-  color: var(--text-secondary);
-  font-size: 14px;
-}
-
-.mbti-score-row strong {
-  color: var(--text);
-  font-weight: 700;
-}
-
-.mbti-meter {
-  height: 8px;
-  overflow: hidden;
-  border-radius: 999px;
-  background: var(--primary-light);
-}
-
-.mbti-meter div {
-  height: 100%;
-  border-radius: inherit;
-}
-
-.mbti-note {
-  margin-top: 16px;
-}
-
-.mbti-preference-list {
-  display: grid;
-  gap: 14px;
-}
-
-.mbti-choice {
-  border: 1px solid var(--border);
-  border-radius: 10px;
-  padding: 13px;
-  background: transparent;
-}
-
-.mbti-choice.is-selected {
-  border-color: var(--personality);
-  background: var(--personality-light);
-}
-
-.mbti-consistency {
-  min-width: 132px;
-  border: 1px solid var(--border);
-  border-radius: 10px;
-  padding: 12px;
-  background: var(--personality-light);
-  text-align: center;
-}
-
-.mbti-consistency strong {
-  display: block;
-  color: var(--personality);
-  font-size: 24px;
-  line-height: 1;
-}
-
-.mbti-identity-box,
-.mbti-mini-stat {
-  padding: 14px;
-}
-
-@media (max-width: 768px) {
-  .mbti-hero {
-    grid-template-columns: 1fr;
-    padding: 22px;
-  }
-
-  .mbti-hero-stats,
-  .mbti-type-strip {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-  }
-}
-</style>
