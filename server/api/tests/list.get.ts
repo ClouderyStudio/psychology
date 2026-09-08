@@ -29,7 +29,7 @@ export default defineEventHandler(() => {
       description: "用于评估您在过去一个月中的压力感知水平，了解压力管理需求",
       duration: "约4-6分钟",
       questionsCount: 10,
-      tags: ["压力"],
+      tags: ["压力", "自我感知"],
       category: "special",
     },
     {
@@ -39,7 +39,7 @@ export default defineEventHandler(() => {
       description: "全面的心理健康评估工具，评估9个维度的心理症状，专业详尽",
       duration: "约15-20分钟",
       questionsCount: 90,
-      tags: ["综合评估"],
+      tags: ["综合评估", "心理健康"],
       category: "symptom",
     },
     {
@@ -49,7 +49,7 @@ export default defineEventHandler(() => {
       description: "标准化的抑郁症状自评工具，帮助了解抑郁倾向程度",
       duration: "约5-8分钟",
       questionsCount: 20,
-      tags: ["抑郁"],
+      tags: ["抑郁", "标准量表"],
       category: "symptom",
     },
     {
@@ -59,7 +59,7 @@ export default defineEventHandler(() => {
       description: "标准化的焦虑症状自评工具，快速评估焦虑水平",
       duration: "约5-8分钟",
       questionsCount: 20,
-      tags: ["焦虑"],
+      tags: ["焦虑", "标准量表"],
       category: "symptom",
     },
     {
@@ -70,7 +70,7 @@ export default defineEventHandler(() => {
         "基于荣格心理学理论，结合情境假设与日常问题，评估16种人格类型以及内在/外在性格差异",
       duration: "约15-18分钟",
       questionsCount: 109,
-      tags: ["人格"],
+      tags: ["人格", "性格分析"],
       category: "personality",
     },
     {
@@ -80,7 +80,7 @@ export default defineEventHandler(() => {
       description: "评估自我与经验的关系，了解内心和谐程度，包含35个问题",
       duration: "约8-10分钟",
       questionsCount: 35,
-      tags: ["自我认知"],
+      tags: ["自我认知", "心理和谐"],
       category: "special",
     },
     {
@@ -91,7 +91,7 @@ export default defineEventHandler(() => {
         "基于希波克拉底的四液说，评估胆汁质、多血质、粘液质、抑郁质四种气质类型",
       duration: "约10-15分钟",
       questionsCount: 60,
-      tags: ["气质"],
+      tags: ["气质", "行为风格"],
       category: "personality",
     },
     {
@@ -125,7 +125,7 @@ export default defineEventHandler(() => {
         "北京大学钱铭怡教授等修订的中国版艾森克人格问卷简式版，评估内外向(E)、神经质(N)、精神质(P)、掩饰性(L)四个维度",
       duration: "约10-15分钟",
       questionsCount: 48,
-      tags: ["人格", "快速"],
+      tags: ["人格", "快速", "中国常模"],
       category: "personality",
     },
     {
@@ -135,7 +135,7 @@ export default defineEventHandler(() => {
       description: "评估您的情绪稳定程度，了解情绪波动情况和心理抗压能力",
       duration: "约5-10分钟",
       questionsCount: 30,
-      tags: ["情绪"],
+      tags: ["情绪", "心理韧性"],
       category: "special",
     },
     {
@@ -146,7 +146,7 @@ export default defineEventHandler(() => {
         "美国卡特尔教授编制，评估16种根源人格特质，广泛应用于心理咨询、职业指导等领域",
       duration: "约30-45分钟",
       questionsCount: 187,
-      tags: ["人格", "职业发展"],
+      tags: ["人格", "职业发展", "专业测评"],
       category: "personality",
     },
     {
@@ -157,7 +157,7 @@ export default defineEventHandler(() => {
         "基于自我决定理论，评估自主需求、胜任需求和归属需求的满足程度",
       duration: "约3-5分钟",
       questionsCount: 21,
-      tags: ["心理需求"],
+      tags: ["心理需求", "幸福感"],
       category: "special",
     },
     {
@@ -169,7 +169,7 @@ export default defineEventHandler(() => {
       duration: "约8-12分钟",
       questionsCount: 64,
       category: "special",
-      tags: ["情绪智力"],
+      tags: ["情绪智力", "共情能力"],
     },
     {
       id: "mdq",
@@ -178,7 +178,7 @@ export default defineEventHandler(() => {
       description: "双相谱系障碍的标准化筛查工具，评估躁狂/轻躁狂症状，包含15个问题",
       duration: "约3-5分钟",
       questionsCount: 15,
-      tags: ["躁狂", "快速"],
+      tags: ["躁狂", "双相", "快速"],
       category: "symptom",
     },
     {
@@ -198,7 +198,7 @@ export default defineEventHandler(() => {
       description: "评估个体的整体自我价值感与自尊水平，包含10个问题",
       duration: "约2-3分钟",
       questionsCount: 10,
-      tags: ["自尊"],
+      tags: ["自尊", "自我认知"],
       category: "special",
     },
     {
@@ -229,7 +229,7 @@ export default defineEventHandler(() => {
         "夏朝云等（2002）编制，从绝望感、乐观感缺失与睡眠困扰等维度评估自杀意念，用于自杀风险的早期识别与筛查，含测谎条目校验作答效度",
       duration: "约3-5分钟",
       questionsCount: 26,
-      tags: ["自杀意念", "危机筛查"],
+      tags: ["自杀意念", "危机筛查", "本土量表"],
       category: "symptom",
     },
     {
@@ -240,7 +240,7 @@ export default defineEventHandler(() => {
         "Patton等编制，评估注意力、运动和无计划三个维度的冲动性人格特质",
       duration: "约8-12分钟",
       questionsCount: 30,
-      tags: ["冲动性", "快速"],
+      tags: ["冲动性", "人格特质"],
       category: "personality",
     },
     {
@@ -251,7 +251,7 @@ export default defineEventHandler(() => {
         "Buss与Perry编制，从身体攻击、言语攻击、愤怒和敌意四个维度评估攻击性倾向",
       duration: "约6-10分钟",
       questionsCount: 29,
-      tags: ["攻击性"],
+      tags: ["攻击性", "敌意"],
       category: "personality",
     },
     {
@@ -262,7 +262,7 @@ export default defineEventHandler(() => {
         "Young等编制，原版为临床他评量表，本实现使用自评简化版，仅作粗筛参考",
       duration: "约3-5分钟",
       questionsCount: 11,
-      tags: ["躁狂", "快速"],
+      tags: ["躁狂", "双相", "快速"],
       category: "symptom",
     },
     {
