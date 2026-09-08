@@ -27,10 +27,10 @@ export function scorePanic(answers: Record<number, number>): ScoringResult {
     },
   };
 
-  const suggestion = "【惊恐障碍严重度】总分 " + total + " / 40（10题，0-4 分/题）\\n"
-    + "参考等级：" + level + "（按平均分 " + avg + " / 4 定档）。平均分 <0.5 无/亚临床、<1.5 轻度、<2.5 中度、<3.5 重度、≥3.5 极重度\\n\\n"
-    + "参考说明：" + "本量表为惊恐障碍成人严重度量表（DSM-5-TR，Craske/Wittchen/Bogels/Stein/Andrews/Lebeau）。评估过去 7 天惊恐发作的频率、担忧、躯体症状与回避。\\n"
-    + "若惊恐发作反复出现或明显影响生活，请寻求专业评估；惊恐发作本身不会直接危及生命，及时处理有助于改善。\\n"
+  const suggestion = "【惊恐障碍严重度】总分 " + total + " / 40（10题，0-4 分/题）\n"
+    + "参考等级：" + level + "（按平均分 " + avg + " / 4 定档）。平均分 <0.5 无/亚临床、<1.5 轻度、<2.5 中度、<3.5 重度、≥3.5 极重度\n\n"
+    + "参考说明：" + "本量表为惊恐障碍成人严重度量表（DSM-5-TR，Craske/Wittchen/Bogels/Stein/Andrews/Lebeau）。评估过去 7 天惊恐发作的频率、担忧、躯体症状与回避。\n"
+    + "若惊恐发作反复出现或明显影响生活，请寻求专业评估；惊恐发作本身不会直接危及生命，及时处理有助于改善。\n"
     + "本量表仅用于教育与自我筛查，不构成临床诊断。";
 
   return {
