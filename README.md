@@ -224,8 +224,8 @@ psychology/
 | **作者 · 主开发者** | 柒屹     | 全栈开发、UI设计、量表整合、技术架构 |
 | **作者 · 开发者**   | 云竹     | 前端开发、量表内容、补充量表         |
 | **开发者**          | AnonUsAl | 全栈开发、技术贡献                   |
-
-- [柒屹](https://github.com/TulipQiyi) · [云竹](https://github.com/yunzhu666) · [AnonUsAl](https://github.com/AnonUsAl/)
+| **开发者**          | 枝树 | 备用中                   |
+- [柒屹](https://github.com/TulipQiyi) · [云竹](https://github.com/yunzhu666) · [AnonUsAl](https://github.com/AnonUsAl/) · [枝树](https://github.com/Zhishulo)
 
 欢迎提交 Issue 和 Pull Request！
 
