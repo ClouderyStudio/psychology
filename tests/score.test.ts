@@ -561,3 +561,28 @@ describe("MID-60 多维解离量表", () => {
     expect(r.totalScore).toBeGreaterThan(0);
   });
 });
+
+describe("DES-II 解离经验量表", () => {
+  it("全 0 → 总分0，低；全 100 → 总分100，显著解离倾向", () => {
+    const low = calculateScore({ testId: "des2", answers: full(28, 0) });
+    expect(low.totalScore).toBe(0);
+    expect(low.level).toBe("低");
+    const high = calculateScore({ testId: "des2", answers: full(28, 100) });
+    expect(high.totalScore).toBe(100);
+    expect(high.level).toBe("显著解离倾向");
+  });
+
+  it("总分 25 → 中度（20-29）", () => {
+    const mid = calculateScore({ testId: "des2", answers: full(28, 25) });
+    expect(mid.totalScore).toBe(25);
+    expect(mid.level).toBe("中度");
+  });
+
+  it("Amnesia 六题置满 → 记忆缺失子量表=100", () => {
+    const a = full(28, 0);
+    [3,4,5,8,25,26].forEach((i) => (a[i] = 100));
+    const r = calculateScore({ testId: "des2", answers: a });
+    expect(r.dimensionScores?.amnesia?.score).toBe(100);
+    expect(r.totalScore).toBeGreaterThan(0);
+  });
+});

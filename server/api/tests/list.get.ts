@@ -277,6 +277,16 @@ export default defineEventHandler(() => {
       category: "symptom",
     },
     {
+      id: "des2",
+      title: "解离经验量表",
+      englishName: "Dissociative Experiences Scale-II (DES-II)",
+      description: "解离经验量表（DES-II），用0-100评估记忆缺失、人格/现实解体与吸收沉浸三类解离体验，国际常用的解离筛查工具",
+      duration: "约10分钟",
+      questionsCount: 28,
+      tags: ["解离", "创伤", "快速"],
+      category: "symptom",
+    },
+    {
       id: "isi",
       title: "失眠严重程度指数",
       englishName: "Insomnia Severity Index (ISI)",

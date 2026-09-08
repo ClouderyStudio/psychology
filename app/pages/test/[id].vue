@@ -223,11 +223,11 @@
                 <template v-else-if="isRangeQuestion(question)">
                   <div class="p-3 rounded-lg" style="background-color: var(--bg);">
                     <div class="flex items-center justify-between mb-2">
-                      <span class="text-xs" style="color: var(--text-muted);">{{ question.min ?? 0 }} · 从不</span>
+                      <span class="text-xs" style="color: var(--text-muted);">{{ question.min ?? 0 }}{{ question.minLabel ? ' · ' + question.minLabel : '' }}</span>
                       <span class="font-semibold text-lg tabular-nums" style="color: var(--primary);">{{ answers[question.id] === undefined ? '未选择' : answers[question.id] }}</span>
-                      <span class="text-xs" style="color: var(--text-muted);">{{ question.max ?? 10 }} · 总是</span>
+                      <span class="text-xs" style="color: var(--text-muted);">{{ question.max ?? 10 }}{{ question.maxLabel ? ' · ' + question.maxLabel : '' }}</span>
                     </div>
-                    <input type="range" :min="question.min ?? 0" :max="question.max ?? 10" step="1"
+                    <input type="range" :min="question.min ?? 0" :max="question.max ?? 100" :step="question.step ?? 1"
                       :value="answers[question.id] ?? rangeMid(question)"
                       @pointerdown="ensureRange(question.id, question.min, question.max)"
                       @input="onRangeInput(question.id, $event)"
