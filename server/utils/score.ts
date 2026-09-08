@@ -16,6 +16,8 @@ import { scoreISI } from "./scoring-rules/scoreISI";
 import { scoreMID60 } from "./scoring-rules/scoreMID60";
 import { scoreDES2 } from "./scoring-rules/scoreDES2";
 import { scoreSDQ20 } from "./scoring-rules/scoreSDQ20";
+import { scoreYBOCS } from "./scoring-rules/scoreYBOCS";
+import { scoreOCIR } from "./scoring-rules/scoreOCIR";
 interface ScoringInput {
   testId: string;
   answers: Record<number, number>;
@@ -197,6 +199,10 @@ export function calculateScore(input: ScoringInput): ScoringResult {
       return scoreDES2(answers);
     case "sdq20":
       return scoreSDQ20(answers);
+    case "ybocs":
+      return scoreYBOCS(answers);
+    case "ocir":
+      return scoreOCIR(answers);
     default:
       return {
         totalScore: 0,

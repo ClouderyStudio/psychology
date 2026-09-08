@@ -613,3 +613,55 @@ describe("SDQ-20 躯体形式解离问卷", () => {
     expect(r.totalScore).toBe(40);
   });
 });
+
+describe("Y-BOCS 耶鲁-布朗强迫量表", () => {
+  it("全 0 → 总分 0，亚临床；全 4 → 总分 40，极重度", () => {
+    const low = calculateScore({ testId: "ybocs", answers: full(10, 0) });
+    expect(low.totalScore).toBe(0);
+    expect(low.level).toBe("亚临床");
+    const high = calculateScore({ testId: "ybocs", answers: full(10, 4) });
+    expect(high.totalScore).toBe(40);
+    expect(high.level).toBe("极重度");
+  });
+
+  it("强迫思维 5 题置满 → 子量表=20，总分 20 → 中度", () => {
+    const a = full(10, 0);
+    [1,2,3,4,5].forEach((i) => (a[i] = 4));
+    const r = calculateScore({ testId: "ybocs", answers: a });
+    expect(r.dimensionScores?.obsessions?.score).toBe(20);
+    expect(r.dimensionScores?.compulsions?.score).toBe(0);
+    expect(r.totalScore).toBe(20);
+    expect(r.level).toBe("中度");
+  });
+});
+
+describe("OCI-R 强迫量表修订版", () => {
+  it("全 0 → OCD=0，低于临床界值；全 4 → OCD=60 极重度，囤积=12", () => {
+    const low = calculateScore({ testId: "ocir", answers: full(18, 0) });
+    expect(low.totalScore).toBe(0);
+    expect(low.level).toBe("低于临床界值");
+    expect(low.dimensionScores?.hoarding?.score).toBe(0);
+    const high = calculateScore({ testId: "ocir", answers: full(18, 4) });
+    expect(high.totalScore).toBe(60);
+    expect(high.level).toBe("极重度困扰（Extremely）");
+    expect(high.dimensionScores?.hoarding?.score).toBe(12);
+  });
+
+  it("洗涤三题置满 → 子量表=12，OCD=12 → 轻度困扰", () => {
+    const a = full(18, 0);
+    [5,11,17].forEach((i) => (a[i] = 4));
+    const r = calculateScore({ testId: "ocir", answers: a });
+    expect(r.dimensionScores?.washing?.score).toBe(12);
+    expect(r.totalScore).toBe(12);
+    expect(r.level).toBe("轻度困扰（A little）");
+  });
+
+  it("囤积三题置 3 → 囤积=9 达界值；其余 0 时 OCD=0", () => {
+    const a = full(18, 0);
+    [1,7,13].forEach((i) => (a[i] = 3));
+    const r = calculateScore({ testId: "ocir", answers: a });
+    expect(r.dimensionScores?.hoarding?.score).toBe(9);
+    expect(r.dimensionScores?.hoarding?.level).toBe("达到囤积界值（≥6）");
+    expect(r.totalScore).toBe(0);
+  });
+});

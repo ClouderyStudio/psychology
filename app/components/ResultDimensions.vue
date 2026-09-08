@@ -368,6 +368,46 @@ const config = computed(() => {
       })
     })
   }
+  else if (props.testId === 'ybocs') {
+    title = 'Y-BOCS · 强迫思维与强迫行为'
+    icon = '🔁'
+    color = 'var(--symptom)'
+    hint = '两子量表各 5 题（0-20）：强迫思维为侵入性反复想法，强迫行为为反复检查/洗涤/计数等仪式。总分 0-40。'
+    const yOrder = ['obsessions', 'compulsions']
+    yOrder.forEach((k) => {
+      const d = (s[k] || {}) as any
+      const sc = Number(d.score) || 0
+      items.push({
+        key: k,
+        name: (d.name as string) || k,
+        value: clamp(sc),
+        display: String(sc) + '/' + d.max,
+        level: (d.level as string) || '',
+        desc: (d.desc as string) || '',
+      })
+    })
+  }
+
+  else if (props.testId === 'ocir') {
+    title = 'OCI-R · 强迫症状六维度'
+    icon = '🧩'
+    color = 'var(--symptom)'
+    hint = '六个 3 题子量表（各 0-12，0-4 分/题）。按 DSM-5，囤积与其余 5 个 OCD 维度分开解读。'
+    const oOrder = ['washing', 'checking', 'ordering', 'obsessing', 'neutralizing', 'hoarding']
+    oOrder.forEach((k) => {
+      const d = (s[k] || {}) as any
+      const sc = Number(d.score) || 0
+      items.push({
+        key: k,
+        name: (d.name as string) || k,
+        value: clamp(sc),
+        display: String(sc) + '/' + d.max,
+        level: (d.level as string) || '',
+        desc: (d.desc as string) || '',
+      })
+    })
+  }
+
   else if (props.testId === 'mid60') {
     title = 'MID-60 · 解离子量表剖面'
     icon = '🌀'

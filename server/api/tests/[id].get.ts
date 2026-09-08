@@ -110,6 +110,8 @@ import {
   des2Questions,
 } from "~~/server/utils/questions/des2-questions";
 import { sdq20Questions } from "~~/server/utils/questions/sdq20-questions";
+import { ybocsQuestions } from "~~/server/utils/questions/ybocs-questions";
+import { ocirQuestions } from "~~/server/utils/questions/ocir-questions";
 import { testIntros } from "~~/server/utils/test-intros";
 
 // 按题目 id 升序排序（题库文件顺序可能与出题顺序不同）
@@ -624,6 +626,48 @@ export default defineEventHandler(async (event) => {
       })),
       scoringRules: {
         type: "sdq20",
+      },
+    },
+    ybocs: {
+      id: "ybocs",
+      title: "耶鲁-布朗强迫量表",
+      description: "Y-BOCS 由 Goodman 等 1989 年编制，用 0-4 评估强迫思维与强迫行为的严重程度（各 5 题），是不依赖具体症状内容的金标准评估工具。",
+      instructions: "每题用滑块选择 0-4（0=无，1=轻，2=中，3=重，4=极重），评估最近一周内强迫思维与强迫行为的平均水平。建议按直觉作答，尽量不要反复修改。",
+      questions: ybocsQuestions.map((q) => ({
+        id: q.id,
+        text: q.text,
+        type: "likert",
+        options: [
+          { value: 0, label: "无（不存在）" },
+          { value: 1, label: "轻度（偶尔、轻微）" },
+          { value: 2, label: "中度（经常、中等影响）" },
+          { value: 3, label: "重度（频繁、明显影响）" },
+          { value: 4, label: "极重度（近乎持续、难以承受）" },
+        ],
+      })),
+      scoringRules: {
+        type: "ybocs",
+      },
+    },
+    ocir: {
+      id: "ocir",
+      title: "强迫量表修订版",
+      description: "OCI-R 由 Foa 等 2002 年编制（公共领域），用 0-4 评估过去一个月强迫症状带来的困扰，含洗涤、检查、排序、强迫思维、中和、囤积 6 个子量表。",
+      instructions: "每题用滑块选择 0-4，表示该体验在过去一个月给您造成的困扰程度（0=完全没有，1=有一点，2=中等，3=相当多，4=极其）。建议按直觉作答。",
+      questions: ocirQuestions.map((q) => ({
+        id: q.id,
+        text: q.text,
+        type: "likert",
+        options: [
+          { value: 0, label: "完全没有" },
+          { value: 1, label: "有一点" },
+          { value: 2, label: "中等程度" },
+          { value: 3, label: "相当多" },
+          { value: 4, label: "极其" },
+        ],
+      })),
+      scoringRules: {
+        type: "ocir",
       },
     },
   };
