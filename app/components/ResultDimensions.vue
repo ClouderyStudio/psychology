@@ -349,6 +349,25 @@ const config = computed(() => {
       })
     })
   }
+  else if (props.testId === 'sdq20') {
+    title = 'SDQ-20 · 总分与 SDQ-5 简版'
+    icon = '🧩'
+    color = 'var(--symptom)'
+    hint = '单维度量表测量躯体解离整体严重程度；SDQ-5 简版（4/8/13/15/18 题）用于快速筛查。'
+    const sOrder = ['total', 'sdq5']
+    sOrder.forEach((k) => {
+      const d = (s[k] || {}) as any
+      const sc = Number(d.score) || 0
+      items.push({
+        key: k,
+        name: (d.name as string) || k,
+        value: clamp(sc),
+        display: d.max ? String(sc) + '/' + d.max : String(sc),
+        level: (d.level as string) || '',
+        desc: (d.desc as string) || '',
+      })
+    })
+  }
   else if (props.testId === 'mid60') {
     title = 'MID-60 · 解离子量表剖面'
     icon = '🌀'

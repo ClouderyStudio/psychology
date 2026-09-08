@@ -287,6 +287,16 @@ export default defineEventHandler(() => {
       category: "symptom",
     },
     {
+      id: "sdq20",
+      title: "躯体形式解离问卷",
+      englishName: "Somatoform Dissociation Questionnaire-20 (SDQ-20)",
+      description: "SDQ-20，用1-5评估过去一年躯体解离体验（麻木、瘫痪、知觉异常等），单维度总量表，含SDQ-5快速筛查子集",
+      duration: "约5-8分钟",
+      questionsCount: 20,
+      tags: ["解离", "创伤", "躯体"],
+      category: "symptom",
+    },
+    {
       id: "isi",
       title: "失眠严重程度指数",
       englishName: "Insomnia Severity Index (ISI)",

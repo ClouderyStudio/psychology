@@ -586,3 +586,30 @@ describe("DES-II 解离经验量表", () => {
     expect(r.totalScore).toBeGreaterThan(0);
   });
 });
+
+describe("SDQ-20 躯体形式解离问卷", () => {
+  it("全 1 → 总分 20，较低躯体解离症状；全 5 → 总分 100，高度", () => {
+    const low = calculateScore({ testId: "sdq20", answers: full(20, 1) });
+    expect(low.totalScore).toBe(20);
+    expect(low.level).toBe("较低躯体解离症状");
+    const high = calculateScore({ testId: "sdq20", answers: full(20, 5) });
+    expect(high.totalScore).toBe(100);
+    expect(high.level).toBe("高度躯体解离症状");
+  });
+
+  it("总分 48 → 显著躯体解离症状（40-49）", () => {
+    const a = full(20, 1);
+    [1,2,3,5,6,9,10].forEach((i) => (a[i] = 5));  // 7 题置 5（20+4*7=48），保持 SDQ-5 各题=1
+    const r = calculateScore({ testId: "sdq20", answers: a });
+    expect(r.totalScore).toBe(48);
+    expect(r.level).toBe("显著躯体解离症状");
+  });
+
+  it("SDQ-5 五题置满 → sdq5 子量表=25；其余 1 时总分=40", () => {
+    const a = full(20, 1);
+    [4,8,13,15,18].forEach((i) => (a[i] = 5));
+    const r = calculateScore({ testId: "sdq20", answers: a });
+    expect(r.dimensionScores?.sdq5?.score).toBe(25);
+    expect(r.totalScore).toBe(40);
+  });
+});

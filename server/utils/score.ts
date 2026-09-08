@@ -15,6 +15,7 @@ import { scoreYMRS } from "./scoring-rules/scoreYMRS";
 import { scoreISI } from "./scoring-rules/scoreISI";
 import { scoreMID60 } from "./scoring-rules/scoreMID60";
 import { scoreDES2 } from "./scoring-rules/scoreDES2";
+import { scoreSDQ20 } from "./scoring-rules/scoreSDQ20";
 interface ScoringInput {
   testId: string;
   answers: Record<number, number>;
@@ -194,6 +195,8 @@ export function calculateScore(input: ScoringInput): ScoringResult {
       return scoreMID60(answers);
     case "des2":
       return scoreDES2(answers);
+    case "sdq20":
+      return scoreSDQ20(answers);
     default:
       return {
         totalScore: 0,

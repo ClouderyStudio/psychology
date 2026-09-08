@@ -109,6 +109,7 @@ import {
 import {
   des2Questions,
 } from "~~/server/utils/questions/des2-questions";
+import { sdq20Questions } from "~~/server/utils/questions/sdq20-questions";
 import { testIntros } from "~~/server/utils/test-intros";
 
 // 按题目 id 升序排序（题库文件顺序可能与出题顺序不同）
@@ -604,6 +605,25 @@ export default defineEventHandler(async (event) => {
       })),
       scoringRules: {
         type: "des2",
+      },
+    },
+        sdq20: {
+      id: "sdq20",
+      title: "躯体形式解离问卷",
+      description: "SDQ-20 由 Nijenhuis 等编制，评估过去一年各类躯体解离体验（感觉异常、运动障碍、知觉变化等），含 SDQ-5 快速筛查子集。",
+      instructions: "每题用滑块选择 1-5，表示该躯体体验在过去一年出现的程度（1=完全没有，5=非常多）。建议按直觉作答，尽量不要反复修改。",
+      questions: sdq20Questions.map((q) => ({
+        id: q.id,
+        text: q.text,
+        type: "range",
+        min: 1,
+        max: 5,
+        step: 1,
+        minLabel: "完全没有",
+        maxLabel: "非常多",
+      })),
+      scoringRules: {
+        type: "sdq20",
       },
     },
   };
