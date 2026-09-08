@@ -52,6 +52,7 @@
 
             <ResultScl90 v-if="isSCL90 && hasDimensionScores" :scores="result.dimensionScores" />
             <ResultMid60 v-if="isMid60" :result="result" />
+            <ResultDes2 v-if="isDES2" :result="result" />
 
             <!-- 建议内容 -->
             <div v-if="!isMBTI && !isSeven && !isPsyAge" class="rounded-lg p-6 mb-6" style="background-color: var(--primary-light);">
@@ -179,6 +180,7 @@ const isMBTI = computed(() => result.value?.testId === 'mbti')
 const isSeven = computed(() => result.value?.testId === 'seven')
 const isPsyAge = computed(() => result.value?.testId === 'psy-age')
 const isMid60 = computed(() => result.value?.testId === 'mid60')
+const isDES2 = computed(() => result.value?.testId === 'des2')
 const psyAgeReport = computed(() => result.value?.psyAgeReport)
 
 const mbtiReport = computed(() => result.value?.mbtiReport || null)

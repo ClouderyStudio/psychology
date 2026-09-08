@@ -45,7 +45,7 @@ export function scoreDES2(answers: Record<number, number>): ScoringResult {
   const amn = dims.amnesia.score, dp = dims.dpdr.score, abs = dims.absorption.score;
   let note = "三子量表中，记忆缺失与人格/现实解体偏高更提示病理性解离；吸收沉浸单独偏高常属正常的沉浸/心流体验。";
   const suggestion = "【DES-II 解离经验量表】总分 " + avg.toFixed(1) + " / 100（28题均值）\n"
-    + "参考等级：" + level + "（" + range + "）\n"
+    + "参考等级：" + level + "（" + range + "）。0-11普通、12-19轻度、20-29中度、30-45高、>=46显著解离倾向 \n"
     + "• 记忆缺失 " + amn.toFixed(1) + " · 人格/现实解体 " + dp.toFixed(1) + " · 吸收沉浸 " + abs.toFixed(1) + "\n\n"
     + "参考说明：0-100 表示该体验出现的时间比例，分数越高越频繁。分档用于筛查与研究，不同研究阈值略有差异，需结合主观痛苦与功能受损综合判断，不能直接等同临床诊断。\n"
     + "注意：若正处于主动性想象训练，或已确诊多意识体体系（DID/OSDD 等），本量表部分题目即为你日常体验，结果可能部分失真，请结合自身实际多方面评估。\n\n"
