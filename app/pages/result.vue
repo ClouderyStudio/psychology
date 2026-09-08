@@ -148,12 +148,17 @@
             </div>
 
             <!-- 操作按钮 -->
-            <div class="flex gap-4">
+            <div class="flex flex-col sm:flex-row gap-4">
               <button @click="retakeTest" class="flex-1 py-3 rounded-lg font-semibold transition-all"
                 :style="{ backgroundColor: 'var(--primary)', color: 'white', boxShadow: 'var(--shadow-sm)' }"
                 @mouseenter="setButtonBg($event, 'var(--primary-dark)')"
                 @mouseleave="setButtonBg($event, 'var(--primary)')">
                 重新测评
+              </button>
+              <button @click="copyResult" class="flex-1 py-3 rounded-lg font-semibold transition-all"
+                style="background-color: var(--card-bg); color: var(--text-secondary); box-shadow: var(--shadow-sm);"
+                @mouseenter="setButtonBg($event, 'var(--bg)')" @mouseleave="setButtonBg($event, 'var(--card-bg)')">
+                📋 一键复制结果
               </button>
               <button @click="goHome" class="flex-1 py-3 rounded-lg font-semibold transition-all"
                 style="background-color: var(--card-bg); color: var(--text-secondary); box-shadow: var(--shadow-sm);"
@@ -194,6 +199,91 @@ const saveNote = () => {
   if (!result.value?.testId) return
   answerStore.updateResultNote(noteDraft.value)
   $toast.success(noteDraft.value ? '备注已保存' : '备注已清除', '完成')
+}
+
+// 无总分的量表（MBTI 等），以类型等级作为主要内容
+const typeOnlyTests = ['mbti', 'seven', 'psy-age']
+
+// 将结果整理为便于分享 / 供 AI 评估的 Markdown 文本
+const buildResultSummary = (r: any): string => {
+  const time = r.timestamp ? new Date(r.timestamp).toLocaleString('zh-CN') : '未知时间'
+  const lines: string[] = []
+  lines.push(`# 测评结果 · ${r.testTitle || r.testId}`)
+  lines.push('')
+  lines.push(`- 量表：${r.testTitle || r.testId}${r.testId ? `（${r.testId}）` : ''}`)
+  lines.push(`- 测评时间：${time}`)
+
+  if (typeOnlyTests.includes(r.testId)) {
+    lines.push(`- 结果类型：${r.level || '--'}`)
+    if (r.totalScore) lines.push(`- 参考分数：${r.totalScore}`)
+  } else {
+    lines.push(`- 总分：${r.totalScore ?? 0} / ${r.maxScore ?? '--'}`)
+    if (r.level) lines.push(`- 等级：${r.level}`)
+  }
+  if (r.severity !== undefined && r.severity !== null) {
+    lines.push(`- 严重程度：${Math.round(r.severity * 100)}%`)
+  }
+
+  // 维度分数（各量表结构不一，做通用提取）
+  const dims = r.dimensionScores && typeof r.dimensionScores === 'object'
+    ? Object.entries(r.dimensionScores).filter(([, d]) => d && typeof d === 'object' && !Array.isArray(d))
+    : []
+  if (dims.length > 0) {
+    lines.push('')
+    lines.push('## 维度')
+    for (const [key, d] of dims) {
+      const dim = d as any
+      const name = dim.name || dim.title || key
+      const score = dim.average ?? dim.score ?? dim.total
+      const parts = [`- ${name}`]
+      if (score !== undefined && score !== null) {
+        parts.push(`得分 ${score}`)
+        if (dim.max) parts.push(`/ ${dim.max}`)
+      }
+      if (dim.level) parts.push(`· ${dim.level}`)
+      lines.push(parts.join(' '))
+    }
+  }
+
+  if (r.suggestion) {
+    lines.push('')
+    lines.push('## 专业建议')
+    lines.push(r.suggestion)
+  }
+
+  if (r.note) {
+    lines.push('')
+    lines.push('## 我的备注')
+    lines.push(r.note)
+  }
+
+  lines.push('')
+  lines.push('> 本结果由心灵驿站（https://pt.cldery.com）自动生成，为自我筛查参考，不能替代专业心理医生的诊断。')
+  return lines.join('\n')
+}
+
+// 一键复制结果
+const copyResult = async () => {
+  if (!result.value) return
+  const text = buildResultSummary(result.value)
+  try {
+    if (typeof navigator !== 'undefined' && navigator.clipboard?.writeText) {
+      await navigator.clipboard.writeText(text)
+    } else {
+      const ta = document.createElement('textarea')
+      ta.value = text
+      ta.style.position = 'fixed'
+      ta.style.opacity = '0'
+      document.body.appendChild(ta)
+      ta.select()
+      document.execCommand('copy')
+      document.body.removeChild(ta)
+    }
+    $toast.success('测评结果已复制，可直接粘贴分享', '完成')
+  } catch (e) {
+    console.error('复制结果失败', e)
+    $toast.error('复制失败，请手动选择文本复制', '提示')
+  }
 }
 
 // 高敏感量表（自杀 / 自伤类）使用正式模式，与测试页共用 FORMAL_TESTS
