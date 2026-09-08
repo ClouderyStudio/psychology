@@ -75,6 +75,8 @@ export interface TestResult {
   suggestion: string;
   severity: number;
   timestamp: string;
+  note?: string;
+  noteUpdatedAt?: string;
   rawScore?: number;
   standardizedScore?: number;
   dimensionScores?: SCL90DimensionScores | Record<string, any>;

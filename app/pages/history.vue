@@ -62,6 +62,10 @@
                   <div class="text-xs mt-0.5" style="color: var(--text-secondary);">{{ item.level }}</div>
                 </div>
               </div>
+              <p v-if="item.note" class="mt-3 text-sm leading-relaxed"
+                style="color: var(--text-secondary); border-left: 3px solid var(--primary-light); padding-left: 10px;">
+                {{ item.note }}
+              </p>
               <div class="flex gap-3 mt-4">
                 <button @click="viewResult(item)"
                   class="flex-1 py-2 rounded-lg font-medium transition-all"
@@ -102,7 +106,8 @@ interface HistoryItem {
   maxScore: number
   level: string
   severity: number
-  timestamp: number
+  timestamp: string
+  note: string
   displayScore: string
   raw: any
 }
@@ -138,6 +143,7 @@ const loadHistory = () => {
             level: raw.level || '',
             severity: raw.severity,
             timestamp: raw.timestamp || 0,
+            note: raw.note || '',
             displayScore: buildDisplayScore(raw),
             raw
           })
@@ -149,12 +155,12 @@ const loadHistory = () => {
       console.error('加载测评记录失败', e)
     }
   }
-  list.sort((a, b) => b.timestamp - a.timestamp)
+  list.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())
   historyList.value = list
   isLoading.value = false
 }
 
-const formatTime = (ts: number) => {
+const formatTime = (ts: string) => {
   if (!ts) return '未知时间'
   return new Date(ts).toLocaleString('zh-CN')
 }

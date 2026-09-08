@@ -57,6 +57,18 @@ export const useAnswerStore = defineStore("answer", {
       }
     },
 
+    updateResultNote(note: string) {
+      if (!this.result?.testId) return null;
+
+      const updatedResult = {
+        ...this.result,
+        note: note.slice(0, 500),
+        noteUpdatedAt: new Date().toISOString(),
+      };
+      this.setResult(updatedResult);
+      return updatedResult;
+    },
+
     getResult() {
       return this.result;
     },

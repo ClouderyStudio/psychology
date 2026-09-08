@@ -83,6 +83,31 @@
               <p class="whitespace-pre-line" style="color: var(--text-secondary);">{{ result.suggestion }}</p>
             </div>
 
+            <!-- 备注 -->
+            <div class="rounded-lg p-6 mb-6" :style="{ backgroundColor: 'var(--card-bg)', border: '1px solid var(--border)' }">
+              <h3 class="font-bold text-lg mb-3 flex items-center" style="color: var(--text);">
+                <span class="text-2xl mr-2">📝</span>
+                备注
+              </h3>
+              <p class="text-sm mb-3" style="color: var(--text-secondary);">
+                给这次测评写点备注，方便之后回顾当时的状态或想法。
+              </p>
+              <textarea v-model="noteDraft" rows="4" maxlength="500"
+                placeholder="例如：最近加班较多，状态有些疲惫…"
+                class="w-full px-4 py-3 rounded-lg text-sm resize-y focus:outline-none transition-all"
+                :style="{ backgroundColor: 'var(--bg)', color: 'var(--text)', border: '1px solid var(--border)' }"></textarea>
+              <div class="flex items-center justify-between mt-2">
+                <span class="text-xs" style="color: var(--text-muted);">{{ noteDraft.length }}/500</span>
+                <button @click="saveNote"
+                  class="px-5 py-2 rounded-lg font-medium transition-all"
+                  :style="{ backgroundColor: 'var(--primary)', color: 'white' }"
+                  @mouseenter="setButtonBg($event, 'var(--primary-dark)')"
+                  @mouseleave="setButtonBg($event, 'var(--primary)')">
+                  保存备注
+                </button>
+              </div>
+            </div>
+
             <!-- 严重程度指示器 -->
             <div class="mb-8" v-if="canScore">
               <div class="flex justify-between text-sm mb-2" style="color: var(--text-secondary);">
@@ -161,6 +186,16 @@ const answerStore = useAnswerStore()
 const result = ref<any>(null)
 const isLoading = ref(true)
 
+// 备注草稿
+const noteDraft = ref('')
+
+// 保存备注：写回结果并同步最近结果与历史记录
+const saveNote = () => {
+  if (!result.value?.testId) return
+  answerStore.updateResultNote(noteDraft.value)
+  $toast.success(noteDraft.value ? '备注已保存' : '备注已清除', '完成')
+}
+
 // 高敏感量表（自杀 / 自伤类）使用正式模式，与测试页共用 FORMAL_TESTS
 const FORMAL_TESTS = ['sioss']
 const isFormalTest = computed(() => FORMAL_TESTS.includes(result.value?.testId))
@@ -189,6 +224,8 @@ const loadResult = async () => {
   }
 
   result.value = resultData
+  // 同步备注草稿（刚完成测评或从历史页打开时带出已有备注）
+  noteDraft.value = resultData?.note || ''
 
   try {
     const testId = result.value?.testId
