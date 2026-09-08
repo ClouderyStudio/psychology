@@ -361,7 +361,7 @@ const config = computed(() => {
       items.push({
         key: k,
         name: (d.name as string) || k,
-        value: clamp(sc),
+        value: clamp((sc / (d.max || 100)) * 100),
         display: d.max ? String(sc) + '/' + d.max : String(sc),
         level: (d.level as string) || '',
         desc: (d.desc as string) || '',
@@ -380,7 +380,7 @@ const config = computed(() => {
       items.push({
         key: k,
         name: (d.name as string) || k,
-        value: clamp(sc),
+        value: clamp((sc / (d.max || 20)) * 100),
         display: String(sc) + '/' + d.max,
         level: (d.level as string) || '',
         desc: (d.desc as string) || '',
@@ -400,7 +400,7 @@ const config = computed(() => {
       items.push({
         key: k,
         name: (d.name as string) || k,
-        value: clamp(sc),
+        value: clamp((sc / (d.max || 12)) * 100),
         display: String(sc) + '/' + d.max,
         level: (d.level as string) || '',
         desc: (d.desc as string) || '',
