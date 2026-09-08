@@ -637,13 +637,7 @@ export default defineEventHandler(async (event) => {
         id: q.id,
         text: q.text,
         type: "likert",
-        options: [
-          { value: 0, label: "无（不存在）" },
-          { value: 1, label: "轻度（偶尔、轻微）" },
-          { value: 2, label: "中度（经常、中等影响）" },
-          { value: 3, label: "重度（频繁、明显影响）" },
-          { value: 4, label: "极重度（近乎持续、难以承受）" },
-        ],
+        options: q.options,
       })),
       scoringRules: {
         type: "ybocs",
