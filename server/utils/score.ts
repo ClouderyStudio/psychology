@@ -8,6 +8,11 @@ import { scoreBPNS } from "./scoring-rules/scoreBPNS";
 import { scoreIPIPEIS } from "./scoring-rules/scoreIPIPEIS";
 import { scoreSeven } from "./scoring-rules/scoreSeven";
 import { scorePsyAge } from "./scoring-rules/scorePsyAge";
+import { scoreSIOSS } from "./scoring-rules/scoreSIOSS";
+import { scoreBIS } from "./scoring-rules/scoreBIS";
+import { scoreBPAQ } from "./scoring-rules/scoreBPAQ";
+import { scoreYMRS } from "./scoring-rules/scoreYMRS";
+import { scoreISI } from "./scoring-rules/scoreISI";
 interface ScoringInput {
   testId: string;
   answers: Record<number, number>;
@@ -173,6 +178,16 @@ export function calculateScore(input: ScoringInput): ScoringResult {
       return scoreSeven(answers);
     case "psy-age":
       return scorePsyAge(answers);
+    case "sioss":
+      return scoreSIOSS(answers);
+    case "bis":
+      return scoreBIS(answers);
+    case "bpaq":
+      return scoreBPAQ(answers);
+    case "ymrs":
+      return scoreYMRS(answers);
+    case "isi":
+      return scoreISI(answers);
     default:
       return {
         totalScore: 0,

@@ -156,7 +156,9 @@ const loadResult = async () => {
     const { data } = await useFetch('/api/tests/list')
     const testList = (data.value as any)?.data || []
     const found = testList.find((el: any) => el.id === testId)
-    canScore.value = found ? found.category === 'symptom' || found.category === 'special' : false
+    // 人格性格类量表通常无总分，不展示分数环；BIS/BPAQ 虽属人格特质类但有总分
+    const scoredPersonality = ['bis', 'bpaq'].includes(testId)
+    canScore.value = found ? found.category === 'symptom' || found.category === 'special' || scoredPersonality : false
   } catch (e) {
     canScore.value = false
   }
@@ -195,7 +197,7 @@ const isPersonality = computed(() => {
 // 需要展示维度剖面的量表（除文字外还有维度数据）
 const enrichedScale = computed(() => {
   const id = result.value?.testId
-  return !!id && ['epq', 'epq-rsc', 'temperament', 'bpns', 'ipip-eis', 'sixteenPF', 'sccs', 'pss', 'sds', 'sas', 'rses', 'asrm', 'phq9', 'gad7'].includes(id) && hasDimensionScores.value
+  return !!id && ['epq', 'epq-rsc', 'temperament', 'bpns', 'ipip-eis', 'sixteenPF', 'sccs', 'pss', 'sds', 'sas', 'rses', 'asrm', 'phq9', 'gad7', 'sioss', 'bis', 'bpaq'].includes(id) && hasDimensionScores.value
 })
 
 // 显示分数（处理 MBTI 等特殊量表）

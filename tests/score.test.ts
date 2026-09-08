@@ -1,5 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { calculateScore } from "../server/utils/score";
+import { bisQuestions } from "../server/utils/questions/bis-questions";
 
 /** 生成 count 道题、每题 value 的作答 */
 function full(count: number, value: number): Record<number, number> {
@@ -376,6 +377,153 @@ describe("自我和谐 / 情绪智力 / 基本心理需求（SCCS、IPIP-EIS、B
       expect(["高度满足", "基本满足", "部分满足", "满足不足"]).toContain(r.dimensionScores?.[k]?.level);
     }
     expect(r.maxScore).toBe(100);
+  });
+});
+
+describe("SIOSS / BIS-11 / BPAQ / YMRS / ISI 计分（2026-09 新增）", () => {
+  // —— SIOSS 自杀意念自评量表：26 题是/否，掩饰 5 条不计分，满分 21，≥12 阳性 ——
+  it("SIOSS：全选『是』→ 掩饰 0、总分 16、筛查阳性，维度构成正确", () => {
+    const r = calculateScore({ testId: "sioss", answers: full(26, 1) });
+    expect(r.totalScore).toBe(16); // 21 道计分题 - 5 道反向乐观/睡眠题答"是"不得分
+    expect(r.maxScore).toBe(21);
+    expect(r.level).toBe("存在自杀意念（筛查阳性）");
+    expect(r.dimensionScores?.hopeless?.score).toBe(12);
+    expect(r.dimensionScores?.optimism?.score).toBe(0);
+    expect(r.dimensionScores?.sleep?.score).toBe(3);
+    expect(r.dimensionScores?.suicideHistory).toBe(true);
+    expect(r.dimensionScores?.concealment?.score).toBe(0);
+    expect(r.dimensionScores?.concealment?.valid).toBe(true);
+    expect(r.dimensionScores?.reliability).toBe("reliable");
+  });
+
+  it("SIOSS：掩饰题如实答『是』、其余答『否』→ 总分 5、未检出，乐观反向 4 分", () => {
+    const a: Record<number, number> = {};
+    [6, 9, 13, 15, 25].forEach((i) => (a[i] = 1)); // 5 条掩饰题答"是"
+    const r = calculateScore({ testId: "sioss", answers: a });
+    expect(r.totalScore).toBe(5); // 仅 5 条反向题（1,5,7,10,21）答"否"各计 1
+    expect(r.level).toBe("未检出明显自杀意念");
+    expect(r.dimensionScores?.concealment?.score).toBe(0);
+    expect(r.dimensionScores?.optimism?.score).toBe(4); // 乐观感缺失 4/4
+    expect(r.dimensionScores?.hopeless?.score).toBe(0);
+    expect(r.dimensionScores?.suicideHistory).toBe(false);
+  });
+
+  it("SIOSS：题 22（曾经自杀过）答『是』→ 总分不足 12 仍触发危险信号分支", () => {
+    const a: Record<number, number> = {};
+    [6, 9, 13, 15, 25].forEach((i) => (a[i] = 1));
+    a[22] = 1;
+    const r = calculateScore({ testId: "sioss", answers: a });
+    expect(r.totalScore).toBe(6);
+    expect(r.level).toBe("存在需要关注的自杀相关危险信号");
+    expect(r.dimensionScores?.suicideHistory).toBe(true);
+  });
+
+  it("SIOSS：全选『否』→ 掩饰分 5/5，判定作答不可靠", () => {
+    const r = calculateScore({ testId: "sioss", answers: full(26, 0) });
+    expect(r.dimensionScores?.concealment?.score).toBe(5);
+    expect(r.dimensionScores?.concealment?.valid).toBe(false);
+    expect(r.dimensionScores?.reliability).toBe("unreliable");
+    expect(r.level).toBe("结果参考价值有限（掩饰倾向明显）");
+  });
+
+  // —— BIS-11 Barratt 冲动性量表：30 题 1-5，反向题 6-score，满分 150 ——
+  it("BIS-11：全选 1 → 反向题折算为 5，总分 74、中等冲动", () => {
+    const r = calculateScore({ testId: "bis", answers: full(30, 1) });
+    expect(r.totalScore).toBe(74); // 19 正向×1 + 11 反向×(6-1)
+    expect(r.maxScore).toBe(150);
+    expect(r.level).toBe("中等冲动倾向");
+    expect(r.dimensionScores?.attention?.score).toBe(22);
+    expect(r.dimensionScores?.motor?.score).toBe(26);
+    expect(r.dimensionScores?.nonplanning?.score).toBe(26);
+  });
+
+  it("BIS-11：全选 2 → 总分 82 → 较高冲动；全选 3 → 总分 90 → 高冲动", () => {
+    const up = calculateScore({ testId: "bis", answers: full(30, 2) });
+    expect(up.totalScore).toBe(82);
+    expect(up.level).toBe("较高冲动倾向");
+    const high = calculateScore({ testId: "bis", answers: full(30, 3) });
+    expect(high.totalScore).toBe(90);
+    expect(high.level).toBe("高冲动倾向");
+  });
+
+  it("BIS-11：反向题答 5、其余答 1 → 每题均折算 1 分，总分 30（地板）", () => {
+    const a: Record<number, number> = {};
+    for (const q of bisQuestions) a[q.id] = q.reverse ? 5 : 1;
+    const r = calculateScore({ testId: "bis", answers: a });
+    expect(r.totalScore).toBe(30);
+    expect(r.level).toBe("低冲动倾向");
+    expect(r.dimensionScores?.attention?.score).toBe(10);
+    expect(r.dimensionScores?.motor?.score).toBe(10);
+    expect(r.dimensionScores?.nonplanning?.score).toBe(10);
+  });
+
+  // —— BPAQ Buss-Perry 攻击性量表：29 题 1-5 全正向，满分 145 ——
+  it("BPAQ：全选 1 → 总分 29 低攻击，四维 (8/7/7/7)", () => {
+    const r = calculateScore({ testId: "bpaq", answers: full(29, 1) });
+    expect(r.totalScore).toBe(29);
+    expect(r.maxScore).toBe(145);
+    expect(r.level).toBe("攻击倾向较低");
+    expect(r.dimensionScores?.physical?.score).toBe(8);
+    expect(r.dimensionScores?.verbal?.score).toBe(7);
+    expect(r.dimensionScores?.anger?.score).toBe(7);
+    expect(r.dimensionScores?.hostility?.score).toBe(7);
+  });
+
+  it("BPAQ：全选 3 → 87 较明显；身体攻击 8 题答 4 其余 1 → 总分 53 仍判『较强』", () => {
+    const mid = calculateScore({ testId: "bpaq", answers: full(29, 3) });
+    expect(mid.totalScore).toBe(87);
+    expect(mid.level).toBe("攻击倾向较明显");
+    const a: Record<number, number> = {};
+    [1, 5, 9, 13, 17, 21, 25, 29].forEach((i) => (a[i] = 4)); // 身体攻击 32/40
+    const r = calculateScore({ testId: "bpaq", answers: a });
+    expect(r.dimensionScores?.physical?.score).toBe(32);
+    expect(r.totalScore).toBe(53);
+    expect(r.level).toBe("攻击倾向较强"); // 身体攻击维度≥28 触发联合高判
+  });
+
+  it("BPAQ：全选 5 → 总分 145 满分 → 攻击倾向较强", () => {
+    const r = calculateScore({ testId: "bpaq", answers: full(29, 5) });
+    expect(r.totalScore).toBe(145);
+    expect(r.level).toBe("攻击倾向较强");
+    expect(r.dimensionScores?.physical?.score).toBe(40);
+  });
+
+  // —— YMRS 杨氏躁狂（简化自评，11 题 0-4，满分 44）——
+  it("YMRS：全 4 → 44 明显躁狂；全 1 → 11 亚临床；恰好 12 → 轻躁狂边界", () => {
+    const high = calculateScore({ testId: "ymrs", answers: full(11, 4) });
+    expect(high.totalScore).toBe(44);
+    expect(high.maxScore).toBe(44);
+    expect(high.level).toBe("提示明显躁狂症状（请尽快就医）");
+    const sub = calculateScore({ testId: "ymrs", answers: full(11, 1) });
+    expect(sub.totalScore).toBe(11);
+    expect(sub.level).toBe("亚临床躁狂倾向");
+    const a: Record<number, number> = { 1: 2 };
+    for (let i = 2; i <= 11; i++) a[i] = 1;
+    const edge = calculateScore({ testId: "ymrs", answers: a });
+    expect(edge.totalScore).toBe(12);
+    expect(edge.level).toBe("提示可能存在轻躁狂");
+  });
+
+  // —— ISI 失眠严重程度指数：7 题 0-4，满分 28 ——
+  it("ISI：全 4 → 28 严重失眠；全 0 → 无临床失眠", () => {
+    const high = calculateScore({ testId: "isi", answers: full(7, 4) });
+    expect(high.totalScore).toBe(28);
+    expect(high.maxScore).toBe(28);
+    expect(high.level).toBe("严重临床失眠");
+    const none = calculateScore({ testId: "isi", answers: full(7, 0) });
+    expect(none.totalScore).toBe(0);
+    expect(none.level).toBe("无临床失眠");
+  });
+
+  it("ISI：14 → 亚临床失眠；恰好 15 → 中度临床失眠", () => {
+    const sub = calculateScore({ testId: "isi", answers: full(7, 2) });
+    expect(sub.totalScore).toBe(14);
+    expect(sub.level).toBe("亚临床失眠（轻度）");
+    const a = full(7, 2);
+    a[7] = 3;
+    const mid = calculateScore({ testId: "isi", answers: a });
+    expect(mid.totalScore).toBe(15);
+    expect(mid.level).toBe("中度临床失眠");
   });
 });
 

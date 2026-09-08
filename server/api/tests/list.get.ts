@@ -221,6 +221,61 @@ export default defineEventHandler(() => {
       tags: ["人格", "自我认知", "趣味自评"],
       category: "personality",
     },
+    {
+      id: "sioss",
+      title: "自杀意念自评量表",
+      englishName: "Self-rating Idea of Suicide Scale (SIOSS)",
+      description:
+        "夏朝云等（2002）编制，从绝望感、乐观感缺失与睡眠困扰等维度评估自杀意念，用于自杀风险的早期识别与筛查，含测谎条目校验作答效度",
+      duration: "约3-5分钟",
+      questionsCount: 26,
+      tags: ["自杀意念", "危机筛查", "本土量表"],
+      category: "symptom",
+    },
+    {
+      id: "bis",
+      title: "Barratt 冲动性量表",
+      englishName: "Barratt Impulsiveness Scale (BIS-11)",
+      description:
+        "Patton等编制，评估注意力、运动和无计划三个维度的冲动性人格特质",
+      duration: "约8-12分钟",
+      questionsCount: 30,
+      tags: ["冲动性", "人格特质", "快速测评"],
+      category: "personality",
+    },
+    {
+      id: "bpaq",
+      title: "Buss-Perry 攻击性问卷",
+      englishName: "Buss-Perry Aggression Questionnaire (BPAQ)",
+      description:
+        "Buss与Perry编制，从身体攻击、言语攻击、愤怒和敌意四个维度评估攻击性倾向",
+      duration: "约6-10分钟",
+      questionsCount: 29,
+      tags: ["攻击性", "愤怒", "敌意"],
+      category: "personality",
+    },
+    {
+      id: "ymrs",
+      title: "杨氏躁狂评定量表",
+      englishName: "Young Mania Rating Scale (YMRS)",
+      description:
+        "Young等编制，原版为临床他评量表，本实现使用自评简化版，仅作粗筛参考",
+      duration: "约3-5分钟",
+      questionsCount: 11,
+      tags: ["躁狂", "双相筛查", "快速评估"],
+      category: "symptom",
+    },
+    {
+      id: "isi",
+      title: "失眠严重程度指数",
+      englishName: "Insomnia Severity Index (ISI)",
+      description:
+        "Morin等编制，评估过去2周失眠问题的性质、症状及日间影响",
+      duration: "约2-3分钟",
+      questionsCount: 7,
+      tags: ["失眠", "睡眠障碍", "快速评估"],
+      category: "symptom",
+    },
   ];
 
   return {

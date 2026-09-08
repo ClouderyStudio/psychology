@@ -83,6 +83,26 @@ import {
   psyAgeOptions,
   psyAgeQuestions,
 } from "~~/server/utils/questions/psy-age-questions";
+import {
+  siossOptions,
+  siossQuestions,
+} from "~~/server/utils/questions/sioss-questions";
+import {
+  bisOptions,
+  bisQuestions,
+} from "~~/server/utils/questions/bis-questions";
+import {
+  bpaqOptions,
+  bpaqQuestions,
+} from "~~/server/utils/questions/bpaq-questions";
+import {
+  ymrsOptions,
+  ymrsQuestions,
+} from "~~/server/utils/questions/ymrs-questions";
+import {
+  isiOptions,
+  isiQuestions,
+} from "~~/server/utils/questions/isi-questions";
 import { testIntros } from "~~/server/utils/test-intros";
 
 // 按题目 id 升序排序（题库文件顺序可能与出题顺序不同）
@@ -450,6 +470,91 @@ export default defineEventHandler(async (event) => {
       })),
       scoringRules: {
         type: "psy-age",
+      },
+    },
+    sioss: {
+      id: "sioss",
+      title: "自杀意念自评量表",
+      description:
+        "自杀意念自评量表(SIOSS)由夏朝云等编制，从绝望感、乐观感缺失、睡眠困扰等维度评估自杀意念，用于自杀风险的早期识别与筛查。",
+      instructions:
+        '请仔细阅读每一条，把意思弄明白，然后根据您自己的实际情况如实作答。每题有2个选项："是"或"否"，每一条都要回答，不要拖延太久。量表中包含测谎（掩饰）条目，请尽量真实作答，否则结果可能无效。共26题，大约需要3-5分钟。本量表仅作筛查参考，不能替代专业诊断。',
+      questions: siossQuestions.map((q) => ({
+        id: q.id,
+        text: q.text,
+        options: siossOptions,
+        dimension: q.dimension,
+      })),
+      scoringRules: {
+        type: "sioss",
+      },
+    },
+    bis: {
+      id: "bis",
+      title: "Barratt 冲动性量表（第11版）",
+      description:
+        "Barratt冲动性量表（BIS-11）由Patton等编制，评估注意力、运动和无计划三个维度的冲动性人格特质。",
+      instructions:
+        '请根据您的实际情况，选择最符合您日常行为方式的选项。每题有5个选项："从不/很少"到"总是"。共30题，大约需要8-12分钟。注意：部分题目需要反向计分，请凭第一印象作答，不要过度思考。',
+      questions: bisQuestions.map((q) => ({
+        id: q.id,
+        text: q.text,
+        options: bisOptions,
+        dimension: q.dimension,
+        reversed: q.reverse,
+      })),
+      scoringRules: {
+        type: "bis",
+      },
+    },
+    bpaq: {
+      id: "bpaq",
+      title: "Buss-Perry 攻击性问卷",
+      description:
+        "Buss-Perry攻击性问卷（BPAQ）由Buss和Perry编制，从身体攻击、言语攻击、愤怒和敌意四个维度评估攻击性倾向。",
+      instructions:
+        '请根据您的实际情况，选择最符合您行为特征的选项。每题有5个选项："完全不符合"到"完全符合"。共29题，大约需要6-10分钟。本量表用于了解攻击性倾向，结果仅作筛查参考。',
+      questions: bpaqQuestions.map((q) => ({
+        id: q.id,
+        text: q.text,
+        options: bpaqOptions,
+        dimension: q.dimension,
+      })),
+      scoringRules: {
+        type: "bpaq",
+      },
+    },
+    ymrs: {
+      id: "ymrs",
+      title: "杨氏躁狂评定量表",
+      description:
+        "杨氏躁狂评定量表（YMRS）由Young等编制，原版为临床他评量表，本实现改为自评简化版本，仅作粗筛参考。",
+      instructions:
+        '请评估您过去48小时内的状态。每题有5个选项："无"到"严重"。共11题，大约需要3-5分钟。注意：YMRS原版是精神科医生评估患者的专业工具，本简化版结果仅供参考，不能替代临床诊断。如您怀疑自己存在躁狂或轻躁狂，请尽快咨询精神科医生。',
+      questions: ymrsQuestions.map((q) => ({
+        id: q.id,
+        text: q.text,
+        options: ymrsOptions,
+      })),
+      scoringRules: {
+        type: "ymrs",
+      },
+    },
+    isi: {
+      id: "isi",
+      title: "失眠严重程度指数",
+      description:
+        "失眠严重程度指数（ISI）由Morin等编制，评估过去2周失眠问题的性质、症状和日间影响。",
+      instructions:
+        '请根据您过去2周的真实睡眠情况，选择最符合的选项。每题有5个选项："无"到"极重度"。共7题，大约需要2-3分钟。',
+      questions: isiQuestions.map((q) => ({
+        id: q.id,
+        text: q.text,
+        options: isiOptions,
+        dimension: q.dimension,
+      })),
+      scoringRules: {
+        type: "isi",
       },
     },
   };

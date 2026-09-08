@@ -172,6 +172,79 @@ const config = computed(() => {
       })
     })
     if (s.harmonyIndex != null) subtitle = '综合自我和谐指数 ' + Number(s.harmonyIndex).toFixed(2) + ' / 5.00 → ' + (s.harmonyLevel || '')
+  } else if (props.testId === 'sioss') {
+    title = 'SIOSS · 因子剖面'
+    icon = '🆘'
+    color = 'var(--symptom)'
+    hint = '绝望感与乐观感缺乏得分越高风险越高；既往自杀行为是最关键的危险信号。'
+    const siossDefs = [
+      ['hopeless', '绝望感', 12],
+      ['optimism', '乐观感缺乏（反向）', 4],
+      ['sleep', '睡眠困扰', 4],
+    ] as const
+    siossDefs.forEach(([k, name, max]) => {
+      const d = (s[k] || {}) as any
+      const sc = Number(d.score) || 0
+      items.push({
+        key: k as string,
+        name: name as string,
+        value: clamp(sc / max * 100),
+        display: String(sc) + '/' + max,
+        level: max === 12 ? (sc >= 8 ? '偏高' : sc >= 4 ? '中等' : '偏低') : (sc >= 3 ? '偏高' : sc >= 2 ? '中等' : '偏低'),
+      })
+    })
+    if (s.suicideHistory) {
+      subtitle = '⚠️ 您报告了既往自杀行为——请务必认真对待，尽快寻求专业评估与支持（全国心理援助热线 12356）。'
+    } else if ((s.concealment || {}).valid === false) {
+      subtitle = '⚠️ 掩饰维度得分 ' + (s.concealment?.score ?? 0) + '/5（≥4 判定无效），本次结果参考价值有限，建议如实重测。'
+    } else if ((s.concealment || {}).valid === true) {
+      subtitle = '掩饰维度得分 ' + (s.concealment?.score ?? 0) + '/5，作答有效。'
+    }
+  } else if (props.testId === 'bis') {
+    title = 'BIS-11 · 三维冲动剖面'
+    icon = '⚡'
+    color = 'var(--personality)'
+    hint = '注意力冲动 / 运动冲动 / 无计划冲动，各维度 10-50 分（每题均分 1-5）。'
+    const bisNames: Record<string, string> = {
+      attention: '注意力冲动',
+      motor: '运动冲动',
+      nonplanning: '无计划冲动',
+    }
+    ;['attention', 'motor', 'nonplanning'].forEach((k) => {
+      const d = (s[k] || {}) as any
+      const sc = Number(d.score) || 0
+      const avg = sc / 10
+      items.push({
+        key: k,
+        name: bisNames[k] || k,
+        value: clamp(sc / 50 * 100),
+        display: String(sc) + '/50',
+        level: avg >= 4 ? '较高' : avg >= 3 ? '中等' : '较低',
+      })
+    })
+  } else if (props.testId === 'bpaq') {
+    title = 'BPAQ · 四维攻击剖面'
+    icon = '💢'
+    color = 'var(--symptom)'
+    hint = '身体 / 言语攻击、愤怒、敌意四维（各维分数与满分并列展示）。'
+    const bpaqDefs: [string, string, number][] = [
+      ['physical', '身体攻击', 40],
+      ['verbal', '言语攻击', 35],
+      ['anger', '愤怒', 35],
+      ['hostility', '敌意', 35],
+    ]
+    bpaqDefs.forEach(([k, name, max]) => {
+      const d = (s[k] || {}) as any
+      const sc = Number(d.score) || 0
+      const pct = sc / max * 100
+      items.push({
+        key: k,
+        name,
+        value: clamp(pct),
+        display: String(sc) + '/' + max,
+        level: pct >= 62 ? '偏高' : pct >= 45 ? '中等' : '较低',
+      })
+    })
   } else if (props.testId === 'pss') {
     title = '压力维度 · 不可控感 / 掌控感'
     icon = '🧘'

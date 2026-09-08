@@ -22,3 +22,17 @@ logs
 .env
 .env.*
 !.env.example
+
+# WorkBuddy memory
+.workbuddy/memory/
+
+# Claude Code local memory/state
+.claude/
+.claude.json
+
+# Codex local memory/state
+.codex/
+.codex.json
+
+# pnpm transient lockfiles
+_tmp_*
