@@ -224,11 +224,12 @@
                   <div class="p-3 rounded-lg" style="background-color: var(--bg);">
                     <div class="flex items-center justify-between mb-2">
                       <span class="text-xs" style="color: var(--text-muted);">{{ question.min ?? 0 }} · 从不</span>
-                      <span class="font-semibold text-lg tabular-nums" style="color: var(--primary);">{{ answers[question.id] ?? '—' }}</span>
+                      <span class="font-semibold text-lg tabular-nums" style="color: var(--primary);">{{ answers[question.id] === undefined ? '未选择' : answers[question.id] }}</span>
                       <span class="text-xs" style="color: var(--text-muted);">{{ question.max ?? 10 }} · 总是</span>
                     </div>
                     <input type="range" :min="question.min ?? 0" :max="question.max ?? 10" step="1"
-                      :value="answers[question.id] ?? (question.min ?? 0)"
+                      :value="answers[question.id] ?? rangeMid(question)"
+                      @pointerdown="ensureRange(question.id, question.min, question.max)"
                       @input="onRangeInput(question.id, $event)"
                       class="w-full h-2" :style="{ accentColor: 'var(--primary)' }">
                   </div>
@@ -440,6 +441,20 @@ const isRangeQuestion = (q: any) => q?.type === 'range'
 function onRangeInput(id: number, e: Event) {
   const v = Number((e.target as HTMLInputElement).value)
   answers.value[id] = v
+}
+
+// 滑块未作答时的默认停留位置（中间值，避免停在边界以致“选边界要先移开再移回”）
+function rangeMid(q: any): number {
+  const min = typeof q?.min === 'number' ? q.min : 0
+  const max = typeof q?.max === 'number' ? q.max : 10
+  return Math.round((min + max) / 2)
+}
+
+// 用户在滑块上按下开始拖动时，若尚未作答先用中间值占位；此后拖动即可选任意数值（含两端）
+function ensureRange(id: number, min?: number, max?: number) {
+  if (answers.value[id] === undefined) {
+    answers.value[id] = Math.round(((min ?? 0) + (max ?? 10)) / 2)
+  }
 }
 
 // 必答题目（排除 number 题）
@@ -700,6 +715,25 @@ if (error.value) {
   router.push('/')
 }
 
+// 调试取值：单选/选项题取 options；range 滑块在 min..max 内取值（first/last/random）
+function valueForQuestion(q: any, mode: "first" | "last" | "random"): number | undefined {
+  if (q?.type === "range") {
+    const min = typeof q.min === "number" ? q.min : 0
+    const max = typeof q.max === "number" ? q.max : 10
+    if (mode === "first") return min
+    if (mode === "last") return max
+    return Math.floor(Math.random() * (max - min + 1)) + min
+  }
+  const options = q?.options
+  if (options && options.length > 0) {
+    let idx = 0
+    if (mode === "last") idx = options.length - 1
+    else if (mode === "random") idx = Math.floor(Math.random() * options.length)
+    return options[idx]!.value
+  }
+  return undefined
+}
+
 // 快速随机完成所有题目（调试用）
 const quickCompleteAll = () => {
   // 确认对话框
@@ -711,15 +745,10 @@ const quickCompleteAll = () => {
     onConfirm: () => {
       const newAnswers: Record<number, number> = {}
 
-      // 遍历所有题目
+      // 遍历所有题目（单选取随机选项；range 滑块取随机值）
       for (const question of allQuestions.value) {
-        const options = question.options
-        if (options && options.length > 0) {
-          // 随机选择一个选项
-          const randomIndex = Math.floor(Math.random() * options.length)
-          const randomValue = options[randomIndex]!.value
-          newAnswers[question.id] = randomValue
-        }
+        const v = valueForQuestion(question, "random")
+        if (v !== undefined) newAnswers[question.id] = v
       }
 
       // 应用答案（watch(answers) 会整体同步 store 与 sessionStorage）
@@ -747,11 +776,8 @@ const quickCompleteCurrentPage = () => {
   const newAnswers = { ...answers.value }
 
   for (const question of currentPageQuestions.value) {
-    const options = question.options
-    if (options && options.length > 0) {
-      const randomIndex = Math.floor(Math.random() * options.length)
-      newAnswers[question.id] = options[randomIndex]!.value
-    }
+    const v = valueForQuestion(question, "random")
+    if (v !== undefined) newAnswers[question.id] = v
   }
 
   answers.value = newAnswers
@@ -765,10 +791,8 @@ const completeCurrentPageWithFirstOption = () => {
   const newAnswers = { ...answers.value }
 
   for (const question of currentPageQuestions.value) {
-    const options = question.options
-    if (options && options.length > 0) {
-      newAnswers[question.id] = options[0]!.value
-    }
+    const v = valueForQuestion(question, "first")
+    if (v !== undefined) newAnswers[question.id] = v
   }
 
   answers.value = newAnswers
@@ -781,10 +805,8 @@ const completeCurrentPageWithLastOption = () => {
   const newAnswers = { ...answers.value }
 
   for (const question of currentPageQuestions.value) {
-    const options = question.options
-    if (options && options.length > 0) {
-      newAnswers[question.id] = options[options.length - 1]!.value
-    }
+    const v = valueForQuestion(question, "last")
+    if (v !== undefined) newAnswers[question.id] = v
   }
 
   answers.value = newAnswers
