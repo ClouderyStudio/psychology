@@ -51,6 +51,17 @@
 | **SIOSS 自杀意念自评量表** | 26题 | 从绝望感、乐观感缺失与睡眠困扰等维度筛查自杀风险 |
 | **YMRS 杨氏躁狂评定量表**  | 11题 | 躁狂症状的自评简化筛查版，仅供粗筛参考 |
 | **ISI 失眠严重程度指数**   | 7题  | 评估过去两周的失眠症状及其日间影响 |
+| **MID-60 多维解离量表** | 60题 | 评估12个解离相关子维度，覆盖人格/现实解体、解离性失忆、功能性神经症状等 |
+| **解离经验量表（DES-II）** | 28题 | 评估记忆缺失、人格/现实解体与吸收沉浸三类解离体验 |
+| **躯体形式解离问卷（SDQ-20）** | 20题 | 评估过去一年躯体解离体验，含SDQ-5快速筛查 |
+| **耶鲁-布朗强迫量表（Y-BOCS）** | 10题 | 评估强迫思维与强迫行为的严重程度 |
+| **强迫量表修订版（OCI-R）** | 18题 | 含洗涤、检查、排序、强迫思维、中和、囤积六维度 |
+| **创伤后应激严重度（PTSD·NSESSS）** | 9题 | 评估极端应激事件后过去7天的创伤后应激症状严重度 |
+| **惊恐障碍严重度** | 10题 | DSM-5-TR，评估惊恐发作频率、担忧、躯体症状与回避 |
+| **社交焦虑障碍严重度** | 10题 | DSM-5-TR，评估社交情境中的焦虑、躯体反应与回避 |
+| **特定恐怖症严重度** | 10题 | DSM-5-TR，评估对特定事物/情境的恐惧、躯体反应与回避 |
+| **广场恐怖严重度** | 10题 | DSM-5-TR，评估人群、公共交通、独自外出等情境中的恐惧与回避 |
+| **分离焦虑障碍严重度** | 10题 | DSM-5-TR，评估与重要的人或家分离时的恐惧、担忧与回避 |
 
 ### 人格性格类
 
@@ -75,6 +86,46 @@
 | **IPIP-EIS 情绪智力量表**     | 64题 | 评估情绪智力的7个维度      |
 | **情绪稳定性测试**            | 30题 | 评估情绪稳定程度和抗压能力 |
 | **SCCS 自我和谐量表**         | 35题 | 评估自我与经验的关系       |
+
+### 📚 量表来源（部分）
+
+各量表题项均参考其原始文献/官方版本整理；平台为自评简化版，仅供自我筛查，不构成医学诊断。
+
+| 量表 | 来源 / 编制者 | 年份 | 来源网站 |
+| --- | --- | --- | --- |
+| PHQ-9 抑郁筛查 | Spitzer, Kroenke &amp; Williams | 1999/2001 | https://www.phqscreeners.com/ |
+| GAD-7 焦虑筛查 | Spitzer, Kroenke &amp; Williams | 2006 | https://www.phqscreeners.com/ |
+| PSS-10 压力感知 | Cohen, Kamarck &amp; Mermelstein | 1983 | — |
+| SCL-90 症状自评 | Derogatis | 1977 | — |
+| SDS 抑郁自评 | Zung | 1965 | — |
+| SAS 焦虑自评 | Zung | 1971 | — |
+| BDC 伯恩斯抑郁清单 | Burns | 1980s | — |
+| MDQ 心境障碍问卷 | Hirschfeld 等 | 2000 | — |
+| ASRM 躁狂自评 | Altman 等 | 1997 | — |
+| RSES 自尊量表 | Rosenberg | 1965 | — |
+| YMRS 杨氏躁狂 | Young 等 | 1978 | — |
+| ISI 失眠严重度指数 | Morin 等 | 2006 | — |
+| SIOSS 自杀意念自评 | 夏朝云 等（中文版） | 2002 | — |
+| BIS-11 冲动性 | Barratt / Patton 等修订 | 1995 | — |
+| BPAQ 攻击性 | Buss &amp; Perry | 1992 | — |
+| 耶鲁-布朗强迫（Y-BOCS） | Goodman 等 | 1989 | https://xinlixue.cn/wb/archives/Y-BOCS.html |
+| 强迫量表修订版（OCI-R） | Foa 等 | 2002（公共领域） | https://novopsych.com/assessments/diagnosis/obsessional-compulsive-inventory-revised-oci-r/ |
+| 解离经验（DES-II） | Carlson &amp; Putnam | 1993 | https://traumadissociation.com/des |
+| 躯体形式解离（SDQ-20） | Nijenhuis 等 | 1998 | https://traumadissociation.com/ |
+| 多维解离（MID-60） | Dell | 2006 | — |
+| PTSD 创伤后应激严重度（NSESSS） | APA DSM-5-TR（Kilpatrick/Resnick 等） | 2013/2022 | https://www.psychiatry.org/psychiatrists/practice/dsm/educational-resources/assessment-measures |
+| 惊恐/社交焦虑/特定恐怖症/广场恐怖/分离焦虑严重度 | APA DSM-5-TR 成人严重度量表（Craske 等） | 2013/2022 | https://www.psychiatry.org/psychiatrists/practice/dsm/educational-resources/assessment-measures |
+| BPNS 基本心理需求 | Deci &amp; Ryan（自我决定理论） | — | https://selfdeterminationtheory.org/ |
+| IPIP-EIS 情绪智力 | IPIP 量表池 | — | https://ipip.ori.org/ |
+| 16PF | Cattell | 1949 | — |
+| EPQ | Eysenck | 1975 | — |
+| EPQ-RSC | 艾森克问卷中国简版（钱铭怡 等修订） | — | — |
+| MBTI | Myers &amp; Briggs（基于荣格类型论） | — | — |
+| 气质类型 | 基于四气质学说 | — | — |
+| SCCS 自我和谐 | 王登峰（中文） | — | — |
+| 七美德与七宗罪 | 基于传统七宗罪/美德分类（平台整合） | — | — |
+| 心理年龄 / 情绪稳定性 / 自研量具 | 平台自研或改编 | — | — |
+
 
 ---
 
