@@ -116,6 +116,7 @@ describe("calculateScore 基础评分", () => {
   });
 });
 
+
 describe("评分边界与维度补充", () => {
   // —— BDC 伯恩斯抑郁清单：四档边界 ——
   it("BDC：全 0 → 无抑郁；全 3 → 重度，满分为45", () => {
@@ -389,7 +390,7 @@ describe("SIOSS / BIS-11 / BPAQ / YMRS / ISI 计分（2026-09 新增）", () => 
     expect(r.level).toBe("存在自杀意念（筛查阳性）");
     expect(r.dimensionScores?.hopeless?.score).toBe(12);
     expect(r.dimensionScores?.hopeless?.max).toBe(12);
-    expect(r.dimensionScores?.optimism?.score).toBe(0);
+    expect(r.dimensionScores?.optimism?.score).toBe(1); // 题 22 答“是”正向计 1 分
     expect(r.dimensionScores?.optimism?.max).toBe(5); // 含题22
     expect(r.dimensionScores?.sleep?.score).toBe(3);
     expect(r.dimensionScores?.sleep?.max).toBe(4);
@@ -531,4 +532,3 @@ describe("SIOSS / BIS-11 / BPAQ / YMRS / ISI 计分（2026-09 新增）", () => 
     expect(mid.level).toBe("中度临床失眠");
   });
 });
-
