@@ -104,7 +104,6 @@ import {
   isiQuestions,
 } from "~~/server/utils/questions/isi-questions";
 import {
-  mid60Options,
   mid60Questions,
 } from "~~/server/utils/questions/mid60-questions";
 import { testIntros } from "~~/server/utils/test-intros";
@@ -571,7 +570,9 @@ export default defineEventHandler(async (event) => {
       questions: mid60Questions.map((q) => ({
         id: q.id,
         text: q.text,
-        options: mid60Options,
+        type: "range",
+        min: 0,
+        max: 10,
         dimension: q.dimension,
       })),
       scoringRules: {

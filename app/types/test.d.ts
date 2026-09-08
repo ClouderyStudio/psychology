@@ -10,7 +10,8 @@ export interface Question {
   reversed?: boolean;
   dimension?: string | null;
   /** number 题：数字输入（用于生理年龄等），min/max 为允许区间 */
-  type?: "likert" | "number" | "single" | "judge" | "essay";
+  /** range 题：滑块（如 MID-60 的 0–10 频率），min/max/step 决定刻度，值必需 */
+  type?: "likert" | "number" | "single" | "judge" | "essay" | "range";
   min?: number;
   max?: number;
 }

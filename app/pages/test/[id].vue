@@ -219,6 +219,20 @@
                     <p class="text-xs mt-2" style="color: var(--text-muted);">可不填；若填写，报告将对比「心理年龄 vs 生理年龄」。</p>
                   </div>
                 </template>
+                <!-- range 题（滑块，如 MID-60 的 0-10 频率）：必答 -->
+                <template v-else-if="isRangeQuestion(question)">
+                  <div class="p-3 rounded-lg" style="background-color: var(--bg);">
+                    <div class="flex items-center justify-between mb-2">
+                      <span class="text-xs" style="color: var(--text-muted);">{{ question.min ?? 0 }} · 从不</span>
+                      <span class="font-semibold text-lg tabular-nums" style="color: var(--primary);">{{ answers[question.id] ?? '—' }}</span>
+                      <span class="text-xs" style="color: var(--text-muted);">{{ question.max ?? 10 }} · 总是</span>
+                    </div>
+                    <input type="range" :min="question.min ?? 0" :max="question.max ?? 10" step="1"
+                      :value="answers[question.id] ?? (question.min ?? 0)"
+                      @input="onRangeInput(question.id, $event)"
+                      class="w-full h-2" :style="{ accentColor: 'var(--primary)' }">
+                  </div>
+                </template>
                 <template v-else>
                 <label v-for="option in question.options" :key="option.value"
                   class="flex items-center p-3 rounded-lg cursor-pointer transition-all duration-200"
@@ -420,6 +434,13 @@ const getGlobalQuestionNumber = (questionId: number) => {
 
 // number 题（数字输入，如生理年龄）——不计入必答完成度，可留空
 const isNumberQuestion = (q: any) => q?.type === 'number'
+const isRangeQuestion = (q: any) => q?.type === 'range'
+
+// 滑块输入：把滑块的值写入作答对象
+function onRangeInput(id: number, e: Event) {
+  const v = Number((e.target as HTMLInputElement).value)
+  answers.value[id] = v
+}
 
 // 必答题目（排除 number 题）
 const requiredQuestions = computed(() => allQuestions.value.filter(q => !isNumberQuestion(q)))
