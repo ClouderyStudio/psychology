@@ -408,6 +408,108 @@ const config = computed(() => {
     })
   }
 
+  else if (props.testId === 'ptsd') {
+    title = '创伤后应激严重度（PTSD）'
+    icon = '🫀'
+    color = 'var(--symptom)'
+    hint = '总分 0-36（9 题，0-4 分/题），按平均分 0-4 定档：<0.5 无/亚临床、<1.5 轻度、<2.5 中度、<3.5 重度、≥3.5 极重度。'
+    const total = (s.total || {}) as any
+    const sc = Number(total.score) || 0
+    items.push({
+      key: 'total',
+      name: (total.name as string) || '总分',
+      value: clamp((sc / (total.max || 36)) * 100),
+      display: String(sc) + '/' + total.max,
+      level: (total.level as string) || '',
+      desc: (total.desc as string) || '',
+    })
+  }
+
+  else if (props.testId === 'panic') {
+    title = '惊恐障碍严重度'
+    icon = '💥'
+    color = 'var(--symptom)'
+    hint = '总分 0-40（10 题，0-4 分/题），按平均分 0-4 定档严重度。'
+    const total = (s.total || {}) as any
+    const sc = Number(total.score) || 0
+    items.push({
+      key: 'total',
+      name: (total.name as string) || '总分',
+      value: clamp((sc / (total.max || 40)) * 100),
+      display: String(sc) + '/' + total.max,
+      level: (total.level as string) || '',
+      desc: (total.desc as string) || '',
+    })
+  }
+
+  else if (props.testId === 'social') {
+    title = '社交焦虑障碍严重度'
+    icon = '🗣️'
+    color = 'var(--symptom)'
+    hint = '总分 0-40（10 题，0-4 分/题），按平均分 0-4 定档严重度。'
+    const total = (s.total || {}) as any
+    const sc = Number(total.score) || 0
+    items.push({
+      key: 'total',
+      name: (total.name as string) || '总分',
+      value: clamp((sc / (total.max || 40)) * 100),
+      display: String(sc) + '/' + total.max,
+      level: (total.level as string) || '',
+      desc: (total.desc as string) || '',
+    })
+  }
+
+  else if (props.testId === 'phobia') {
+    title = '特定恐怖症严重度'
+    icon = '😨'
+    color = 'var(--symptom)'
+    hint = '总分 0-40（10 题，0-4 分/题），按平均分 0-4 定档严重度。'
+    const total = (s.total || {}) as any
+    const sc = Number(total.score) || 0
+    items.push({
+      key: 'total',
+      name: (total.name as string) || '总分',
+      value: clamp((sc / (total.max || 40)) * 100),
+      display: String(sc) + '/' + total.max,
+      level: (total.level as string) || '',
+      desc: (total.desc as string) || '',
+    })
+  }
+
+  else if (props.testId === 'agora') {
+    title = '广场恐怖严重度'
+    icon = '🚇'
+    color = 'var(--symptom)'
+    hint = '总分 0-40（10 题，0-4 分/题），按平均分 0-4 定档严重度。'
+    const total = (s.total || {}) as any
+    const sc = Number(total.score) || 0
+    items.push({
+      key: 'total',
+      name: (total.name as string) || '总分',
+      value: clamp((sc / (total.max || 40)) * 100),
+      display: String(sc) + '/' + total.max,
+      level: (total.level as string) || '',
+      desc: (total.desc as string) || '',
+    })
+  }
+
+  else if (props.testId === 'sepanx') {
+    title = '分离焦虑障碍严重度'
+    icon = '🔗'
+    color = 'var(--symptom)'
+    hint = '总分 0-40（10 题，0-4 分/题），按平均分 0-4 定档严重度。'
+    const total = (s.total || {}) as any
+    const sc = Number(total.score) || 0
+    items.push({
+      key: 'total',
+      name: (total.name as string) || '总分',
+      value: clamp((sc / (total.max || 40)) * 100),
+      display: String(sc) + '/' + total.max,
+      level: (total.level as string) || '',
+      desc: (total.desc as string) || '',
+    })
+  }
+
   else if (props.testId === 'mid60') {
     title = 'MID-60 · 解离子量表剖面'
     icon = '🌀'

@@ -665,3 +665,80 @@ describe("OCI-R 强迫量表修订版", () => {
     expect(r.totalScore).toBe(0);
   });
 });
+describe("PTSD 创伤后应激严重度（PTSD）", () => {
+  it("全 0 → 总分 0，无/亚临床；全 4 → 总分 36，极重度", () => {
+    const low = calculateScore({ testId: "ptsd", answers: full(9, 0) });
+    expect(low.totalScore).toBe(0);
+    expect(low.level).toBe("无/亚临床");
+    const high = calculateScore({ testId: "ptsd", answers: full(9, 4) });
+    expect(high.totalScore).toBe(36);
+    expect(high.level).toBe("极重度");
+  });
+});
+
+
+describe("惊恐障碍严重度（PANIC）", () => {
+  it("全 0 → 总分 0，无/亚临床；全 4 → 总分 40，极重度", () => {
+    const low = calculateScore({ testId: "panic", answers: full(10, 0) });
+    expect(low.totalScore).toBe(0);
+    expect(low.level).toBe("无/亚临床");
+    const high = calculateScore({ testId: "panic", answers: full(10, 4) });
+    expect(high.totalScore).toBe(40);
+    expect(high.level).toBe("极重度");
+  });
+
+  it("全 1 → 总分 10，平均分 1.0 → 轻度", () => {
+    const r = calculateScore({ testId: "panic", answers: full(10, 1) });
+    expect(r.totalScore).toBe(10);
+    expect(r.level).toBe("轻度");
+  });
+});
+
+
+describe("社交焦虑障碍严重度（SOCIAL）", () => {
+  it("全 0 → 总分 0，无/亚临床；全 4 → 总分 40，极重度", () => {
+    const low = calculateScore({ testId: "social", answers: full(10, 0) });
+    expect(low.totalScore).toBe(0);
+    expect(low.level).toBe("无/亚临床");
+    const high = calculateScore({ testId: "social", answers: full(10, 4) });
+    expect(high.totalScore).toBe(40);
+    expect(high.level).toBe("极重度");
+  });
+});
+
+
+describe("特定恐怖症严重度（PHOBIA）", () => {
+  it("全 0 → 总分 0，无/亚临床；全 4 → 总分 40，极重度", () => {
+    const low = calculateScore({ testId: "phobia", answers: full(10, 0) });
+    expect(low.totalScore).toBe(0);
+    expect(low.level).toBe("无/亚临床");
+    const high = calculateScore({ testId: "phobia", answers: full(10, 4) });
+    expect(high.totalScore).toBe(40);
+    expect(high.level).toBe("极重度");
+  });
+});
+
+
+describe("广场恐怖严重度（AGORA）", () => {
+  it("全 0 → 总分 0，无/亚临床；全 4 → 总分 40，极重度", () => {
+    const low = calculateScore({ testId: "agora", answers: full(10, 0) });
+    expect(low.totalScore).toBe(0);
+    expect(low.level).toBe("无/亚临床");
+    const high = calculateScore({ testId: "agora", answers: full(10, 4) });
+    expect(high.totalScore).toBe(40);
+    expect(high.level).toBe("极重度");
+  });
+});
+
+
+describe("分离焦虑障碍严重度（SEPANX）", () => {
+  it("全 0 → 总分 0，无/亚临床；全 4 → 总分 40，极重度", () => {
+    const low = calculateScore({ testId: "sepanx", answers: full(10, 0) });
+    expect(low.totalScore).toBe(0);
+    expect(low.level).toBe("无/亚临床");
+    const high = calculateScore({ testId: "sepanx", answers: full(10, 4) });
+    expect(high.totalScore).toBe(40);
+    expect(high.level).toBe("极重度");
+  });
+});
+

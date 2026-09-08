@@ -152,6 +152,36 @@ export const testIntros: Record<string, ScaleIntro> = {
     purpose: "用 18 题（0-4）评估过去一个月强迫症状带来的困扰，含洗涤、检查、排序、强迫思维、中和 5 个 OCD 维度（15 题）与囤积维度（3 题，单独计）。",
     audience: "适合想快速筛查自己是否存在强迫症状（污染/洗涤、检查、对称、侵入想法、中和、囤积）的人群自查；仅作筛查，不构成诊断。",
   },
+  ptsd: {
+    origin: "美国精神医学学会（APA）DSM-5-TR 提供的创伤后应激严重度短量表（NSESSS，National Stressful Events Survey PTSD Short Scale，由 Kilpatrick/Resnick 等编制），属 Section III 新兴测量工具。",
+    purpose: "用 9 题（0-4）评估经历极端应激事件后过去 7 天的创伤后应激症状严重度，覆盖闪回/侵入性回忆、回避、消极信念与情绪、警觉与反应性增高（总分 0-36）。",
+    audience: "适合经历过重大创伤、并想了解其症状严重程度的人群自查；仅作筛查，不构成诊断。",
+  },
+  panic: {
+    origin: "美国精神医学学会（APA）DSM-5-TR 惊恐障碍成人严重度量表（Severity Measure for Panic Disorder—Adult）。",
+    purpose: "用 10 题（0-4）评估过去 7 天惊恐发作的频率、相关担忧、躯体症状与回避/求助行为（总分 0-40）。",
+    audience: "适合自感反复出现突如其来的强烈恐惧（惊恐发作），想了解其严重程度的人群自查；仅作筛查，不构成诊断。",
+  },
+  social: {
+    origin: "美国精神医学学会（APA）DSM-5-TR 社交焦虑障碍（社交恐怖）成人严重度量表（Severity Measure for Social Anxiety Disorder—Adult）。",
+    purpose: "用 10 题（0-4）评估过去 7 天在公开讲话、聚会、交谈等社交情境中的焦虑、躯体反应与回避行为（总分 0-40）。",
+    audience: "适合在社交场合明显紧张/担心被评价、并想了解其严重程度的人群自查；仅作筛查，不构成诊断。",
+  },
+  phobia: {
+    origin: "美国精神医学学会（APA）DSM-5-TR 特定恐怖症成人严重度量表（Severity Measure for Specific Phobia—Adult）。",
+    purpose: "用 10 题（0-4）评估过去 7 天对特定事物/情境（驾驶、动物、高处、血液/针头、呛噎等）的恐惧、躯体反应与回避（总分 0-40）。",
+    audience: "适合对特定事物有强烈且不合理的恐惧、并想了解其严重程度的人群自查；仅作筛查，不构成诊断。",
+  },
+  agora: {
+    origin: "美国精神医学学会（APA）DSM-5-TR 广场恐怖成人严重度量表（Severity Measure for Agoraphobia—Adult）。",
+    purpose: "用 10 题（0-4）评估过去 7 天在人群、公共场所、交通工具、独自出行或离家等情境中的恐惧与回避（总分 0-40）。",
+    audience: "适合害怕难以离开家、或在拥挤/封闭/独自外出场合感到焦虑的人群自查；仅作筛查，不构成诊断。",
+  },
+  sepanx: {
+    origin: "美国精神医学学会（APA）DSM-5-TR 分离焦虑障碍成人严重度量表（Severity Measure for Separation Anxiety Disorder—Adult）。",
+    purpose: "用 10 题（0-4）评估过去 7 天与重要的人或家分离时的恐惧、担忧、躯体反应与回避（总分 0-40）。",
+    audience: "适合担心与重要的人分开、或难以独自离家出行的人群自查；仅作筛查，不构成诊断。",
+  },
   mid60: {
     origin: "MID-60 多维解离量表由 Dell 编制（2006），是基于多维解离问卷（MID）的精简版自评工具，国内外常用于解离症状的筛查与整理。",
     purpose: "用 60 题（0-10 频率）评估解离体验，总分=全体均值×10（0-100%），并给出近期遗忘、替换人格意识、DP/DR、记忆困扰、闪回、恍惚等 12 个子量表，与各自参考临界值对照。",

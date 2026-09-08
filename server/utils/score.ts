@@ -18,6 +18,12 @@ import { scoreDES2 } from "./scoring-rules/scoreDES2";
 import { scoreSDQ20 } from "./scoring-rules/scoreSDQ20";
 import { scoreYBOCS } from "./scoring-rules/scoreYBOCS";
 import { scoreOCIR } from "./scoring-rules/scoreOCIR";
+import { scorePtsd } from "./scoring-rules/scorePtsd";
+import { scorePanic } from "./scoring-rules/scorePanic";
+import { scoreSocial } from "./scoring-rules/scoreSocial";
+import { scorePhobia } from "./scoring-rules/scorePhobia";
+import { scoreAgora } from "./scoring-rules/scoreAgora";
+import { scoreSepanx } from "./scoring-rules/scoreSepanx";
 interface ScoringInput {
   testId: string;
   answers: Record<number, number>;
@@ -203,6 +209,18 @@ export function calculateScore(input: ScoringInput): ScoringResult {
       return scoreYBOCS(answers);
     case "ocir":
       return scoreOCIR(answers);
+    case "ptsd":
+      return scorePtsd(answers);
+    case "panic":
+      return scorePanic(answers);
+    case "social":
+      return scoreSocial(answers);
+    case "phobia":
+      return scorePhobia(answers);
+    case "agora":
+      return scoreAgora(answers);
+    case "sepanx":
+      return scoreSepanx(answers);
     default:
       return {
         totalScore: 0,

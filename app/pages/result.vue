@@ -223,6 +223,12 @@ const isDES2 = computed(() => result.value?.testId === 'des2')
 const isSdq20 = computed(() => result.value?.testId === 'sdq20')
 const isYbocs = computed(() => result.value?.testId === 'ybocs')
 const isOcir = computed(() => result.value?.testId === 'ocir')
+const isPtsd = computed(() => result.value?.testId === 'ptsd')
+const isPanic = computed(() => result.value?.testId === 'panic')
+const isSocial = computed(() => result.value?.testId === 'social')
+const isPhobia = computed(() => result.value?.testId === 'phobia')
+const isAgora = computed(() => result.value?.testId === 'agora')
+const isSepanx = computed(() => result.value?.testId === 'sepanx')
 const psyAgeReport = computed(() => result.value?.psyAgeReport)
 
 const mbtiReport = computed(() => result.value?.mbtiReport || null)
@@ -260,7 +266,7 @@ const isPersonality = computed(() => {
 // 需要展示维度剖面的量表（除文字外还有维度数据）
 const enrichedScale = computed(() => {
   const id = result.value?.testId
-  return !!id && ['epq', 'epq-rsc', 'temperament', 'bpns', 'ipip-eis', 'sixteenPF', 'sccs', 'pss', 'sds', 'sas', 'rses', 'asrm', 'phq9', 'gad7', 'sioss', 'bis', 'bpaq', 'mid60', 'des2', 'sdq20', 'ybocs', 'ocir'].includes(id) && hasDimensionScores.value
+  return !!id && ['epq', 'epq-rsc', 'temperament', 'bpns', 'ipip-eis', 'sixteenPF', 'sccs', 'pss', 'sds', 'sas', 'rses', 'asrm', 'phq9', 'gad7', 'sioss', 'bis', 'bpaq', 'mid60', 'des2', 'sdq20', 'ybocs', 'ocir', 'ptsd', 'panic', 'social', 'phobia', 'agora', 'sepanx'].includes(id) && hasDimensionScores.value
 })
 
 // 显示分数（处理 MBTI 等特殊量表）

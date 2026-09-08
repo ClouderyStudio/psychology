@@ -112,6 +112,12 @@ import {
 import { sdq20Questions } from "~~/server/utils/questions/sdq20-questions";
 import { ybocsQuestions } from "~~/server/utils/questions/ybocs-questions";
 import { ocirQuestions } from "~~/server/utils/questions/ocir-questions";
+import { ptsdQuestions, ptsdOptions } from "~~/server/utils/questions/ptsd-questions";
+import { panicQuestions, panicOptions } from "~~/server/utils/questions/panic-questions";
+import { socialQuestions, socialOptions } from "~~/server/utils/questions/social-questions";
+import { phobiaQuestions, phobiaOptions } from "~~/server/utils/questions/phobia-questions";
+import { agoraQuestions, agoraOptions } from "~~/server/utils/questions/agora-questions";
+import { sepanxQuestions, sepanxOptions } from "~~/server/utils/questions/sepanx-questions";
 import { testIntros } from "~~/server/utils/test-intros";
 
 // 按题目 id 升序排序（题库文件顺序可能与出题顺序不同）
@@ -662,6 +668,96 @@ export default defineEventHandler(async (event) => {
       })),
       scoringRules: {
         type: "ocir",
+      },
+    },
+    ptsd: {
+      id: "ptsd",
+      title: "创伤后应激严重度（PTSD）",
+      description: "PTSD 严重度短量表（NSESSS，9 题）评估经历极端应激事件后过去 7 天的创伤后应激症状，含闪回、回避、消极信念/情绪与警觉增高。",
+      instructions: "请回想一次令你深感痛苦的极端应激事件（如意外、暴力、灾难、重大丧失等），然后按过去 7 天内这些困扰的程度作答（完全没有 / 有一点 / 中等程度 / 相当多 / 极其）。若未经历过类似事件，本量表可不作答。",
+      questions: ptsdQuestions.map((q) => ({
+        id: q.id,
+        text: q.text,
+        type: "likert",
+        options: ptsdOptions,
+      })),
+      scoringRules: {
+        type: "ptsd",
+      },
+    },
+    panic: {
+      id: "panic",
+      title: "惊恐障碍严重度",
+      description: "惊恐障碍成人严重度量表（DSM-5-TR，10 题）评估过去 7 天惊恐发作的频率、相关担忧、躯体症状与回避。",
+      instructions: "惊恐发作是突然到来的强烈恐惧，可伴有心跳加速、气短、头晕、出汗、怕失控或濒死。请按过去 7 天内的实际频率作答（从未 / 偶尔 / 一半时间 / 大部分时间 / 几乎所有时间）。",
+      questions: panicQuestions.map((q) => ({
+        id: q.id,
+        text: q.text,
+        type: "likert",
+        options: panicOptions,
+      })),
+      scoringRules: {
+        type: "panic",
+      },
+    },
+    social: {
+      id: "social",
+      title: "社交焦虑障碍严重度",
+      description: "社交焦虑（社交恐怖）成人严重度量表（DSM-5-TR，10 题）评估过去 7 天在社交情境中的焦虑、躯体反应与回避。",
+      instructions: "社交情境包括公开讲话、开会、聚会、自我介绍、交谈、被表扬、向人求助、当众吃饭写字等。请按过去 7 天内的实际频率作答（从未 / 偶尔 / 一半时间 / 大部分时间 / 几乎所有时间）。",
+      questions: socialQuestions.map((q) => ({
+        id: q.id,
+        text: q.text,
+        type: "likert",
+        options: socialOptions,
+      })),
+      scoringRules: {
+        type: "social",
+      },
+    },
+    phobia: {
+      id: "phobia",
+      title: "特定恐怖症严重度",
+      description: "特定恐怖症成人严重度量表（DSM-5-TR，10 题）评估过去 7 天对特定事物/情境的恐惧、躯体反应与回避。",
+      instructions: "请先选定最令你焦虑的一类情境（驾驶/飞行/隧道/桥梁/封闭空间、动物或昆虫、高处/风暴/水、血液/针头/注射、呛噎或呕吐），然后按该类情境在过去 7 天内的实际频率作答（从未 / 偶尔 / 一半时间 / 大部分时间 / 几乎所有时间）。",
+      questions: phobiaQuestions.map((q) => ({
+        id: q.id,
+        text: q.text,
+        type: "likert",
+        options: phobiaOptions,
+      })),
+      scoringRules: {
+        type: "phobia",
+      },
+    },
+    agora: {
+      id: "agora",
+      title: "广场恐怖严重度",
+      description: "广场恐怖成人严重度量表（DSM-5-TR，10 题）评估过去 7 天在人群、公共场所、使用交通工具、独自出行或离家等情境中的恐惧与回避。",
+      instructions: "请按这些情境在过去 7 天内的实际频率作答（从未 / 偶尔 / 一半时间 / 大部分时间 / 几乎所有时间）。",
+      questions: agoraQuestions.map((q) => ({
+        id: q.id,
+        text: q.text,
+        type: "likert",
+        options: agoraOptions,
+      })),
+      scoringRules: {
+        type: "agora",
+      },
+    },
+    sepanx: {
+      id: "sepanx",
+      title: "分离焦虑障碍严重度",
+      description: "分离焦虑障碍成人严重度量表（DSM-5-TR，10 题）评估过去 7 天与重要的人或家分离时的恐惧、担忧、躯体反应与回避。",
+      instructions: "分离焦虑指离开家、或与重要的人分开时的过度恐惧与担忧。请按过去 7 天内的实际频率作答（从未 / 偶尔 / 一半时间 / 大部分时间 / 几乎所有时间）。",
+      questions: sepanxQuestions.map((q) => ({
+        id: q.id,
+        text: q.text,
+        type: "likert",
+        options: sepanxOptions,
+      })),
+      scoringRules: {
+        type: "sepanx",
       },
     },
   };
