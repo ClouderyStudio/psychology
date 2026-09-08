@@ -104,9 +104,11 @@ import {
   isiQuestions,
 } from "~~/server/utils/questions/isi-questions";
 import {
-  mid60Options,
   mid60Questions,
 } from "~~/server/utils/questions/mid60-questions";
+import {
+  des2Questions,
+} from "~~/server/utils/questions/des2-questions";
 import { testIntros } from "~~/server/utils/test-intros";
 
 // 按题目 id 升序排序（题库文件顺序可能与出题顺序不同）
@@ -571,11 +573,37 @@ export default defineEventHandler(async (event) => {
       questions: mid60Questions.map((q) => ({
         id: q.id,
         text: q.text,
-        options: mid60Options,
+        type: "range",
+        min: 0,
+        max: 10,
+        minLabel: "从不",
+        maxLabel: "总是",
         dimension: q.dimension,
       })),
       scoringRules: {
         type: "mid60",
+      },
+    },
+    des2: {
+      id: "des2",
+      title: "解离经验量表",
+      description:
+        "解离经验量表（DES-II）由 Bernstein & Putnam 编制，评估记忆缺失、人格/现实解体与吸收沉浸三类解离体验，是国际常用的解离筛查工具。",
+      instructions:
+        "每题用滑块选择 0-100%，表示该体验在日常生活中出现的时间比例。建议按直觉作答，尽量不要反复修改。",
+      questions: des2Questions.map((q) => ({
+        id: q.id,
+        text: q.text,
+        type: "range",
+        min: 0,
+        max: 100,
+        step: 10,
+        minLabel: "从未出现",
+        maxLabel: "总是出现",
+        dimension: q.dimension,
+      })),
+      scoringRules: {
+        type: "des2",
       },
     },
   };

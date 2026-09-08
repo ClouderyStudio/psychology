@@ -10,9 +10,15 @@ export interface Question {
   reversed?: boolean;
   dimension?: string | null;
   /** number 题：数字输入（用于生理年龄等），min/max 为允许区间 */
-  type?: "likert" | "number" | "single" | "judge" | "essay";
+  /** range 题：滑块，min/max/step 决定刻度，值必需 */
+  type?: "likert" | "number" | "single" | "judge" | "essay" | "range";
   min?: number;
   max?: number;
+  /** 滑块步长（range 题），默认 1 */
+  step?: number;
+  /** 滑块两端标签（range 题），如 MID-60 的 0=从不 / 10=总是 */
+  minLabel?: string;
+  maxLabel?: string;
 }
 
 export interface ScaleIntro {

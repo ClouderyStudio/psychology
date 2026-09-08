@@ -330,7 +330,26 @@ const config = computed(() => {
         desc: (d.desc as string) || '',
       })
     })
-  } else if (props.testId === 'mid60') {
+  } else if (props.testId === 'des2') {
+    title = 'DES-II · 解离子量表'
+    icon = '🌀'
+    color = 'var(--symptom)'
+    hint = '三子量表（各 6 题均值，0-100）；记忆缺失与人格/现实解体偏高更提示病理性解离，吸收沉浸单独偏高常属正常沉浸。'
+    const des2Order = ['amnesia', 'dpdr', 'absorption']
+    des2Order.forEach((k) => {
+      const d = (s[k] || {}) as any
+      const sc = Number(d.score) || 0
+      items.push({
+        key: k,
+        name: (d.name as string) || k,
+        value: clamp(sc),
+        display: sc.toFixed(1) + '%',
+        level: (d.level as string) || '',
+        desc: (d.desc as string) || '',
+      })
+    })
+  }
+  else if (props.testId === 'mid60') {
     title = 'MID-60 · 解离子量表剖面'
     icon = '🌀'
     color = 'var(--symptom)'

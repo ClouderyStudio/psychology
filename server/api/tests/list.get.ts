@@ -9,7 +9,7 @@ export default defineEventHandler(() => {
       description: "用于评估过去两周内的抑郁症状严重程度，包含9个核心问题",
       duration: "约3-5分钟",
       questionsCount: 9,
-      tags: ["抑郁", "快速评估"],
+      tags: ["抑郁", "快速"],
       category: "symptom",
     },
     {
@@ -19,7 +19,7 @@ export default defineEventHandler(() => {
       description: "用于评估广泛性焦虑症状的严重程度，快速识别焦虑倾向",
       duration: "约2-3分钟",
       questionsCount: 7,
-      tags: ["焦虑", "快速评估"],
+      tags: ["焦虑", "快速"],
       category: "symptom",
     },
     {
@@ -102,7 +102,7 @@ export default defineEventHandler(() => {
         "美国心理治疗专家David D. Burns博士设计的抑郁症自我诊断表，帮助快速评估抑郁情绪程度",
       duration: "约3-5分钟",
       questionsCount: 15,
-      tags: ["抑郁", "快速评估"],
+      tags: ["抑郁", "快速"],
       category: "symptom",
     },
     {
@@ -125,7 +125,7 @@ export default defineEventHandler(() => {
         "北京大学钱铭怡教授等修订的中国版艾森克人格问卷简式版，评估内外向(E)、神经质(N)、精神质(P)、掩饰性(L)四个维度",
       duration: "约10-15分钟",
       questionsCount: 48,
-      tags: ["人格", "快速评估", "中国常模"],
+      tags: ["人格", "快速", "中国常模"],
       category: "personality",
     },
     {
@@ -178,7 +178,7 @@ export default defineEventHandler(() => {
       description: "双相谱系障碍的标准化筛查工具，评估躁狂/轻躁狂症状，包含15个问题",
       duration: "约3-5分钟",
       questionsCount: 15,
-      tags: ["躁狂", "双相", "快速评估"],
+      tags: ["躁狂", "双相", "快速"],
       category: "symptom",
     },
     {
@@ -188,7 +188,7 @@ export default defineEventHandler(() => {
       description: "快速评估过去一周的躁狂症状严重程度，包含5个核心问题",
       duration: "约1-2分钟",
       questionsCount: 5,
-      tags: ["躁狂", "快速评估"],
+      tags: ["躁狂", "快速"],
       category: "symptom",
     },
     {
@@ -240,7 +240,7 @@ export default defineEventHandler(() => {
         "Patton等编制，评估注意力、运动和无计划三个维度的冲动性人格特质",
       duration: "约8-12分钟",
       questionsCount: 30,
-      tags: ["冲动性", "人格特质", "快速测评"],
+      tags: ["冲动性", "人格特质"],
       category: "personality",
     },
     {
@@ -251,7 +251,7 @@ export default defineEventHandler(() => {
         "Buss与Perry编制，从身体攻击、言语攻击、愤怒和敌意四个维度评估攻击性倾向",
       duration: "约6-10分钟",
       questionsCount: 29,
-      tags: ["攻击性", "愤怒", "敌意"],
+      tags: ["攻击性", "敌意"],
       category: "personality",
     },
     {
@@ -262,7 +262,7 @@ export default defineEventHandler(() => {
         "Young等编制，原版为临床他评量表，本实现使用自评简化版，仅作粗筛参考",
       duration: "约3-5分钟",
       questionsCount: 11,
-      tags: ["躁狂", "双相筛查", "快速评估"],
+      tags: ["躁狂", "双相", "快速"],
       category: "symptom",
     },
     {
@@ -273,7 +273,17 @@ export default defineEventHandler(() => {
         "多维解离量表，用0-10评估解离体验频率与严重程度，覆盖DID/OSDD、人格/现实解体、解离性失忆、PTSD与功能性神经症状，含12个子量表",
       duration: "约10-15分钟",
       questionsCount: 60,
-      tags: ["解离", "症状筛查", "创伤"],
+      tags: ["解离", "创伤"],
+      category: "symptom",
+    },
+    {
+      id: "des2",
+      title: "解离经验量表",
+      englishName: "Dissociative Experiences Scale-II (DES-II)",
+      description: "解离经验量表（DES-II），用0-100评估记忆缺失、人格/现实解体与吸收沉浸三类解离体验，国际常用的解离筛查工具",
+      duration: "约10分钟",
+      questionsCount: 28,
+      tags: ["解离", "创伤", "快速"],
       category: "symptom",
     },
     {
@@ -284,7 +294,7 @@ export default defineEventHandler(() => {
         "Morin等编制，评估过去2周失眠问题的性质、症状及日间影响",
       duration: "约2-3分钟",
       questionsCount: 7,
-      tags: ["失眠", "睡眠障碍", "快速评估"],
+      tags: ["睡眠障碍", "快速"],
       category: "symptom",
     },
   ];

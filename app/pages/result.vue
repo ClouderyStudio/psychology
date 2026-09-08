@@ -72,6 +72,7 @@
 
             <ResultScl90 v-if="isSCL90 && hasDimensionScores" :scores="result.dimensionScores" />
             <ResultMid60 v-if="isMid60" :result="result" />
+            <ResultDes2 v-if="isDES2" :result="result" />
 
             <!-- 建议内容 -->
             <div v-if="!isMBTI && !isSeven && !isPsyAge" class="rounded-lg p-6 mb-6" style="background-color: var(--primary-light);">
@@ -230,6 +231,7 @@ const isMBTI = computed(() => result.value?.testId === 'mbti')
 const isSeven = computed(() => result.value?.testId === 'seven')
 const isPsyAge = computed(() => result.value?.testId === 'psy-age')
 const isMid60 = computed(() => result.value?.testId === 'mid60')
+const isDES2 = computed(() => result.value?.testId === 'des2')
 const psyAgeReport = computed(() => result.value?.psyAgeReport)
 
 const mbtiReport = computed(() => result.value?.mbtiReport || null)
@@ -267,7 +269,7 @@ const isPersonality = computed(() => {
 // 需要展示维度剖面的量表（除文字外还有维度数据）
 const enrichedScale = computed(() => {
   const id = result.value?.testId
-  return !!id && ['epq', 'epq-rsc', 'temperament', 'bpns', 'ipip-eis', 'sixteenPF', 'sccs', 'pss', 'sds', 'sas', 'rses', 'asrm', 'phq9', 'gad7', 'sioss', 'bis', 'bpaq', 'mid60'].includes(id) && hasDimensionScores.value
+  return !!id && ['epq', 'epq-rsc', 'temperament', 'bpns', 'ipip-eis', 'sixteenPF', 'sccs', 'pss', 'sds', 'sas', 'rses', 'asrm', 'phq9', 'gad7', 'sioss', 'bis', 'bpaq', 'mid60', 'des2'].includes(id) && hasDimensionScores.value
 })
 
 // 显示分数（处理 MBTI 等特殊量表）
