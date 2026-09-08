@@ -527,3 +527,32 @@ describe("SIOSS / BIS-11 / BPAQ / YMRS / ISI 计分（2026-09 新增）", () => 
   });
 });
 
+
+describe("MID-60 多维解离量表", () => {
+  it("全 0 → 总分0，无解离体验", () => {
+    const r = calculateScore({ testId: "mid60", answers: full(60, 0) });
+    expect(r.totalScore).toBe(0);
+    expect(r.level).toBe("无解离体验");
+  });
+
+  it("全 10 → 总分100，提示严重解离", () => {
+    const r = calculateScore({ testId: "mid60", answers: full(60, 10) });
+    expect(r.totalScore).toBe(100);
+    expect(r.level).toBe("严重的解离和创伤后症状");
+  });
+
+  it("自伤题（22）≥5 → 触发安全提示", () => {
+    const a = full(60, 1);
+    a[22] = 6;
+    const r = calculateScore({ testId: "mid60", answers: a });
+    expect(r.suggestion).toContain("安全提示");
+  });
+
+  it("单题PNES（题26）=10 → 子量表达临界值", () => {
+    const a = full(60, 0);
+    a[26] = 10;
+    const r = calculateScore({ testId: "mid60", answers: a });
+    expect(r.dimensionScores?.pnes?.above).toBe(true);
+    expect(r.totalScore).toBeGreaterThan(0);
+  });
+});

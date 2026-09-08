@@ -330,7 +330,26 @@ const config = computed(() => {
         desc: (d.desc as string) || '',
       })
     })
-  } else if (props.testId === 'phq9' || props.testId === 'gad7') {
+  } else if (props.testId === 'mid60') {
+    title = 'MID-60 · 解离子量表剖面'
+    icon = '🌀'
+    color = 'var(--symptom)'
+    hint = '12 个相关子量表（均值×10，0-100%），各自与参考临界值（%）对照；超线提示值得进一步留意。'
+    const order = ['amnesia', 'alter', 'angry', 'persec', 'dpdr', 'memory-distress', 'autobio', 'flashback', 'fns', 'pnes', 'trance', 'identity']
+    order.forEach((k) => {
+      const d = (s[k] || {}) as any
+      const sc = Number(d.score) || 0
+      items.push({
+        key: k,
+        name: (d.name as string) || k,
+        value: clamp(sc),
+        display: sc.toFixed(1) + '%',
+        level: d.above ? '超参考线' : '',
+        desc: (d.desc as string) || '',
+      })
+    })
+  }
+  else if (props.testId === 'phq9' || props.testId === 'gad7') {
     const h = (s.highlight || {}) as any
     title = props.testId === 'phq9' ? '关键症状' : '主要担忧 / 紧张表现'
     icon = '🔍'

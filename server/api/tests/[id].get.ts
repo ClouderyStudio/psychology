@@ -103,6 +103,10 @@ import {
   isiOptions,
   isiQuestions,
 } from "~~/server/utils/questions/isi-questions";
+import {
+  mid60Options,
+  mid60Questions,
+} from "~~/server/utils/questions/mid60-questions";
 import { testIntros } from "~~/server/utils/test-intros";
 
 // 按题目 id 升序排序（题库文件顺序可能与出题顺序不同）
@@ -555,6 +559,23 @@ export default defineEventHandler(async (event) => {
       })),
       scoringRules: {
         type: "isi",
+      },
+    },
+    mid60: {
+      id: "mid60",
+      title: "MID-60 多维解离量表",
+      description:
+        "多维解离量表（Multidimensional Inventory of Dissociation，MID-60）用于评估解离体验的频率与严重程度，覆盖DID/OSDD、人格解体/现实解体、解离性失忆、PTSD及功能性神经症状等相关症状。",
+      instructions:
+        '请基于最近一个月的真实体验作答，每题用 0–10 打分：0=从不，10=总是。共60题，大约需要10-15分钟。',
+      questions: mid60Questions.map((q) => ({
+        id: q.id,
+        text: q.text,
+        options: mid60Options,
+        dimension: q.dimension,
+      })),
+      scoringRules: {
+        type: "mid60",
       },
     },
   };

@@ -266,6 +266,17 @@ export default defineEventHandler(() => {
       category: "symptom",
     },
     {
+      id: "mid60",
+      title: "MID-60 多维解离量表",
+      englishName: "Multidimensional Inventory of Dissociation (MID-60)",
+      description:
+        "多维解离量表，用0-10评估解离体验频率与严重程度，覆盖DID/OSDD、人格/现实解体、解离性失忆、PTSD与功能性神经症状，含12个子量表",
+      duration: "约10-15分钟",
+      questionsCount: 60,
+      tags: ["解离", "症状筛查", "创伤"],
+      category: "symptom",
+    },
+    {
       id: "isi",
       title: "失眠严重程度指数",
       englishName: "Insomnia Severity Index (ISI)",
