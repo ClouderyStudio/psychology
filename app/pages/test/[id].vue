@@ -89,7 +89,27 @@
               </div>
             </div>
 
-            <div class="p-6">
+            <!-- SIOSS 专属正式声明（替代普通量表的"打乱顺序"开关） -->
+            <div v-if="isFormalTest" class="p-6">
+              <div class="formal-decree">
+                <div class="formal-decree-seal">郑重声明</div>
+                <div class="formal-decree-title">自杀意念自评量表 · 测评前告知书</div>
+                <div class="formal-decree-sub">SIOSS · Self-rating Idea of Suicide Scale</div>
+                <div class="formal-decree-body">
+本量表将询问您近期与自杀相关的想法、感受与睡眠情况，含若干<b>强烈危险信号条目</b>。
+请您在<b>私密、安全</b>的环境下凭<b>真实感受</b>作答；掩饰会让结果失真，也可能让您错失及时的帮助。
+本量表仅为<b>筛查工具</b>，<b>不能替代专业诊断</b>。无论结果如何，如果您当下正经历难以承受的痛苦，或反复出现结束生命的念头，请<b>立即</b>联系下方专业援助。
+                </div>
+                <div class="formal-decree-hotline">
+                  <strong>全国心理援助热线：12356</strong>（24 小时，免费，由国家卫健委统一管理）<br>
+                  <strong>希望 24 热线：400-161-9995</strong>（24 小时）<br>
+                  <strong>北京心理危机研究与干预中心：010-82951332</strong><br>
+                  紧急情况请拨打 <strong>120</strong>，或前往就近医院急诊。
+                </div>
+              </div>
+            </div>
+
+            <div v-else class="p-6">
               <label class="flex items-start p-4 rounded-lg cursor-pointer transition-all" style="background-color: var(--bg);">
                 <input type="checkbox" v-model="shuffleOrder" class="w-4 h-4 mr-3 mt-0.5" :style="{ accentColor: 'var(--primary)' }">
                 <div>
@@ -100,6 +120,30 @@
               <button @click="startTest" class="w-full mt-4 py-3 rounded-lg font-semibold text-white transition-all"
                 style="background-color: var(--primary); box-shadow: var(--shadow-sm);">
                 开始答题
+              </button>
+            </div>
+
+            <!-- SIOSS 正式模式：阅读声明后方可答题 -->
+            <div v-if="isFormalTest" class="px-6 pb-6">
+              <label class="flex items-start p-3 rounded-lg cursor-pointer transition-all"
+                style="background-color: var(--bg); border: 1px solid var(--formal-border-soft, var(--border));">
+                <input type="checkbox" v-model="formalAcknowledged" class="w-4 h-4 mr-3 mt-1"
+                  :style="{ accentColor: 'var(--formal-danger, #8a1c1c)' }">
+                <div style="color: var(--text);">
+                  <span class="font-semibold">我已阅读并理解上述声明。</span>
+                  <span class="text-sm block mt-1" style="color: var(--text-secondary);">勾选后即可进入正式答题。如感到情绪激动或缺乏安全私密环境，建议先拨打上方热线或暂缓作答。</span>
+                </div>
+              </label>
+              <button @click="startTest" :disabled="!formalAcknowledged"
+                class="w-full mt-4 py-3 rounded-lg font-semibold transition-all disabled:opacity-40 disabled:cursor-not-allowed"
+                :style="{
+                  backgroundColor: formalAcknowledged ? 'var(--formal-primary, var(--primary))' : 'var(--text-muted)',
+                  color: 'white',
+                  boxShadow: 'var(--shadow-sm)',
+                  letterSpacing: '0.15em',
+                  fontFamily: FORMAL_FONT_FAMILY,
+                }">
+                {{ formalAcknowledged ? '进入正式测评' : '请先确认已阅读声明' }}
               </button>
             </div>
           </div>
@@ -200,12 +244,27 @@
             </p>
           </div>
 
+          <!-- SIOSS 正式模式：答题中持续提示 -->
+          <div v-if="isFormalTest" class="formal-top-warning" style="border-radius: 0;">
+            <div class="formal-top-warning-icon">⚠️</div>
+            <div class="formal-top-warning-body">
+              <b>专业量表 · 请如实作答</b><br>
+              量表含若干与自杀相关的题目，请凭真实感受作答。<b>掩饰会让结果失真</b>，更可能让您错失及时帮助。<br>
+              如感到情绪激动或需要倾诉，请拨 <b>12356</b>（全国心理援助热线，24 小时，免费）。
+            </div>
+          </div>
+
           <!-- 题目列表（当前页） -->
           <div class="p-6 space-y-8">
             <div v-for="(question, index) in currentPageQuestions" :key="question.id"
+              :class="[isFormalTest && SIOSS_DANGER_ITEMS.has(question.id) ? 'formal-question formal-question-danger' : '']"
               class="border-b last:border-0 pb-6 last:pb-0" style="border-color: var(--primary-light);">
               <p class="text-lg font-semibold mb-4" style="color: var(--text);">
                 {{ getGlobalQuestionNumber(question.id) }}. {{ question.text }}
+                <span v-if="isFormalTest && SIOSS_DANGER_ITEMS.has(question.id)"
+                  class="formal-question-danger-tag">
+                  危险信号条目
+                </span>
               </p>
 
               <div class="space-y-3">
@@ -297,6 +356,36 @@ const testId = route.params.id as string
 const answerStore = useAnswerStore()
 const { $toast, $confirm } = useNuxtApp()
 
+// SIOSS（自杀意念）属于高敏感量表，使用专门的「正式模式」：衬线字体 / 墨色 + 警示红 / 强化危机警告。
+const FORMAL_TESTS = ['sioss']
+const isFormalTest = computed(() => FORMAL_TESTS.includes(testId))
+
+// SIOSS 强烈危险信号条目（与 scoreSIOSS.dangerItems 一致）：答"是"需严肃对待
+const SIOSS_DANGER_ITEMS = new Set<number>([11, 17, 22, 26])
+
+// SIOSS 正式模式衬线字体栈（含空格的字体族名必须加引号；放在常量里避免模板属性值内的引号转义问题）
+const FORMAL_FONT_FAMILY = "'Noto Serif SC', 'SimSun', serif"
+
+onMounted(() => {
+  if (import.meta.client && isFormalTest.value) {
+    document.documentElement.setAttribute('data-formal', testId)
+  }
+})
+onUnmounted(() => {
+  if (import.meta.client) {
+    document.documentElement.removeAttribute('data-formal')
+  }
+})
+watch(() => testId, (id) => {
+  if (import.meta.client) {
+    if (FORMAL_TESTS.includes(id)) {
+      document.documentElement.setAttribute('data-formal', id)
+    } else {
+      document.documentElement.removeAttribute('data-formal')
+    }
+  }
+})
+
 // 客户端标志
 const isClient = ref(false)
 
@@ -322,6 +411,9 @@ const allQuestions = ref<any[]>([])
 const started = ref(false)        // 是否已进入答题（每次进入都先显示开始页询问是否打乱）
 const shuffleOrder = ref(false)   // 开始页勾选：是否打乱题目顺序
 const isSubmitting = ref(false)   // 提交中锁：防止重复提交
+
+// SIOSS 等高敏感量表：勾选"已阅读声明"才可进入
+const formalAcknowledged = ref(false)
 
 // 打乱算法（Fisher-Yates）
 function shuffleArr<T>(arr: T[]): T[] {
@@ -629,48 +721,68 @@ async function submitTest() {
     return
   }
 
+  // SIOSS 等高敏感量表：提交前正式确认，提示作答环境与如实作答
+  if (isFormalTest.value) {
+    $confirm({
+      title: '郑重 · 确认提交测评',
+      message:
+        '请确认：\n\n· 您已在私密、安全的环境下凭真实感受作答；\n· 您理解掩饰（测谎）分偏高会让结果失真，并可能让您错失及时帮助；\n· 您已知悉下方全国心理援助热线：\n  —— 12356（24 小时，免费）\n  —— 希望 24 热线 400-161-9995\n  —— 北京心理危机研究与干预中心 010-82951332\n\n提交后系统将立即给出筛查结果。无论结果如何，如有持续痛苦或出现结束生命的念头，请立即寻求专业帮助。',
+      confirmText: '确认提交',
+      cancelText: '再检查一下',
+      onConfirm: async () => {
+        await doSubmit()
+      }
+    })
+    return
+  }
+
   $confirm({
     title: '确认提交',
     message: '确定要提交测评吗？提交后将无法修改答案。',
     onConfirm: async () => {
-      if (isSubmitting.value) return
-      isSubmitting.value = true
-      try {
-        $toast.info('正在提交中，请稍候...', '提交中')
-
-        const result = await $fetch('/api/submit', {
-          method: 'POST',
-          body: {
-            testId,
-            answers: answers.value
-          }
-        })
-
-        if (result?.success) {
-          if (typeof window !== 'undefined') {
-            sessionStorage.removeItem(`test_${testId}_answers`)
-            window.dispatchEvent(new CustomEvent('refreshProgress'))
-            window.dispatchEvent(new CustomEvent('newResult'))  // 触发新结果事件
-          }
-
-          answerStore.clearAnswers()
-
-          answerStore.setResult(result.data)
-
-          $toast.success('测评提交成功！', '完成')
-          await router.push('/result')
-        }
-      } catch (error: any) {
-        console.error('提交失败', error)
-        $toast.error(
-          error?.data?.statusMessage || error?.data?.message || '提交失败，请稍后重试',
-          '错误',
-        )
-      } finally {
-        isSubmitting.value = false
-      }
+      await doSubmit()
     }
   })
+}
+
+// 实际执行提交
+async function doSubmit() {
+  if (isSubmitting.value) return
+  isSubmitting.value = true
+  try {
+    $toast.info('正在提交中，请稍候...', '提交中')
+
+    const result = await $fetch('/api/submit', {
+      method: 'POST',
+      body: {
+        testId,
+        answers: answers.value
+      }
+    })
+
+    if (result?.success) {
+      if (typeof window !== 'undefined') {
+        sessionStorage.removeItem(`test_${testId}_answers`)
+        window.dispatchEvent(new CustomEvent('refreshProgress'))
+        window.dispatchEvent(new CustomEvent('newResult'))  // 触发新结果事件
+      }
+
+      answerStore.clearAnswers()
+
+      answerStore.setResult(result.data)
+
+      $toast.success('测评提交成功！', '完成')
+      await router.push('/result')
+    }
+  } catch (error: any) {
+    console.error('提交失败', error)
+    $toast.error(
+      error?.data?.statusMessage || error?.data?.message || '提交失败，请稍后重试',
+      '错误',
+    )
+  } finally {
+    isSubmitting.value = false
+  }
 }
 
 // 错误处理

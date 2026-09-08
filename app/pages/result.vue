@@ -16,6 +16,26 @@
             <p class="text-sm mt-2 text-white/70">测评时间：{{ formattedTime }}</p>
           </div>
 
+          <!-- SIOSS 正式模式：风险等级横幅 -->
+          <div v-if="isFormalTest && siossRisk" class="px-8 pt-6"
+            :class="siossRisk.kind === 'danger' ? 'formal-risk-banner formal-risk-banner--danger'
+              : siossRisk.kind === 'warn' ? 'formal-risk-banner formal-risk-banner--warn'
+              : 'formal-risk-banner formal-risk-banner--ok'">
+            <div style="display:flex; align-items:center; gap:12px; margin-bottom: 6px;">
+              <span :class="siossRisk.kind === 'danger' ? 'formal-seal formal-seal--danger'
+                : siossRisk.kind === 'warn' ? 'formal-seal formal-seal--accent'
+                : 'formal-seal formal-seal--ok'">
+                {{ siossRisk.kind === 'danger' ? '■ 高风险 ■' : siossRisk.kind === 'warn' ? '■ 警惕 ■' : '■ 提示 ■' }}
+              </span>
+              <span style="font-size: 13px; letter-spacing: 0.2em; color: var(--formal-muted);">RISK ASSESSMENT · 风险等级</span>
+            </div>
+            <div class="formal-risk-banner-title">{{ siossRisk.title }}</div>
+            <div class="formal-risk-banner-desc">{{ siossRisk.desc }}</div>
+            <div class="formal-risk-banner-footer">
+              请将这份结果带给专业人员进行评估；如有持续痛苦或出现结束生命的念头，请立即拨打下方危机援助热线。
+            </div>
+          </div>
+
           <!-- 分数展示 -->
           <div class="p-8">
             <ResultMbti v-if="isMBTI" :report="mbtiReport" :level="result.level" />
@@ -76,14 +96,29 @@
 
             <!-- 资源链接 -->
             <div v-if="!isMBTI" class="rounded-lg p-4 mb-6"
-              style="background-color: var(--warning-bg); border-left: 4px solid var(--warning-border);">
-              <h4 class="font-semibold mb-2" style="color: var(--text);">📞 需要帮助？</h4>
-              <p class="text-sm" style="color: var(--warning-text);">
-                如果您感到困扰，可以联系以下专业资源：<br>
-                • 希望24热线：400-161-9995（全国心理援助）<br>
-                • 北京心理危机研究与干预中心：010-82951332<br>
-                • 简单心理、壹心理等平台寻求专业咨询
-              </p>
+              :style="isFormalTest ? '' : 'background-color: var(--warning-bg); border-left: 4px solid var(--warning-border);'">
+              <template v-if="isFormalTest">
+                <div class="formal-resource-card-title">
+                  <span style="font-size: 18px;">📞</span>
+                  <span>危机援助资源（24 小时）</span>
+                </div>
+                <ul class="formal-resource-list">
+                  <li><b>全国心理援助热线</b> · <a href="tel:12356">12356</a>（24 小时，免费，由国家卫健委统一管理）</li>
+                  <li><b>希望 24 热线</b> · <a href="tel:400-161-9995">400-161-9995</a>（24 小时）</li>
+                  <li><b>北京心理危机研究与干预中心</b> · <a href="tel:010-82951332">010-82951332</a></li>
+                  <li><b>紧急医疗救援</b> · <a href="tel:120">120</a>（或前往就近医院急诊）</li>
+                  <li><b>青少年台</b> · <a href="tel:12355">12355</a></li>
+                </ul>
+              </template>
+              <template v-else>
+                <h4 class="font-semibold mb-2" style="color: var(--text);">📞 需要帮助？</h4>
+                <p class="text-sm" style="color: var(--warning-text);">
+                  如果您感到困扰，可以联系以下专业资源：<br>
+                  • 希望24热线：400-161-9995（全国心理援助）<br>
+                  • 北京心理危机研究与干预中心：010-82951332<br>
+                  • 简单心理、壹心理等平台寻求专业咨询
+                </p>
+              </template>
             </div>
 
             <!-- 操作按钮 -->
@@ -124,6 +159,22 @@ const answerStore = useAnswerStore()
 // 获取结果
 const result = ref<any>(null)
 const isLoading = ref(true)
+
+// 高敏感量表（自杀 / 自伤类）使用正式模式，与测试页共用 FORMAL_TESTS
+const FORMAL_TESTS = ['sioss']
+const isFormalTest = computed(() => FORMAL_TESTS.includes(result.value?.testId))
+
+// 挂载/卸载时挂/卸 data-formal（衬线 / 墨色 / 警示红主题）
+onMounted(() => {
+  if (import.meta.client && result.value?.testId && FORMAL_TESTS.includes(result.value.testId)) {
+    document.documentElement.setAttribute('data-formal', result.value.testId)
+  }
+})
+onUnmounted(() => {
+  if (import.meta.client) {
+    document.documentElement.removeAttribute('data-formal')
+  }
+})
 
 // 判断应该计分
 const canScore = ref(false)
@@ -184,6 +235,23 @@ const psyAgeReport = computed(() => result.value?.psyAgeReport)
 const mbtiReport = computed(() => result.value?.mbtiReport || null)
 
 const sevenReport = computed(() => result.value?.sevenReport || null)
+
+// SIOSS 风险等级（与 scoreSIOSS.level 同步）：阳性 / 危险信号 / 作答无效 / 阴性
+const siossRisk = computed(() => {
+  if (result.value?.testId !== 'sioss') return null
+  const level = String(result.value?.level || '')
+  const ds = result.value?.dimensionScores || {}
+  if (level.includes('筛查阳性') || level.includes('自杀意念（')) {
+    return { kind: 'danger', badge: '筛查阳性', title: '高风险 · 请尽快寻求专业评估', desc: '本结果提示您近期可能存在较明显的自杀意念。SIOSS 为筛查工具，不能替代临床诊断，但请您尽快将这份结果带给专业人员进行评估，并告知一位您信任的人。' }
+  }
+  if (level.includes('危险信号')) {
+    return { kind: 'warn', badge: '危险信号', title: '存在需要关注的自杀相关危险信号', desc: '即便总分未达阳性标准，您对部分关键条目（"想结束自己的生命""我曾经自杀过""有时我想一死了之"等）作出了肯定回答——这是必须严肃对待的危险信号，请尽快寻求专业评估，而不是"再等等看"。' }
+  }
+  if ((ds.concealment || {}).valid === false || level.includes('参考价值有限')) {
+    return { kind: 'warn', badge: '结果参考有限', title: '本次结果参考价值有限', desc: '您的掩饰（测谎）维度得分偏高，说明作答时可能没有完全如实回答。请在安心、私密的环境下重新如实作答一次——这本身也是对您自己的保护。' }
+  }
+  return { kind: 'ok', badge: '本次未检出明显自杀意念', title: '本次未检出明显自杀意念', desc: '自杀意念可能随情绪、压力和生活处境而波动。如果某一天您感到痛苦难以承受，或脑海中出现死亡相关念头，请不要忽视，可向信任的人倾诉，或拨打 12356 心理援助热线。' }
+})
 
 // 判断是否有维度分数
 const hasDimensionScores = computed(() => {
