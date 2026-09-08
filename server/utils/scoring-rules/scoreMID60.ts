@@ -74,7 +74,9 @@ export function scoreMID60(answers: Record<number, number>): ScoringResult {
      "参考等级：" + level + "（" + desc + "）",
      "• " + aboveText,
      "",
-     "参考语义：普通人群平均约13%，DID临床样本平均约51%。本结果仅用于自我筛查与资料整理，不能单独作为诊断依据，需结合临床访谈、病史与功能损害综合判断。",
+     "参考语义：普通人群（社区样本）平均约12.9%，临床 DID 样本平均约56.8%，完整版218题MID中 DID 平均约51、OSDD-1 平均约39。",
+     "高分解读：总分很高（尤其>80）也可能源于把日常遗忘/注意力不集中（如 ADHD）误当失忆、自闭个体对“时间比例”题理解差异、强烈求助动机乃至故意夸大；须经面询澄清，不能仅凭分数下结论。",
+     "局限：本量表仅为筛查，不能单独作为诊断依据；如需更精确评估，可做结构化访谈（SCID-D / DDIS / TADS-I）或完整218题MID。",
      safetyText,
     ].filter(Boolean).join("\n");
 
@@ -84,6 +86,6 @@ export function scoreMID60(answers: Record<number, number>): ScoringResult {
     level,
     suggestion,
     severity: Math.round((pct / 100) * 1000) / 1000,
-    dimensionScores: { type: "mid60", ...dims },
+    dimensionScores: { type: "mid60", safety, selfHarmMax, ...dims },
   };
 }
