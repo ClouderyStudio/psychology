@@ -27,7 +27,7 @@
                 : 'formal-seal formal-seal--ok'">
                 {{ siossRisk.kind === 'danger' ? '■ 高风险 ■' : siossRisk.kind === 'warn' ? '■ 警惕 ■' : '■ 提示 ■' }}
               </span>
-              <span style="font-size: 13px; letter-spacing: 0.2em; color: var(--formal-muted);">RISK ASSESSMENT · 风险等级</span>
+              <span style="font-size: 13px; letter-spacing: 0.2em; color: var(--text-muted);">RISK ASSESSMENT · 风险等级</span>
             </div>
             <div class="formal-risk-banner-title">{{ siossRisk.title }}</div>
             <div class="formal-risk-banner-desc">{{ siossRisk.desc }}</div>
@@ -164,18 +164,6 @@ const isLoading = ref(true)
 // 高敏感量表（自杀 / 自伤类）使用正式模式，与测试页共用 FORMAL_TESTS
 const FORMAL_TESTS = ['sioss']
 const isFormalTest = computed(() => FORMAL_TESTS.includes(result.value?.testId))
-
-// 挂载/卸载时挂/卸 data-formal（衬线 / 墨色 / 警示红主题）
-onMounted(() => {
-  if (import.meta.client && result.value?.testId && FORMAL_TESTS.includes(result.value.testId)) {
-    document.documentElement.setAttribute('data-formal', result.value.testId)
-  }
-})
-onUnmounted(() => {
-  if (import.meta.client) {
-    document.documentElement.removeAttribute('data-formal')
-  }
-})
 
 // 判断应该计分
 const canScore = ref(false)

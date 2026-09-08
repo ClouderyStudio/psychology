@@ -89,7 +89,7 @@
               </div>
             </div>
 
-            <!-- SIOSS 专属正式声明（替代普通量表的"打乱顺序"开关） -->
+            <!-- SIOSS 专属：测评前告知书与安全提醒 -->
             <div v-if="isFormalTest" class="p-6">
               <div class="formal-decree">
                 <div class="formal-decree-seal">郑重声明</div>
@@ -125,10 +125,18 @@
 
             <!-- SIOSS 正式模式：阅读声明后方可答题 -->
             <div v-if="isFormalTest" class="px-6 pb-6">
+              <label class="flex items-start p-4 rounded-lg cursor-pointer transition-all mb-4"
+                style="background-color: var(--bg); border: 1px solid var(--border);">
+                <input type="checkbox" v-model="shuffleOrder" class="w-4 h-4 mr-3 mt-0.5" :style="{ accentColor: 'var(--primary)' }">
+                <div>
+                  <div class="font-semibold" style="color: var(--text);">🔀 打乱题目顺序</div>
+                  <p class="text-sm mt-1" style="color: var(--text-secondary);">勾选后随机排列题目顺序，降低惯性作答的干扰；不勾选则按原顺序作答。</p>
+                </div>
+              </label>
               <label class="flex items-start p-3 rounded-lg cursor-pointer transition-all"
-                style="background-color: var(--bg); border: 1px solid var(--formal-border-soft, var(--border));">
+                style="background-color: var(--bg); border: 1px solid var(--border);">
                 <input type="checkbox" v-model="formalAcknowledged" class="w-4 h-4 mr-3 mt-1"
-                  :style="{ accentColor: 'var(--formal-danger, #8a1c1c)' }">
+                  :style="{ accentColor: 'var(--danger)' }">
                 <div style="color: var(--text);">
                   <span class="font-semibold">我已阅读并理解上述声明。</span>
                   <span class="text-sm block mt-1" style="color: var(--text-secondary);">勾选后即可进入正式答题。如感到情绪激动或缺乏安全私密环境，建议先拨打上方热线或暂缓作答。</span>
@@ -137,11 +145,9 @@
               <button @click="startTest" :disabled="!formalAcknowledged"
                 class="w-full mt-4 py-3 rounded-lg font-semibold transition-all disabled:opacity-40 disabled:cursor-not-allowed"
                 :style="{
-                  backgroundColor: formalAcknowledged ? 'var(--formal-primary, var(--primary))' : 'var(--text-muted)',
+                  backgroundColor: formalAcknowledged ? 'var(--primary)' : 'var(--text-muted)',
                   color: 'white',
                   boxShadow: 'var(--shadow-sm)',
-                  letterSpacing: '0.15em',
-                  fontFamily: FORMAL_FONT_FAMILY,
                 }">
                 {{ formalAcknowledged ? '进入正式测评' : '请先确认已阅读声明' }}
               </button>
@@ -378,28 +384,6 @@ const isFormalTest = computed(() => FORMAL_TESTS.includes(testId))
 // SIOSS 强烈危险信号条目（与 scoreSIOSS.dangerItems 一致）：答"是"需严肃对待
 const SIOSS_DANGER_ITEMS = new Set<number>([11, 17, 22, 26])
 
-// SIOSS 正式模式衬线字体栈（含空格的字体族名必须加引号；放在常量里避免模板属性值内的引号转义问题）
-const FORMAL_FONT_FAMILY = "'Noto Serif SC', 'SimSun', serif"
-
-onMounted(() => {
-  if (import.meta.client && isFormalTest.value) {
-    document.documentElement.setAttribute('data-formal', testId)
-  }
-})
-onUnmounted(() => {
-  if (import.meta.client) {
-    document.documentElement.removeAttribute('data-formal')
-  }
-})
-watch(() => testId, (id) => {
-  if (import.meta.client) {
-    if (FORMAL_TESTS.includes(id)) {
-      document.documentElement.setAttribute('data-formal', id)
-    } else {
-      document.documentElement.removeAttribute('data-formal')
-    }
-  }
-})
 
 // 客户端标志
 const isClient = ref(false)
