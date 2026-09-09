@@ -391,8 +391,7 @@ const loadUnfinishedTests = async () => {
   if (typeof window === 'undefined') return
 
   try {
-    const { data } = await useFetch('/api/tests/list')
-    const testList = (data.value as any)?.data || []
+    const testList = ((await $fetch<any>('/api/tests/list'))?.data) || []
 
     const unfinished: Array<{ id: string; title: string; completed: number; total: number }> = []
 

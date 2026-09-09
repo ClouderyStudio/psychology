@@ -300,7 +300,7 @@ const answeredCount = computed(() =>
 )
 
 const remainingCount = computed(() => scorableCount.value - answeredCount.value)
-const isComplete = computed(() => answeredCount.value === scorableCount.value && scorableCount.value > 0)
+const isComplete = computed(() => answeredCount.value === scorableCount.value)
 
 // 多选操作
 const isMultiSelected = (sIndex: number, qIndex: number, label: string) =>

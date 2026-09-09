@@ -22,7 +22,7 @@
         <div class="stat-item text-center p-4 rounded-xl"
           style="background-color: var(--card-bg); box-shadow: var(--shadow-sm);">
           <div class="stat-num text-3xl md:text-4xl font-bold mb-1" style="color: var(--primary);">
-            {{ tests.length }}
+            {{ tests.length + 1 }}
           </div>
           <div class="stat-label text-sm" style="color: var(--text-secondary);">专业量表</div>
         </div>
@@ -131,6 +131,56 @@
 
       <!-- 量表卡片网格 -->
       <div class="cards-grid grid md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-6xl mx-auto">
+        <!-- 外链卡片：心理健康多维自评量表（AnonUsAl）—— 独立靛紫渐变配色 -->
+        <a href="https://anonusal.github.io/a.html" target="_blank" rel="noopener noreferrer"
+          class="external-scale-card card rounded-xl transition-all duration-300 hover:transform hover:-translate-y-1 overflow-hidden flex flex-col relative">
+
+          <!-- 卡片顶部色带 -->
+          <div class="external-band h-2"></div>
+
+          <!-- 卡片内容 -->
+          <div class="p-6 flex flex-col flex-grow" :style="{ backgroundColor: 'var(--card-bg)' }">
+            <!-- 分类标签 -->
+            <div class="flex items-start justify-between mb-3">
+              <span class="external-tag category-tag px-3 py-1 rounded-full text-xs font-semibold">
+                ✨ 综合评估
+              </span>
+              <span class="external-tag duration-badge px-2 py-1 rounded text-xs font-semibold">
+                约 3-12 分钟
+              </span>
+            </div>
+
+            <h3 class="external-title text-xl font-bold mb-1">心理健康多维自评量表</h3>
+
+            <p class="external-subtitle text-xs mb-3">
+              Multidimensional Mental Health Scale · AnonUsAl 编制 · V2.2
+            </p>
+
+            <p class="text-sm mb-4 leading-relaxed min-h-[60px]" style="color: var(--text-secondary);">
+              覆盖 <strong class="external-num">20</strong> 个核心特征维度，提供极简自测、快速筛查、标准评估、深度评估四种模式（<strong class="external-num">20-105</strong> 题），内置作答效度校验，支持题目乱序复测。
+            </p>
+
+            <div class="flex items-center mt-auto justify-between mb-4 text-xs" style="color: var(--text-muted);">
+              <span>📝 <strong class="external-num">20-105</strong> 题</span>
+              <div>
+                <span class="external-tag tag px-2 py-1 rounded-full text-xs font-semibold mr-2">
+                  20 维度
+                </span>
+                <span class="external-tag tag px-2 py-1 rounded-full text-xs font-semibold">
+                  效度校验
+                </span>
+              </div>
+            </div>
+
+            <!-- 按钮区域 -->
+            <div class="flex gap-2 pt-2 min-h-[44px]">
+              <span class="external-btn flex-1 py-2.5 rounded-lg font-semibold transition-all text-sm text-center">
+                开始测评
+              </span>
+            </div>
+          </div>
+        </a>
+
         <div v-for="test in filteredTests" :key="test.id"
           class="card rounded-xl transition-all duration-300 hover:transform hover:-translate-y-1 overflow-hidden flex flex-col"
           :style="{ boxShadow: 'var(--shadow-md)' }">
@@ -549,3 +599,58 @@ if (error.value) {
   console.error('加载测评列表失败', error.value)
 }
 </script>
+
+<style scoped>
+/* 外链量表卡片：层级克制 —— 标签中性弱化，主按钮为唯一高光焦点
+   文字/底色全部使用主题变量，自动适配明暗模式 */
+.external-scale-card {
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow-sm);
+}
+
+.external-scale-card:hover {
+  border-color: rgba(56, 189, 248, 0.45);
+  box-shadow: 0 10px 28px rgba(59, 130, 246, 0.18);
+}
+
+/* 顶部色带：薄荷 → 天蓝柔和渐变 */
+.external-band {
+  background: linear-gradient(90deg, #2dd4bf 0%, #38bdf8 100%);
+}
+
+/* 标签/徽章：中性弱层级（亮色浅米底、暗色深底），无边框无发光 */
+.external-tag {
+  background: var(--bg);
+  border: none;
+  color: var(--text-secondary);
+  box-shadow: none;
+  font-weight: 500;
+}
+
+/* 主标题：最高文本层级（暗色下随变量呈近白色） */
+.external-title {
+  color: var(--text);
+}
+
+/* 英文副标题 */
+.external-subtitle {
+  color: var(--text-secondary);
+}
+
+/* 正文核心数字：加粗 + 主文本色，便于扫视量化信息 */
+.external-num {
+  font-weight: 700;
+  color: var(--text);
+}
+
+/* 唯一视觉焦点：主按钮薄荷 → 天蓝渐变，深色文字在明暗模式下均高对比 */
+.external-btn {
+  background: linear-gradient(135deg, #2dd4bf 0%, #3b82f6 100%);
+  color: #0f172a;
+  box-shadow: 0 6px 18px rgba(59, 130, 246, 0.28);
+}
+
+.external-scale-card:hover .external-btn {
+  filter: brightness(1.06);
+}
+</style>

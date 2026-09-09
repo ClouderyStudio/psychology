@@ -131,7 +131,7 @@ const loadHistory = () => {
       for (let i = 0; i < sessionStorage.length; i++) {
         const key = sessionStorage.key(i)
         const match = key?.match(/^test_(.+)_result$/)
-        if (!match) continue
+        if (!match || !key) continue
         try {
           const raw = JSON.parse(sessionStorage.getItem(key)!)
           if (!raw?.testId) continue

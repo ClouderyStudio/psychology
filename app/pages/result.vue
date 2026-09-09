@@ -186,6 +186,7 @@ import { useAnswerStore } from '~/stores/answer'
 
 const router = useRouter()
 const answerStore = useAnswerStore()
+const { $toast } = useNuxtApp()
 
 // 获取结果
 const result = ref<any>(null)
@@ -321,8 +322,7 @@ const loadResult = async () => {
     const testId = result.value?.testId
     if (!testId) return
     await nextTick()
-    const { data } = await useFetch('/api/tests/list')
-    const testList = (data.value as any)?.data || []
+    const testList = ((await $fetch<any>('/api/tests/list'))?.data) || []
     const found = testList.find((el: any) => el.id === testId)
     // 人格性格类量表通常无总分，不展示分数环；BIS/BPAQ 虽属人格特质类但有总分
     const scoredPersonality = ['bis', 'bpaq'].includes(testId)
