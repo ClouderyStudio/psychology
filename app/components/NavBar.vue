@@ -75,7 +75,7 @@
           <!-- 阅读偏好（文字大小 + 字体 + 字重 + 字形） -->
           <div ref="fontWrap" class="relative z-40">
             <button @click="toggleFontPanel"
-              class="w-8 h-8 rounded-full flex items-center justify-end gap-0.5 transition-all"
+              class="w-8 h-8 rounded-full flex items-center justify-center gap-0.5 transition-all"
               :style="{ backgroundColor: 'var(--primary-light)', color: 'var(--primary)' }"
               :title="'阅读偏好（字号：' + currentFontScaleLabel + ' · 字体：' + currentFontFamilyLabel + ' · 字重：' + currentFontWeightLabel + ' · 字形：' + currentHanVariantLabel + '）'"
               @mouseenter="elStyle($event, { boxShadow: '0 0 0 2px ' + currentAccentColor })"
