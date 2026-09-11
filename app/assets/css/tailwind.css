@@ -1,5 +1,13 @@
 @import "tailwindcss";
 
+/* 思源黑体（Noto Sans SC —— 同一套字，Adobe 叫思源黑体、Google 叫 Noto Sans）
+   仅「蓝白 · Google」主题使用，见下方 --font-stack-google。
+
+   这个包按 unicode-range 把字体切成 100+ 片，浏览器只下载页面真正用到的那几片
+   （整页中文通常几百 KB，而不是整包一两 MB）。其它主题的字体栈里没有这个家族，
+   所以一个字体字节都不会下载，只有这几十 KB 的 @font-face 声明是公共成本。 */
+@import "@fontsource/noto-sans-sc/400.css";
+
 @layer base {
   :root {
     --bg: #f7f4f0;
@@ -742,6 +750,21 @@ html[data-accent="retro"] .md-trait-level {
     "Songti SC",
     Georgia,
     serif;
+  /* 「蓝白 · Google」主题自带的字体意图：思源黑体。
+     思源黑体（Adobe 名）与 Noto Sans SC（Google 名）是同一套字，项目自托管后者，
+     所以排首位能真正命中；后面再列本地可能安装的家族名，最后是系统回退。 */
+  --font-stack-google:
+    "Noto Sans SC",
+    "Source Han Sans SC",
+    "Source Han Sans CN",
+    "Source Han Sans",
+    "思源黑体",
+    -apple-system,
+    BlinkMacSystemFont,
+    "PingFang SC",
+    "Hiragino Sans GB",
+    "Microsoft YaHei",
+    sans-serif;
 }
 
 :root[data-font-family="sans"] {
@@ -798,6 +821,18 @@ html[data-accent="retro"] .md-trait-level {
     "Songti TC",
     Georgia,
     serif;
+  /* 繁体下的思源黑体。刻意**不**自托管 TC 版：那要把整包字体再下一遍，
+     而港澳台用户的系统本来就自带相近的黑体（苹方 TC / 微软正黑），
+     真装了思源黑體的人也能命中前两项。 */
+  --font-stack-hant-google:
+    "Noto Sans TC",
+    "Source Han Sans TC",
+    "Source Han Sans HC",
+    "思源黑體",
+    "PingFang TC",
+    "Microsoft JhengHei",
+    "Heiti TC",
+    sans-serif;
 }
 
 :root[data-variant="hant"] {
@@ -805,6 +840,22 @@ html[data-accent="retro"] .md-trait-level {
   --font-stack-sans: var(--font-stack-hant-sans);
   --font-stack-serif: var(--font-stack-hant-serif);
   --font-stack-kai: var(--font-stack-hant-kai);
+}
+
+/* 「蓝白 · Google」主题把 --font-stack-default 换成思源黑体栈。
+   为什么直接改 --font-stack-default 而不是像「怀旧」那样写 font-family：
+   这样面板里的字体预览（也引用同一批变量）会跟着变，且繁体那套重定向机制照旧生效。
+
+   优先级：写成 html[...] 是为了压过上面 :root 里的 --font-stack-default 定义
+   （两者同为 (0,1,0)，单靠源码顺序容易在日后调整时被改坏）。繁体那一档是 (0,2,1)，
+   能压过 :root[data-variant="hant"] 的 (0,2,0)。
+   用户显式选了字体档时不受影响 —— 那条规则改的是 font-family 本身，
+   而这里改的是变量，两者不在同一个属性上竞争。 */
+html[data-accent="google"] {
+  --font-stack-default: var(--font-stack-google);
+}
+html[data-variant="hant"][data-accent="google"] {
+  --font-stack-default: var(--font-stack-hant-google);
 }
 
 /* ===================== 加粗（无障碍） ===================== */
