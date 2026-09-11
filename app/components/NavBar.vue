@@ -48,7 +48,7 @@
 
           <!-- 主题配色选择 -->
           <div ref="accentWrap" class="relative z-40">
-            <button @click="accentOpen = !accentOpen"
+            <button @click="toggleAccentPanel"
               class="w-8 h-8 rounded-full flex items-center justify-center transition-all"
               :style="{ backgroundColor: 'var(--primary-light)' }"
               :title="'切换主题配色（当前：' + currentAccentLabel + '）'"
@@ -66,7 +66,37 @@
                   @click="setAccent(opt.id); accentOpen = false">
                   <span class="w-6 h-6 rounded-full inline-block border"
                     :style="{ backgroundColor: opt.color, borderColor: 'var(--border)', boxShadow: accent === opt.id ? '0 0 0 2px ' + opt.color : 'none' }"></span>
-                  <span class="text-[11px] leading-tight text-center" style="color: var(--text);">{{ accentLabel(opt) }}</span>
+                  <span class="text-[0.6875rem] leading-tight text-center" style="color: var(--text);">{{ accentLabel(opt) }}</span>
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- 文字大小选择 -->
+          <div ref="fontWrap" class="relative z-40">
+            <button @click="toggleFontPanel"
+              class="w-8 h-8 rounded-full flex items-center justify-end gap-0.5 transition-all"
+              :style="{ backgroundColor: 'var(--primary-light)', color: 'var(--primary)' }"
+              :title="'调整文字大小（当前：' + currentFontScaleLabel + '）'"
+              @mouseenter="elStyle($event, { boxShadow: '0 0 0 2px ' + currentAccentColor })"
+              @mouseleave="elStyle($event, { boxShadow: 'none' })">
+              <span class="font-semibold leading-none" style="font-size: 0.6875rem;">A</span>
+              <span class="font-semibold leading-none" style="font-size: 1rem;">A</span>
+            </button>
+            <div v-if="fontOpen" class="absolute right-0 top-full mt-2 w-52 rounded-xl p-3"
+              style="background-color: var(--card-bg); box-shadow: var(--shadow-lg);">
+              <div class="text-xs font-medium mb-2" style="color: var(--text-secondary);">文字大小</div>
+              <div class="flex flex-col gap-1">
+                <button v-for="opt in fontScaleOptions" :key="opt.id" type="button"
+                  @click="setFontScale(opt.id); fontOpen = false"
+                  class="flex items-center justify-between px-3 py-2 rounded-lg transition-all text-left"
+                  :style="{
+                    backgroundColor: fontScale === opt.id ? 'var(--primary-light)' : 'transparent',
+                    color: fontScale === opt.id ? 'var(--primary)' : 'var(--text)',
+                  }"
+                  :aria-pressed="fontScale === opt.id">
+                  <span class="font-semibold text-sm">{{ opt.label }}</span>
+                  <span class="text-xs" style="color: var(--text-secondary);">{{ opt.desc }}</span>
                 </button>
               </div>
             </div>
@@ -202,6 +232,23 @@
           </div>
         </div>
 
+        <!-- 移动端文字大小 -->
+        <div class="pt-2 mt-1 space-y-1.5">
+          <div class="text-xs font-medium" style="color: var(--text-secondary);">文字大小</div>
+          <div class="flex items-center gap-2">
+            <button v-for="opt in fontScaleOptions" :key="opt.id" type="button" @click="setFontScale(opt.id)"
+              class="flex-1 px-2 py-1.5 rounded-lg text-xs font-semibold transition-all"
+              :style="{
+                backgroundColor: fontScale === opt.id ? 'var(--primary-light)' : 'var(--bg)',
+                border: fontScale === opt.id ? '1px solid var(--primary)' : '1px solid var(--border)',
+                color: fontScale === opt.id ? 'var(--primary)' : 'var(--text)',
+              }"
+              :aria-pressed="fontScale === opt.id">
+              {{ opt.label }}
+            </button>
+          </div>
+        </div>
+
         <!-- 移动端进度显示 -->
         <ClientOnly>
           <div v-if="hasUnfinishedTests" class="pt-2 mt-2 border-t" style="border-color: var(--primary-light);">
@@ -256,6 +303,7 @@ const router = useRouter()
 const route = useRoute()
 const { $toast, $confirm } = useNuxtApp()
 const { isDark, toggle: toggleTheme, accent, setAccent, accentOptions } = useTheme()
+const { fontScale, setFontScale, fontScaleOptions } = useFontScale()
 
 // 内部测试访问凭证由服务端 /api/internal/auth 校验签发，客户端只负责展示密码框
 
@@ -277,6 +325,23 @@ const accentWrap = ref<HTMLElement | null>(null)
 const accentLabel = (o: { label: string }) => (o.label.split(' · ')[0] as string) || o.label
 const currentAccentColor = computed(() => accentOptions.find((o) => o.id === accent.value)?.color || '#5b8c9e')
 const currentAccentLabel = computed(() => accentLabel(accentOptions.find((o) => o.id === accent.value) || { label: '天青' }))
+
+// 文字大小下拉状态
+const fontOpen = ref(false)
+const fontWrap = ref<HTMLElement | null>(null)
+const currentFontScaleLabel = computed(
+  () => fontScaleOptions.find((o) => o.id === fontScale.value)?.label || '标准',
+)
+
+// 配色与字号两个下拉互斥，避免同时展开重叠
+const toggleFontPanel = () => {
+  fontOpen.value = !fontOpen.value
+  if (fontOpen.value) accentOpen.value = false
+}
+const toggleAccentPanel = () => {
+  accentOpen.value = !accentOpen.value
+  if (accentOpen.value) fontOpen.value = false
+}
 
 // 打开内部测试弹窗
 const openInternalTest = () => {
@@ -453,6 +518,9 @@ onMounted(() => {
     if (accentWrap.value && !accentWrap.value.contains(target)) {
       accentOpen.value = false
     }
+    if (fontWrap.value && !fontWrap.value.contains(target)) {
+      fontOpen.value = false
+    }
   }
   document.addEventListener('click', handleClickOutside)
 
@@ -469,6 +537,8 @@ onMounted(() => {
 watch(() => route.path, () => {
   mobileMenuOpen.value = false
   showProgressPanel.value = false
+  fontOpen.value = false
+  accentOpen.value = false
   // 路由变化时刷新进度
   loadUnfinishedTests()
 })
@@ -534,7 +604,7 @@ defineExpose({
   margin-left: 4px;
   padding: 6px 12px;
   border-radius: 8px;
-  font-size: 13px;
+  font-size: 0.8125rem;
   font-weight: 500;
   color: var(--text-muted);
   border: 1px dashed var(--primary-light);
@@ -577,7 +647,7 @@ defineExpose({
 }
 
 .internal-modal-icon {
-  font-size: 28px;
+  font-size: 1.75rem;
   flex-shrink: 0;
 }
 
@@ -586,14 +656,14 @@ defineExpose({
 }
 
 .internal-modal-title {
-  font-size: 18px;
+  font-size: 1.125rem;
   font-weight: 600;
   color: var(--text);
   margin-bottom: 8px;
 }
 
 .internal-modal-message {
-  font-size: 14px;
+  font-size: 0.875rem;
   color: var(--text-secondary);
   line-height: 1.5;
   margin-bottom: 16px;
@@ -606,7 +676,7 @@ defineExpose({
   border: 1px solid var(--primary-light);
   background-color: var(--bg);
   color: var(--text);
-  font-size: 14px;
+  font-size: 0.875rem;
   outline: none;
   box-sizing: border-box;
   transition: border-color 0.2s;
@@ -618,7 +688,7 @@ defineExpose({
 
 .internal-modal-error {
   margin-top: 8px;
-  font-size: 13px;
+  font-size: 0.8125rem;
   color: var(--warning-text);
 }
 
@@ -632,7 +702,7 @@ defineExpose({
 .internal-modal-btn {
   padding: 8px 20px;
   border-radius: 8px;
-  font-size: 14px;
+  font-size: 0.875rem;
   font-weight: 500;
   cursor: pointer;
   transition: all 0.2s;
@@ -660,7 +730,7 @@ defineExpose({
 .internal-modal-close {
   background: none;
   border: none;
-  font-size: 18px;
+  font-size: 1.125rem;
   cursor: pointer;
   color: var(--text-muted);
   padding: 4px;

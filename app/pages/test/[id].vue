@@ -182,6 +182,27 @@
                   </div>
                 </div>
 
+                <!-- 文字大小：答题前可直接放大，全站生效 -->
+                <div class="mt-3 p-4 rounded-lg" style="background-color: var(--bg);">
+                  <div class="font-semibold" style="color: var(--text);">🔤 文字大小</div>
+                  <div class="grid grid-cols-3 gap-2 mt-3">
+                    <button v-for="opt in fontScaleOptions" :key="opt.id" type="button"
+                      @click="setFontScale(opt.id)"
+                      class="px-2 py-2 rounded-lg text-center transition-all"
+                      :style="{
+                        backgroundColor: fontScale === opt.id ? 'var(--primary-light)' : 'var(--card-bg)',
+                        border: fontScale === opt.id ? '2px solid var(--primary)' : '1px solid var(--border)',
+                      }"
+                      :aria-pressed="fontScale === opt.id">
+                      <span class="block font-semibold text-sm"
+                        :style="{ color: fontScale === opt.id ? 'var(--primary)' : 'var(--text)' }">
+                        {{ opt.label }}
+                      </span>
+                      <span class="block text-xs mt-0.5" style="color: var(--text-secondary);">{{ opt.percent }}%</span>
+                    </button>
+                  </div>
+                </div>
+
                 <button @click="startTest" class="w-full mt-4 py-3 rounded-lg font-semibold text-white transition-all"
                   style="background-color: var(--primary); box-shadow: var(--shadow-sm);">
                   开始答题
@@ -217,6 +238,27 @@
                       {{ opt.label }}
                     </span>
                     <span class="block text-xs mt-0.5" style="color: var(--text-secondary);">{{ opt.desc }}</span>
+                  </button>
+                </div>
+              </div>
+
+              <!-- 文字大小：答题前可直接放大，全站生效 -->
+              <div class="mb-4 p-4 rounded-lg" style="background-color: var(--bg); border: 1px solid var(--border);">
+                <div class="font-semibold" style="color: var(--text);">🔤 文字大小</div>
+                <div class="grid grid-cols-3 gap-2 mt-3">
+                  <button v-for="opt in fontScaleOptions" :key="opt.id" type="button"
+                    @click="setFontScale(opt.id)"
+                    class="px-2 py-2 rounded-lg text-center transition-all"
+                    :style="{
+                      backgroundColor: fontScale === opt.id ? 'var(--primary-light)' : 'var(--card-bg)',
+                      border: fontScale === opt.id ? '2px solid var(--primary)' : '1px solid var(--border)',
+                    }"
+                    :aria-pressed="fontScale === opt.id">
+                    <span class="block font-semibold text-sm"
+                      :style="{ color: fontScale === opt.id ? 'var(--primary)' : 'var(--text)' }">
+                      {{ opt.label }}
+                    </span>
+                    <span class="block text-xs mt-0.5" style="color: var(--text-secondary);">{{ opt.percent }}%</span>
                   </button>
                 </div>
               </div>
@@ -484,6 +526,9 @@ const PER_PAGE_STORAGE_KEY = 'psychology_per_page_mode'
 const perPageMode = ref<PerPageMode>('ten')
 const isOnePerPage = computed(() => perPageMode.value === 'one')
 const questionsPerPage = computed(() => (isOnePerPage.value ? 1 : 10))
+
+// ===== 文字大小：答题前可直接调整（全站生效并记住选择）=====
+const { fontScale, setFontScale, fontScaleOptions } = useFontScale()
 
 const perPageOptions: { value: PerPageMode; label: string; desc: string }[] = [
   { value: 'ten', label: '每页 10 题', desc: '一次浏览多题' },

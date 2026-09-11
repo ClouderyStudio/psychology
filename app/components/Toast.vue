@@ -155,7 +155,7 @@ defineExpose({
 }
 
 .toast-icon {
-  font-size: 24px;
+  font-size: 1.5rem;
   flex-shrink: 0;
 }
 
@@ -164,14 +164,14 @@ defineExpose({
 }
 
 .toast-title {
-  font-size: 16px;
+  font-size: 1rem;
   font-weight: 600;
   color: var(--text);
   margin-bottom: 4px;
 }
 
 .toast-message {
-  font-size: 14px;
+  font-size: 0.875rem;
   color: var(--text-secondary);
   line-height: 1.4;
 }
@@ -179,7 +179,7 @@ defineExpose({
 .toast-close {
   background: none;
   border: none;
-  font-size: 16px;
+  font-size: 1rem;
   cursor: pointer;
   color: var(--text-muted);
   padding: 4px;

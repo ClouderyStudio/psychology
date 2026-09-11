@@ -82,84 +82,95 @@
   }
 
   [data-theme="dark"] {
-    --bg: #0f0f1a;
-    --card-bg: #1a1a2e;
-    --text: #e8e4ec;
-    --text-secondary: #a09aaa;
-    --text-muted: #6b6372;
-    --border: #2a2a4a;
+    --bg: #0a0a11;
+    --card-bg: #131320;
+    --text: #ded9e6;
+    --text-secondary: #948da0;
+    --text-muted: #615a68;
+    --border: #222233;
 
     /* 主色调 */
-    --primary: #7eb8cc;
-    --primary-light: #1a2e3a;
-    --primary-dark: #a3d2e0;
+    --primary: #1e85a8;
+    --primary-light: #12242e;
+    --primary-dark: #8dbccb;
 
     /* 症状筛查 - 蓝色系 */
-    --symptom: #7eb8cc;
-    --symptom-light: #1a2e3a;
-    --symptom-dark: #a3d2e0;
-    --symptom-tag: #1e3a4a;
+    --symptom: #1e85a8;
+    --symptom-light: #12242e;
+    --symptom-dark: #8dbccb;
+    --symptom-tag: #16303d;
 
     /* 人格性格 - 紫色系 */
-    --personality: #a99bb8;
-    --personality-light: #1e1a2e;
-    --personality-dark: #c4b8d6;
-    --personality-tag: #2a1e3a;
+    --personality: #95889f;
+    --personality-light: #171426;
+    --personality-dark: #ada2bd;
+    --personality-tag: #221830;
 
     /* 专项量表 - 绿色系 */
-    --special: #7eac8f;
-    --special-light: #1a2a20;
-    --special-dark: #a0c8ae;
-    --special-tag: #1e3628;
+    --special: #6b987c;
+    --special-light: #122019;
+    --special-dark: #89b198;
+    --special-tag: #172a1f;
 
-    --disharmony: #7eb8cc;
-    --disharmony-light: #1a2e3a;
-    --disharmony-dark: #a3d2e0;
+    --disharmony: #1e85a8;
+    --disharmony-light: #12242e;
+    --disharmony-dark: #8dbccb;
 
-    --flexibility: #7eac8f;
-    --flexibility-light: #1a2a20;
-    --flexibility-dark: #a0c8ae;
+    --flexibility: #6b987c;
+    --flexibility-light: #122019;
+    --flexibility-dark: #89b198;
 
-    --rigidity: #a99bb8;
-    --rigidity-light: #1e1a2e;
-    --rigidity-dark: #c4b8d6;
+    --rigidity: #95889f;
+    --rigidity-light: #171426;
+    --rigidity-dark: #ada2bd;
 
     /* 气质类型颜色 */
-    --choleric: #e89278;
-    --choleric-light: #2a1a16;
-    --choleric-dark: #f0b09e;
+    --choleric: #cf7c64;
+    --choleric-light: #221510;
+    --choleric-dark: #d99a86;
 
-    --sanguine: #9ec4a8;
-    --sanguine-light: #1a2a20;
-    --sanguine-dark: #bcdabe;
+    --sanguine: #87ad92;
+    --sanguine-light: #122019;
+    --sanguine-dark: #a2c2a5;
 
-    --phlegmatic: #8aacc8;
-    --phlegmatic-light: #1a222e;
-    --phlegmatic-dark: #a8c4da;
+    --phlegmatic: #7697b1;
+    --phlegmatic-light: #131a25;
+    --phlegmatic-dark: #90aec3;
 
-    --melancholic: #c89aaa;
-    --melancholic-light: #2a1a20;
-    --melancholic-dark: #dab8c4;
+    --melancholic: #b08492;
+    --melancholic-light: #221519;
+    --melancholic-dark: #c19fa9;
 
     /* 警告色 */
-    --warning-bg: #2a2415;
-    --warning-border: #8a7d55;
-    --warning-text: #d4b76a;
+    --warning-bg: #211c10;
+    --warning-border: #756a47;
+    --warning-text: #bda158;
 
     /* 危机 / 危险色 */
-    --danger: #e07a6a;
-    --danger-light: #2a1614;
-    --danger-dark: #eaa494;
-    --danger-border: #7a4a44;
+    --danger: #c9685a;
+    --danger-light: #22110f;
+    --danger-dark: #cd8a7c;
+    --danger-border: #663d38;
 
     /* 阴影 - 暗色模式下使用亮边而非暗影 */
-    --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.3);
-    --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.4);
-    --shadow-xl: 0 12px 36px rgba(0, 0, 0, 0.5);
+    --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.35);
+    --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.45);
+    --shadow-xl: 0 12px 36px rgba(0, 0, 0, 0.55);
 
     /* 遮罩层 */
-    --overlay-bg: rgba(0, 0, 0, 0.6);
+    --overlay-bg: rgba(0, 0, 0, 0.66);
   }
+}
+
+/* ===================== 大字号（无障碍） ===================== */
+/* 通过 data-font-scale 缩放根字号。Tailwind 的文字与间距都以 rem 为单位，
+   根字号一变，全站文字与留白等比放大。
+   这里用百分比而不是 px，是为了尊重用户在浏览器里自行设置的默认字号。 */
+:root[data-font-scale="large"] {
+  font-size: 115%;
+}
+:root[data-font-scale="xlarge"] {
+  font-size: 130%;
 }
 
 /* ===================== 多色彩主题 ===================== */
@@ -196,18 +207,18 @@
 }
 
 [data-accent="emerald"][data-theme="dark"] {
-  --primary: #7fc0a0;
-  --primary-light: #173028;
-  --primary-dark: #a5d6b8;
-  --primary-tag: #1f4a3a;
-  --personality: #9aa8d8;
-  --personality-light: #1c1e38;
-  --personality-dark: #b6c2ec;
-  --personality-tag: #262b52;
-  --special: #d9a35c;
-  --special-light: #2a2015;
-  --special-dark: #e8c084;
-  --special-tag: #3a2e1c;
+  --primary: #2c8a5c;
+  --primary-light: #101f1a;
+  --primary-dark: #8ab89b;
+  --primary-tag: #183a2e;
+  --personality: #8491bd;
+  --personality-light: #15172a;
+  --personality-dark: #9aa5c9;
+  --personality-tag: #1e2240;
+  --special: #bd8b4d;
+  --special-light: #211a10;
+  --special-dark: #c9a671;
+  --special-tag: #2e2516;
   /* 症状类跟随主色；维度跟随对应分类色 */
   --symptom: var(--primary);
   --symptom-light: var(--primary-light);
@@ -254,18 +265,18 @@
 }
 
 [data-accent="violet"][data-theme="dark"] {
-  --primary: #a99cc9;
-  --primary-light: #1e1a2e;
-  --primary-dark: #c4b6dd;
-  --primary-tag: #2a2350;
-  --personality: #c49ad6;
-  --personality-light: #2c1a34;
-  --personality-dark: #d8b2e6;
-  --personality-tag: #402550;
-  --special: #8fc59b;
-  --special-light: #1a2a1e;
-  --special-dark: #aadbb6;
-  --special-tag: #1e3626;
+  --primary: #7961b6;
+  --primary-light: #171426;
+  --primary-dark: #a99cbd;
+  --primary-tag: #221c40;
+  --personality: #a884b8;
+  --personality-light: #221429;
+  --personality-dark: #b998c4;
+  --personality-tag: #321d40;
+  --special: #7ba886;
+  --special-light: #122018;
+  --special-dark: #8fb99a;
+  --special-tag: #172a1e;
   /* 症状类跟随主色；维度跟随对应分类色 */
   --symptom: var(--primary);
   --symptom-light: var(--primary-light);
@@ -312,18 +323,18 @@
 }
 
 [data-accent="sunset"][data-theme="dark"] {
-  --primary: #d99a5e;
-  --primary-light: #2a1d12;
-  --primary-dark: #e8b583;
-  --primary-tag: #3a2a1a;
-  --personality: #cca0a4;
-  --personality-light: #2c1c1e;
-  --personality-dark: #ddb6ba;
-  --personality-tag: #40282c;
-  --special: #8fc59b;
-  --special-light: #1a2a1e;
-  --special-dark: #aadbb6;
-  --special-tag: #1e3626;
+  --primary: #aa5d13;
+  --primary-light: #21160e;
+  --primary-dark: #c99c70;
+  --primary-tag: #2e2114;
+  --personality: #b08a8d;
+  --personality-light: #22161a;
+  --personality-dark: #bd9a9e;
+  --personality-tag: #321f23;
+  --special: #7ba886;
+  --special-light: #122018;
+  --special-dark: #8fb99a;
+  --special-tag: #172a1e;
   /* 症状类跟随主色；维度跟随对应分类色 */
   --symptom: var(--primary);
   --symptom-light: var(--primary-light);
@@ -370,18 +381,18 @@
 }
 
 [data-accent="rose"][data-theme="dark"] {
-  --primary: #d98aa0;
-  --primary-light: #2a1830;
-  --primary-dark: #eaaec0;
-  --primary-tag: #402038;
-  --personality: #a99cc9;
-  --personality-light: #1e1a2e;
-  --personality-dark: #c4b6dd;
-  --personality-tag: #2a2350;
-  --special: #8fc59b;
-  --special-light: #1a2a1e;
-  --special-dark: #aadbb6;
-  --special-tag: #1e3626;
+  --primary: #d52857;
+  --primary-light: #211227;
+  --primary-dark: #c995a5;
+  --primary-tag: #32192c;
+  --personality: #9186ad;
+  --personality-light: #171426;
+  --personality-dark: #a99cbd;
+  --personality-tag: #221c40;
+  --special: #7ba886;
+  --special-light: #122018;
+  --special-dark: #8fb99a;
+  --special-tag: #172a1e;
   /* 症状类跟随主色；维度跟随对应分类色 */
   --symptom: var(--primary);
   --symptom-light: var(--primary-light);
@@ -428,18 +439,18 @@
 }
 
 [data-accent="teal"][data-theme="dark"] {
-  --primary: #7fc1c1;
-  --primary-light: #173030;
-  --primary-dark: #a5d9d9;
-  --primary-tag: #1f4a4a;
-  --personality: #94b3d4;
-  --personality-light: #1b2330;
-  --personality-dark: #b0caec;
-  --personality-tag: #243650;
-  --special: #d9a184;
-  --special-light: #2a1f1a;
-  --special-dark: #e8c0a2;
-  --special-tag: #3a2a22;
+  --primary: #2f8686;
+  --primary-light: #101f1f;
+  --primary-dark: #8ab8b8;
+  --primary-tag: #183a3a;
+  --personality: #7f99b6;
+  --personality-light: #141b26;
+  --personality-dark: #96abc9;
+  --personality-tag: #1c2b40;
+  --special: #bd8a71;
+  --special-light: #211812;
+  --special-dark: #c9a58a;
+  --special-tag: #2e211a;
   /* 症状类跟随主色；维度跟随对应分类色 */
   --symptom: var(--primary);
   --symptom-light: var(--primary-light);
@@ -486,18 +497,18 @@
 }
 
 [data-accent="mint"][data-theme="dark"] {
-  --primary: #6fd3b5;
-  --primary-light: #16302a;
-  --primary-dark: #a5e6cf;
-  --primary-tag: #1f4a3e;
-  --personality: #7cc2e8;
-  --personality-light: #16283a;
-  --personality-dark: #a5d8f2;
-  --personality-tag: #1e3c52;
-  --special: #d9a35c;
-  --special-light: #2a2015;
-  --special-dark: #e8c084;
-  --special-tag: #3a2e1c;
+  --primary: #179470;
+  --primary-light: #10211c;
+  --primary-dark: #8ac2af;
+  --primary-tag: #183a30;
+  --personality: #69a3c4;
+  --personality-light: #101f2c;
+  --personality-dark: #8ab4c9;
+  --personality-tag: #172f40;
+  --special: #bd8b4d;
+  --special-light: #211a10;
+  --special-dark: #c9a671;
+  --special-tag: #2e2516;
   /* 症状类跟随主色；维度跟随对应分类色 */
   --symptom: var(--primary);
   --symptom-light: var(--primary-light);
@@ -571,27 +582,27 @@ html {
   animation: alert-slide-in 0.3s ease;
 }
 .alert-icon {
-  font-size: 28px;
+  font-size: 1.75rem;
   flex-shrink: 0;
 }
 .alert-content {
   flex: 1;
 }
 .alert-title {
-  font-size: 18px;
+  font-size: 1.125rem;
   font-weight: 600;
   color: var(--text);
   margin-bottom: 8px;
 }
 .alert-message {
-  font-size: 14px;
+  font-size: 0.875rem;
   color: var(--text-secondary);
   line-height: 1.5;
 }
 .alert-close {
   background: none;
   border: none;
-  font-size: 18px;
+  font-size: 1.125rem;
   cursor: pointer;
   color: var(--text-muted);
   padding: 4px;
@@ -629,7 +640,7 @@ html {
 .alert-confirm .alert-btn {
   padding: 8px 20px;
   border-radius: 8px;
-  font-size: 14px;
+  font-size: 0.875rem;
   font-weight: 500;
   cursor: pointer;
   transition: all 0.2s;
@@ -684,13 +695,13 @@ html {
   left: 24px;
   background-color: var(--danger);
   color: #fff;
-  font-size: 13px;
+  font-size: 0.8125rem;
   font-weight: 600;
   letter-spacing: 0.15em;
   padding: 4px 14px;
 }
 .formal-decree-title {
-  font-size: 22px;
+  font-size: 1.375rem;
   font-weight: 700;
   text-align: center;
   letter-spacing: 0.12em;
@@ -698,13 +709,13 @@ html {
 }
 .formal-decree-sub {
   text-align: center;
-  font-size: 13px;
+  font-size: 0.8125rem;
   color: var(--text-muted);
   letter-spacing: 0.1em;
   margin-bottom: 18px;
 }
 .formal-decree-body {
-  font-size: 15px;
+  font-size: 0.9375rem;
   white-space: pre-line;
 }
 .formal-decree-body b {
@@ -717,7 +728,7 @@ html {
   border: 1px dashed var(--danger);
   background-color: var(--danger-light);
   color: var(--danger-dark);
-  font-size: 14px;
+  font-size: 0.875rem;
   line-height: 1.7;
 }
 .formal-decree-hotline strong {
@@ -734,13 +745,13 @@ html {
   background-color: var(--danger-light);
 }
 .formal-top-warning-icon {
-  font-size: 22px;
+  font-size: 1.375rem;
   line-height: 1;
   margin-top: 2px;
 }
 .formal-top-warning-body {
   flex: 1;
-  font-size: 13px;
+  font-size: 0.8125rem;
   line-height: 1.7;
   color: var(--danger-dark);
 }
@@ -765,7 +776,7 @@ html {
   right: 14px;
   background-color: var(--danger);
   color: #fff;
-  font-size: 12px;
+  font-size: 0.75rem;
   font-weight: 700;
   letter-spacing: 0.15em;
   padding: 2px 10px;
@@ -779,7 +790,7 @@ html {
   padding: 6px 14px;
   font-weight: 700;
   letter-spacing: 0.15em;
-  font-size: 14px;
+  font-size: 0.875rem;
   background-color: rgba(255, 255, 255, 0.05);
 }
 .formal-seal--danger {
@@ -811,7 +822,7 @@ html {
   background: linear-gradient(180deg, var(--special-light), var(--card-bg));
 }
 .formal-risk-banner-title {
-  font-size: 22px;
+  font-size: 1.375rem;
   font-weight: 700;
   letter-spacing: 0.12em;
   margin-bottom: 4px;
@@ -820,7 +831,7 @@ html {
 .formal-risk-banner--warn .formal-risk-banner-title { color: var(--warning-text); }
 .formal-risk-banner--ok .formal-risk-banner-title { color: var(--special-dark); }
 .formal-risk-banner-desc {
-  font-size: 14px;
+  font-size: 0.875rem;
   line-height: 1.85;
   color: var(--text-secondary);
   margin-top: 10px;
@@ -829,7 +840,7 @@ html {
   margin-top: 12px;
   padding-top: 12px;
   border-top: 1px dashed currentColor;
-  font-size: 13px;
+  font-size: 0.8125rem;
   letter-spacing: 0.05em;
 }
 .formal-risk-banner--danger .formal-risk-banner-footer { color: var(--danger); }
@@ -843,7 +854,7 @@ html {
   margin-top: 16px;
 }
 .formal-resource-card-title {
-  font-size: 16px;
+  font-size: 1rem;
   font-weight: 700;
   letter-spacing: 0.08em;
   margin-bottom: 8px;
@@ -860,7 +871,7 @@ html {
 .formal-resource-list li {
   padding: 8px 0;
   border-bottom: 1px dashed var(--border);
-  font-size: 14px;
+  font-size: 0.875rem;
   color: var(--text);
   display: flex;
   flex-wrap: wrap;

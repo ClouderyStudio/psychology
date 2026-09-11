@@ -84,7 +84,7 @@ const handleOverlayClick = () => {
 }
 
 .alert-icon {
-  font-size: 28px;
+  font-size: 1.75rem;
   flex-shrink: 0;
 }
 
@@ -93,14 +93,14 @@ const handleOverlayClick = () => {
 }
 
 .alert-title {
-  font-size: 18px;
+  font-size: 1.125rem;
   font-weight: 600;
   color: var(--text);
   margin-bottom: 8px;
 }
 
 .alert-message {
-  font-size: 14px;
+  font-size: 0.875rem;
   color: var(--text-secondary);
   line-height: 1.5;
   margin-bottom: 20px;
@@ -109,7 +109,7 @@ const handleOverlayClick = () => {
 .alert-close {
   background: none;
   border: none;
-  font-size: 18px;
+  font-size: 1.125rem;
   cursor: pointer;
   color: var(--text-muted);
   padding: 4px;
@@ -134,7 +134,7 @@ const handleOverlayClick = () => {
 .alert-btn {
   padding: 8px 20px;
   border-radius: 8px;
-  font-size: 14px;
+  font-size: 0.875rem;
   font-weight: 500;
   cursor: pointer;
   transition: all 0.2s;

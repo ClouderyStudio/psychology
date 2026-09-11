@@ -12,6 +12,7 @@
 
 <script setup>
 const { init } = useTheme()
+const { init: initFontScale } = useFontScale()
 
 useHead({
   title: '心灵驿站 | 心理测评中心',
@@ -21,6 +22,8 @@ useHead({
   ]
 })
 
-// 尽早初始化主题，避免闪烁
+// 尽早初始化主题与字号，避免闪烁
+// （首屏更早的一次由 nuxt.config.ts 的内联脚本完成，这里负责同步响应式状态）
 init()
+initFontScale()
 </script>

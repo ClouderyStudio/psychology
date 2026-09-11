@@ -247,24 +247,24 @@ const isPreferenceSelected = (item: any, side: 'left' | 'right') => {
 .mbti-report { color: var(--text); }
 .mbti-hero, .mbti-section { border: 1px solid var(--border); border-radius: 12px; background: var(--card-bg); }
 .mbti-hero { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 24px; align-items: end; padding: 28px; background: linear-gradient(135deg, rgba(123,107,142,0.12), rgba(94,140,111,0.08)), var(--card-bg); }
-.mbti-eyebrow { margin-bottom: 10px; color: var(--text-muted); font-size: 13px; }
+.mbti-eyebrow { margin-bottom: 10px; color: var(--text-muted); font-size: 0.8125rem; }
 .mbti-type { color: var(--text); font-size: clamp(56px, 12vw, 104px); font-weight: 800; line-height: 0.92; letter-spacing: 0; }
-.mbti-type-name { margin-top: 14px; color: var(--text-secondary); font-size: 16px; }
+.mbti-type-name { margin-top: 14px; color: var(--text-secondary); font-size: 1rem; }
 .mbti-hero-stats { display: grid; grid-template-columns: repeat(3, minmax(82px, 1fr)); gap: 10px; }
 .mbti-hero-stats div, .mbti-mini-stat, .mbti-identity-box, .mbti-score-panel, .mbti-role-box, .mbti-inner-row, .mbti-preference-item { border: 1px solid var(--border); border-radius: 10px; background: var(--card-bg); }
 .mbti-hero-stats div { padding: 12px; text-align: center; }
-.mbti-hero-stats span, .mbti-consistency span { display: block; color: var(--text-muted); font-size: 12px; }
-.mbti-hero-stats strong { display: block; margin-top: 4px; color: var(--text); font-size: 20px; }
+.mbti-hero-stats span, .mbti-consistency span { display: block; color: var(--text-muted); font-size: 0.75rem; }
+.mbti-hero-stats strong { display: block; margin-top: 4px; color: var(--text); font-size: 1.25rem; }
 .mbti-section { padding: 22px; }
 .mbti-section-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; margin-bottom: 18px; }
-.mbti-section-head h3, .mbti-inline-title { margin: 0; color: var(--text); font-size: 18px; font-weight: 700; }
-.mbti-section-head p, .mbti-soft-text, .mbti-note { color: var(--text-secondary); font-size: 14px; }
+.mbti-section-head h3, .mbti-inline-title { margin: 0; color: var(--text); font-size: 1.125rem; font-weight: 700; }
+.mbti-section-head p, .mbti-soft-text, .mbti-note { color: var(--text-secondary); font-size: 0.875rem; }
 .mbti-type-strip { display: grid; grid-template-columns: repeat(9, minmax(0, 1fr)); gap: 8px; }
 .mbti-type-pill { min-height: 44px; border: 1px solid var(--border); border-radius: 10px; display: flex; align-items: center; justify-content: center; color: var(--text-secondary); background: var(--bg); font-weight: 700; }
 .mbti-type-pill.is-active { border-color: var(--personality); color: #fff; background: var(--personality); }
 .mbti-score-panel, .mbti-preference-item, .mbti-inner-row, .mbti-role-box { padding: 16px; }
 .mbti-score-panel h4 { margin-bottom: 14px; color: var(--text); font-weight: 700; }
-.mbti-score-row { display: flex; justify-content: space-between; gap: 12px; margin-bottom: 5px; color: var(--text-secondary); font-size: 14px; }
+.mbti-score-row { display: flex; justify-content: space-between; gap: 12px; margin-bottom: 5px; color: var(--text-secondary); font-size: 0.875rem; }
 .mbti-score-row strong { color: var(--text); font-weight: 700; }
 .mbti-meter { height: 8px; overflow: hidden; border-radius: 999px; background: var(--primary-light); }
 .mbti-meter div { height: 100%; border-radius: inherit; }
@@ -273,7 +273,7 @@ const isPreferenceSelected = (item: any, side: 'left' | 'right') => {
 .mbti-choice { border: 1px solid var(--border); border-radius: 10px; padding: 13px; background: transparent; }
 .mbti-choice.is-selected { border-color: var(--personality); background: var(--personality-light); }
 .mbti-consistency { min-width: 132px; border: 1px solid var(--border); border-radius: 10px; padding: 12px; background: var(--personality-light); text-align: center; }
-.mbti-consistency strong { display: block; color: var(--personality); font-size: 24px; line-height: 1; }
+.mbti-consistency strong { display: block; color: var(--personality); font-size: 1.5rem; line-height: 1; }
 .mbti-identity-box, .mbti-mini-stat { padding: 14px; }
 @media (max-width: 768px) {
   .mbti-hero { grid-template-columns: 1fr; padding: 22px; }

@@ -46,7 +46,7 @@
               <div class="min-w-0">
                 <div class="flex flex-wrap items-center gap-2">
                   <span class="font-medium text-sm" style="color: var(--text);">{{ d.name }}</span>
-                  <span v-if="d.above" class="px-1.5 py-0.5 rounded-full text-[10px] font-semibold"
+                  <span v-if="d.above" class="px-1.5 py-0.5 rounded-full text-[0.625rem] font-semibold"
                     style="background-color: var(--primary); color: #fff;">超参考线</span>
                 </div>
                 <p class="text-xs mt-0.5" style="color: var(--text-muted);">{{ d.short }}</p>

@@ -27,7 +27,7 @@
                 : 'formal-seal formal-seal--ok'">
                 {{ siossRisk.kind === 'danger' ? '■ 高风险 ■' : siossRisk.kind === 'warn' ? '■ 警惕 ■' : '■ 提示 ■' }}
               </span>
-              <span style="font-size: 13px; letter-spacing: 0.2em; color: var(--text-muted);">RISK ASSESSMENT · 风险等级</span>
+              <span style="font-size: 0.8125rem; letter-spacing: 0.2em; color: var(--text-muted);">RISK ASSESSMENT · 风险等级</span>
             </div>
             <div class="formal-risk-banner-title">{{ siossRisk.title }}</div>
             <div class="formal-risk-banner-desc">{{ siossRisk.desc }}</div>
@@ -126,7 +126,7 @@
               :style="isFormalTest ? '' : 'background-color: var(--warning-bg); border-left: 4px solid var(--warning-border);'">
               <template v-if="isFormalTest">
                 <div class="formal-resource-card-title">
-                  <span style="font-size: 18px;">📞</span>
+                  <span style="font-size: 1.125rem;">📞</span>
                   <span>危机援助资源（24 小时）</span>
                 </div>
                 <ul class="formal-resource-list">

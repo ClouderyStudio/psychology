@@ -305,13 +305,13 @@ const radar = computed(() => {
 }
 
 .md-hero-kicker {
-  font-size: 10px;
+  font-size: 0.625rem;
   letter-spacing: 0.22em;
   opacity: 0.85;
 }
 
 .md-hero-badge {
-  font-size: 11px;
+  font-size: 0.6875rem;
   font-weight: 600;
   padding: 2px 10px;
   border-radius: 999px;
@@ -321,14 +321,14 @@ const radar = computed(() => {
 }
 
 .md-hero-title {
-  font-size: 22px;
+  font-size: 1.375rem;
   font-weight: 700;
   letter-spacing: 0.02em;
   margin: 0 0 4px;
 }
 
 .md-hero-sub {
-  font-size: 13px;
+  font-size: 0.8125rem;
   opacity: 0.92;
   margin: 0 0 12px;
 }
@@ -340,7 +340,7 @@ const radar = computed(() => {
 }
 
 .md-meta-chip {
-  font-size: 11.5px;
+  font-size: 0.71875rem;
   padding: 3px 10px;
   border-radius: 999px;
   background: rgba(255, 255, 255, 0.18);
@@ -362,7 +362,7 @@ const radar = computed(() => {
   display: flex;
   align-items: center;
   gap: 8px;
-  font-size: 15px;
+  font-size: 0.9375rem;
   font-weight: 700;
   color: var(--md-ink);
   margin: 0 0 12px;
@@ -377,7 +377,7 @@ const radar = computed(() => {
 }
 
 .md-card-hint {
-  font-size: 12.5px;
+  font-size: 0.78125rem;
   color: var(--md-ink-faint);
   line-height: 1.6;
   margin: 0 0 10px;
@@ -406,12 +406,12 @@ const radar = computed(() => {
 }
 
 .md-summary-label {
-  font-size: 11px;
+  font-size: 0.6875rem;
   color: var(--md-ink-faint);
 }
 
 .md-summary-value {
-  font-size: 13.5px;
+  font-size: 0.84375rem;
   font-weight: 700;
   line-height: 1.45;
   color: var(--md-ink-soft);
@@ -423,7 +423,7 @@ const radar = computed(() => {
 .md-summary-value.sv-plain { font-weight: 600; }
 
 .md-summary-note {
-  font-size: 12.5px;
+  font-size: 0.78125rem;
   line-height: 1.7;
   color: var(--md-ink-soft);
   background: var(--md-sky-soft);
@@ -438,7 +438,7 @@ const radar = computed(() => {
   border-radius: 12px;
   padding: 12px 14px;
   margin-bottom: 14px;
-  font-size: 13px;
+  font-size: 0.8125rem;
   line-height: 1.7;
 }
 
@@ -462,7 +462,7 @@ const radar = computed(() => {
 }
 
 .md-alert-seal {
-  font-size: 11px;
+  font-size: 0.6875rem;
   font-weight: 700;
   letter-spacing: 0.08em;
   padding: 2px 8px;
@@ -484,7 +484,7 @@ const radar = computed(() => {
 }
 
 .md-lie-level {
-  font-size: 12px;
+  font-size: 0.75rem;
   font-weight: 700;
   padding: 3px 10px;
   border-radius: 999px;
@@ -501,7 +501,7 @@ const radar = computed(() => {
 
 .md-lie-detail {
   margin: 0;
-  font-size: 12.5px;
+  font-size: 0.78125rem;
   line-height: 1.7;
   color: var(--md-ink-soft);
 }
@@ -516,12 +516,12 @@ const radar = computed(() => {
 }
 
 .md-chips-label {
-  font-size: 12px;
+  font-size: 0.75rem;
   color: var(--md-ink-faint);
 }
 
 .md-chip {
-  font-size: 12.5px;
+  font-size: 0.78125rem;
   font-weight: 600;
   color: var(--md-mint);
   background: var(--md-mint-soft);
@@ -542,8 +542,8 @@ const radar = computed(() => {
 }
 
 .md-ok svg { width: 26px; height: 26px; color: var(--md-mint); flex-shrink: 0; }
-.md-ok b { font-size: 15px; color: var(--md-mint); }
-.md-ok p { margin: 4px 0 0; font-size: 12.5px; color: var(--md-ink-soft); line-height: 1.6; }
+.md-ok b { font-size: 0.9375rem; color: var(--md-mint); }
+.md-ok p { margin: 4px 0 0; font-size: 0.78125rem; color: var(--md-ink-soft); line-height: 1.6; }
 
 /* 参考方向匹配 */
 .md-match-list { display: flex; flex-direction: column; gap: 10px; }
@@ -583,7 +583,7 @@ const radar = computed(() => {
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 15px;
+  font-size: 0.9375rem;
   font-weight: 700;
   color: #fff;
   background: var(--md-grad);
@@ -595,7 +595,7 @@ const radar = computed(() => {
 .md-match-main { grid-area: main; min-width: 0; }
 
 .md-match-name {
-  font-size: 14.5px;
+  font-size: 0.90625rem;
   font-weight: 700;
   color: var(--md-ink);
   display: flex;
@@ -607,7 +607,7 @@ const radar = computed(() => {
 .md-match.is-severe .md-match-name { color: var(--danger); }
 
 .md-tag {
-  font-size: 10.5px;
+  font-size: 0.65625rem;
   font-weight: 600;
   color: var(--md-ink-faint);
   border: 1px solid var(--md-line);
@@ -623,14 +623,14 @@ const radar = computed(() => {
 
 .md-match-desc {
   margin: 3px 0 0;
-  font-size: 12.5px;
+  font-size: 0.78125rem;
   color: var(--md-ink-faint);
   line-height: 1.55;
 }
 
 .md-match-reason {
   margin: 6px 0 0;
-  font-size: 12.5px;
+  font-size: 0.78125rem;
   color: var(--md-ink-soft);
   line-height: 1.6;
 }
@@ -640,7 +640,7 @@ const radar = computed(() => {
   margin-right: 6px;
   padding: 1px 8px;
   border-radius: 6px;
-  font-size: 11px;
+  font-size: 0.6875rem;
   font-weight: 600;
   color: var(--md-sky);
   background: var(--md-sky-soft);
@@ -649,7 +649,7 @@ const radar = computed(() => {
 
 .md-match-score {
   grid-area: score;
-  font-size: 17px;
+  font-size: 1.0625rem;
   font-weight: 700;
   color: var(--md-sky);
   font-variant-numeric: tabular-nums;
@@ -678,7 +678,7 @@ const radar = computed(() => {
 /* 特征总览 */
 .md-stats {
   margin: 0 0 10px;
-  font-size: 12px;
+  font-size: 0.75rem;
   color: var(--md-ink-soft);
   background: var(--md-mint-soft);
   border: 1px dashed var(--md-mint);
@@ -696,7 +696,7 @@ const radar = computed(() => {
   align-items: center;
   padding: 7px 2px;
   border-bottom: 1px solid var(--md-line);
-  font-size: 12.5px;
+  font-size: 0.78125rem;
 }
 
 .md-trait:last-child { border-bottom: none; }
@@ -704,7 +704,7 @@ const radar = computed(() => {
 .md-trait-name {
   font-weight: 600;
   color: var(--md-ink-soft);
-  font-size: 12px;
+  font-size: 0.75rem;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -732,13 +732,13 @@ const radar = computed(() => {
 .md-trait-score {
   text-align: right;
   color: var(--md-ink-faint);
-  font-size: 11.5px;
+  font-size: 0.71875rem;
   font-variant-numeric: tabular-nums;
 }
 
 .md-trait-level {
   text-align: center;
-  font-size: 10.5px;
+  font-size: 0.65625rem;
   font-weight: 700;
   padding: 2px 4px;
   border-radius: 6px;
@@ -771,7 +771,7 @@ const radar = computed(() => {
   display: flex;
   align-items: center;
   gap: 6px;
-  font-size: 13px;
+  font-size: 0.8125rem;
   font-weight: 700;
   color: var(--md-ink-soft);
   margin: 0 0 6px;
@@ -787,7 +787,7 @@ const radar = computed(() => {
 
 .md-advice-text {
   margin: 0;
-  font-size: 13px;
+  font-size: 0.8125rem;
   line-height: 1.75;
   color: var(--md-ink-soft);
   padding: 10px 12px;
@@ -806,7 +806,7 @@ const radar = computed(() => {
 .md-advice-list li {
   position: relative;
   padding: 3px 0 3px 16px;
-  font-size: 13px;
+  font-size: 0.8125rem;
   line-height: 1.7;
   color: var(--md-ink-soft);
 }
@@ -828,7 +828,7 @@ const radar = computed(() => {
 
 .md-advice-followup {
   margin: 6px 0 0;
-  font-size: 12.5px;
+  font-size: 0.78125rem;
   line-height: 1.7;
   color: var(--md-ink-soft);
   padding: 10px 12px;
@@ -841,14 +841,14 @@ const radar = computed(() => {
   margin: 14px 0 0;
   padding-top: 10px;
   border-top: 1px dashed var(--md-line);
-  font-size: 11.5px;
+  font-size: 0.71875rem;
   line-height: 1.65;
   color: var(--md-ink-faint);
 }
 
 .md-disclaimer {
   margin: 4px 0 0;
-  font-size: 11.5px;
+  font-size: 0.71875rem;
   line-height: 1.7;
   color: var(--md-ink-faint);
 }
