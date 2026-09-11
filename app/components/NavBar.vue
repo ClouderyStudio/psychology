@@ -223,7 +223,8 @@
         <!-- 移动端主题配色 -->
         <div class="pt-2 mt-1 space-y-1.5">
           <div class="text-xs font-medium" style="color: var(--text-secondary);">主题配色</div>
-          <div class="flex items-center gap-2">
+          <!-- 允许换行：配色已增至 9 套，且「大字号」放大后圆点会变宽 -->
+          <div class="flex flex-wrap items-center gap-2">
             <button v-for="opt in accentOptions" :key="opt.id"
               class="w-7 h-7 rounded-full flex items-center justify-center transition-all"
               :style="{ backgroundColor: opt.color, boxShadow: accent === opt.id ? '0 0 0 2px var(--text)' : 'none' }"
