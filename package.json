@@ -11,7 +11,7 @@
     "generate-build-time": "node scripts/generate-build-time.cjs",
     "test": "vitest run"
   },
-  "packageManager": "pnpm@12.2.1",
+  "packageManager": "pnpm@12.3.4",
   "dependencies": {
     "@pinia/nuxt": "1.0.2",
     "@tailwindcss/postcss": "^4.3.0",

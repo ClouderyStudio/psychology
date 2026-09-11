@@ -131,8 +131,8 @@
 
       <!-- 量表卡片网格 -->
       <div class="cards-grid grid md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-6xl mx-auto">
-        <!-- 外链卡片：心理健康多维自评量表（AnonUsAl）—— 独立靛紫渐变配色 -->
-        <a href="https://anonusal.github.io/a.html" target="_blank" rel="noopener noreferrer"
+        <!-- 独立页面：心理健康多维自评量表（AnonUsAl） -->
+        <a href="/a.html"
           class="external-scale-card card rounded-xl transition-all duration-300 hover:transform hover:-translate-y-1 overflow-hidden flex flex-col relative">
 
           <!-- 卡片顶部色带 -->
