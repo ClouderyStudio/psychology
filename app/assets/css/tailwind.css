@@ -754,6 +754,59 @@ html[data-accent="retro"] .md-trait-level {
   font-family: var(--font-stack-kai);
 }
 
+/* ===================== 繁简体（字形） ===================== */
+/* 繁体字形优先的字体栈。SC 与 TC 字面在不少字上写法不同（如「骨」「過」「月」），
+   所以按地区分栈，让系统去挑正确的字面。
+   与「自选字体」是叠加关系、不冲突：data-font-family 决定「选哪一族」，
+   data-variant 决定「用哪一地区的字面」—— 这里把 --font-stack-* 重新指向
+   hant 版本，组件里的 var(--font-stack-*) 与面板预览都会自动跟着换。 */
+:root {
+  --font-stack-hant-default:
+    "Recursive Mn Csl St Med",
+    "PingFang TC",
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    "Microsoft JhengHei",
+    "Heiti TC",
+    "Noto Sans TC",
+    sans-serif;
+  --font-stack-hant-sans:
+    "PingFang TC",
+    "Microsoft JhengHei",
+    "Heiti TC",
+    "Noto Sans TC",
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    Roboto,
+    sans-serif;
+  --font-stack-hant-serif:
+    "Songti TC",
+    "New Songti",
+    "PMingLiU",
+    "MingLiU",
+    "Noto Serif TC",
+    Georgia,
+    "Times New Roman",
+    serif;
+  --font-stack-hant-kai:
+    "Kaiti TC",
+    "DFKai-SB",
+    "BiauKai",
+    "Noto Serif TC",
+    "Songti TC",
+    Georgia,
+    serif;
+}
+
+:root[data-variant="hant"] {
+  --font-stack-default: var(--font-stack-hant-default);
+  --font-stack-sans: var(--font-stack-hant-sans);
+  --font-stack-serif: var(--font-stack-hant-serif);
+  --font-stack-kai: var(--font-stack-hant-kai);
+}
+
 /* ===================== 加粗（无障碍） ===================== */
 /* 全站字重的单一来源。字体粗细有两个消费方，都指向 --fw-*：
      1. 组件与全局样式里的 font-weight —— 一律写 var(--fw-*)，不写死数值；

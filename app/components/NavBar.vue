@@ -72,12 +72,12 @@
             </div>
           </div>
 
-          <!-- 阅读偏好（文字大小 + 字体 + 字重） -->
+          <!-- 阅读偏好（文字大小 + 字体 + 字重 + 字形） -->
           <div ref="fontWrap" class="relative z-40">
             <button @click="toggleFontPanel"
               class="w-8 h-8 rounded-full flex items-center justify-end gap-0.5 transition-all"
               :style="{ backgroundColor: 'var(--primary-light)', color: 'var(--primary)' }"
-              :title="'阅读偏好（字号：' + currentFontScaleLabel + ' · 字体：' + currentFontFamilyLabel + ' · 字重：' + currentFontWeightLabel + '）'"
+              :title="'阅读偏好（字号：' + currentFontScaleLabel + ' · 字体：' + currentFontFamilyLabel + ' · 字重：' + currentFontWeightLabel + ' · 字形：' + currentHanVariantLabel + '）'"
               @mouseenter="elStyle($event, { boxShadow: '0 0 0 2px ' + currentAccentColor })"
               @mouseleave="elStyle($event, { boxShadow: 'none' })">
               <span class="font-semibold leading-none" style="font-size: 0.6875rem;">A</span>
@@ -130,6 +130,22 @@
                   }"
                   :aria-pressed="fontWeight === opt.id">
                   <span class="text-sm" :style="{ fontWeight: opt.id === 'bold' ? 'var(--fw-semibold)' : 'var(--fw-normal)' }">{{ opt.label }}</span>
+                  <span class="text-xs" style="color: var(--text-secondary);">{{ opt.desc }}</span>
+                </button>
+              </div>
+
+              <div class="text-xs font-medium mt-3 mb-2 pt-2" style="color: var(--text-secondary);"
+                :style="{ borderTop: '1px solid var(--border)' }">字形</div>
+              <div class="flex flex-col gap-1">
+                <button v-for="opt in hanVariantOptions" :key="opt.id" type="button"
+                  @click="setHanVariant(opt.id)"
+                  class="flex items-center justify-between px-3 py-1.5 rounded-lg transition-all text-left"
+                  :style="{
+                    backgroundColor: hanVariant === opt.id ? 'var(--primary-light)' : 'transparent',
+                    color: hanVariant === opt.id ? 'var(--primary)' : 'var(--text)',
+                  }"
+                  :aria-pressed="hanVariant === opt.id">
+                  <span class="font-semibold text-sm">{{ opt.label }}</span>
                   <span class="text-xs" style="color: var(--text-secondary);">{{ opt.desc }}</span>
                 </button>
               </div>
@@ -320,6 +336,24 @@
           </div>
         </div>
 
+        <!-- 移动端字形（繁简）—— 两档繁体同名，故把区分用的 desc 一并显示 -->
+        <div class="pt-2 mt-1 space-y-1.5">
+          <div class="text-xs font-medium" style="color: var(--text-secondary);">字形</div>
+          <div class="grid grid-cols-3 gap-2">
+            <button v-for="opt in hanVariantOptions" :key="opt.id" type="button" @click="setHanVariant(opt.id)"
+              class="px-1 py-1.5 rounded-lg text-center transition-all"
+              :style="{
+                backgroundColor: hanVariant === opt.id ? 'var(--primary-light)' : 'var(--bg)',
+                border: hanVariant === opt.id ? '1px solid var(--primary)' : '1px solid var(--border)',
+              }"
+              :aria-pressed="hanVariant === opt.id">
+              <span class="block font-semibold" style="font-size: 0.75rem;"
+                :style="{ color: hanVariant === opt.id ? 'var(--primary)' : 'var(--text)' }">{{ opt.label }}</span>
+              <span class="block" style="font-size: 0.625rem; color: var(--text-secondary);">{{ opt.desc }}</span>
+            </button>
+          </div>
+        </div>
+
         <!-- 移动端进度显示 -->
         <ClientOnly>
           <div v-if="hasUnfinishedTests" class="pt-2 mt-2 border-t" style="border-color: var(--primary-light);">
@@ -377,6 +411,7 @@ const { isDark, toggle: toggleTheme, accent, setAccent, accentOptions } = useThe
 const { fontScale, setFontScale, fontScaleOptions } = useFontScale()
 const { fontFamily, setFontFamily, fontFamilyOptions } = useFontFamily()
 const { fontWeight, setFontWeight, fontWeightOptions } = useFontWeight()
+const { hanVariant, setHanVariant, hanVariantOptions, findHanVariant } = useHanVariant()
 
 // 内部测试访问凭证由服务端 /api/internal/auth 校验签发，客户端只负责展示密码框
 
@@ -399,7 +434,7 @@ const accentLabel = (o: { label: string }) => (o.label.split(' · ')[0] as strin
 const currentAccentColor = computed(() => accentOptions.find((o) => o.id === accent.value)?.color || '#5b8c9e')
 const currentAccentLabel = computed(() => accentLabel(accentOptions.find((o) => o.id === accent.value) || { label: '天青' }))
 
-// 阅读偏好（文字大小 + 字体 + 字重）下拉状态
+// 阅读偏好（文字大小 + 字体 + 字重 + 字形）下拉状态
 const fontOpen = ref(false)
 const fontWrap = ref<HTMLElement | null>(null)
 const currentFontScaleLabel = computed(
@@ -410,6 +445,9 @@ const currentFontFamilyLabel = computed(
 )
 const currentFontWeightLabel = computed(
   () => fontWeightOptions.find((o) => o.id === fontWeight.value)?.label || '标准',
+)
+const currentHanVariantLabel = computed(
+  () => findHanVariant(hanVariant.value).desc,
 )
 
 // 配色与字号两个下拉互斥，避免同时展开重叠
