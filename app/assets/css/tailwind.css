@@ -705,6 +705,82 @@ html[data-accent="retro"] .md-trait-level {
   --rigidity-dark: var(--personality-dark);
 }
 
+/* Windows 11（Fluent）：浅灰应用底 + Win11 强调蓝。
+   色值取自 Fluent 令牌：底 #f3f3f3、强调 #0078d4、成功绿 #107c10、错误红 #d13438；
+   暗色对应 Win11 深色表面（#202020 / #2b2b2b）。
+   暗色主色没直接用暗色模式的 #4cc2ff —— 那个亮度压不住白字（对比度 2.0），
+   按「蓝白 · Google」暗色同样的思路调到 #3386cf（白字 3.85 / 深卡上 3.67）。
+   字体意图见下方 --font-stack-win11（微软雅黑）。 */
+[data-accent="win11"] {
+  --bg: #f3f3f3;
+  --card-bg: #ffffff;
+  --text: #1b1b1b;
+  --text-secondary: #616161;
+  --text-muted: #767676;
+  --border: #d1d1d1;
+  --primary: #0078d4;
+  --primary-light: #e5f1fb;
+  --primary-dark: #005a9e;
+  --primary-tag: #cfe4f7;
+  --personality: #107c10;
+  --personality-light: #e4f1e4;
+  --personality-dark: #0b5a0b;
+  --personality-tag: #c8e6c8;
+  --special: #d13438;
+  --special-light: #fdeaea;
+  --special-dark: #a4262c;
+  --special-tag: #f6d8d9;
+  /* 症状类跟随主色；维度跟随对应分类色 */
+  --symptom: var(--primary);
+  --symptom-light: var(--primary-light);
+  --symptom-dark: var(--primary-dark);
+  --symptom-tag: var(--primary-tag);
+  --disharmony: var(--primary);
+  --disharmony-light: var(--primary-light);
+  --disharmony-dark: var(--primary-dark);
+  --flexibility: var(--special);
+  --flexibility-light: var(--special-light);
+  --flexibility-dark: var(--special-dark);
+  --rigidity: var(--personality);
+  --rigidity-light: var(--personality-light);
+  --rigidity-dark: var(--personality-dark);
+}
+
+[data-accent="win11"][data-theme="dark"] {
+  --bg: #202020;
+  --card-bg: #2b2b2b;
+  --text: #f3f3f3;
+  --text-secondary: #c8c8c8;
+  --text-muted: #9d9d9d;
+  --border: #3f3f3f;
+  --primary: #3386cf;
+  --primary-light: #1e2c3d;
+  --primary-dark: #99cbf0;
+  --primary-tag: #26394f;
+  --personality: #6ccb5f;
+  --personality-light: #1e2f1e;
+  --personality-dark: #9fdc95;
+  --personality-tag: #27422a;
+  --special: #ff8f8f;
+  --special-light: #3a2422;
+  --special-dark: #ffb3b3;
+  --special-tag: #4d2d2a;
+  /* 症状类跟随主色；维度跟随对应分类色 */
+  --symptom: var(--primary);
+  --symptom-light: var(--primary-light);
+  --symptom-dark: var(--primary-dark);
+  --symptom-tag: var(--primary-tag);
+  --disharmony: var(--primary);
+  --disharmony-light: var(--primary-light);
+  --disharmony-dark: var(--primary-dark);
+  --flexibility: var(--special);
+  --flexibility-light: var(--special-light);
+  --flexibility-dark: var(--special-dark);
+  --rigidity: var(--personality);
+  --rigidity-light: var(--personality-light);
+  --rigidity-dark: var(--personality-dark);
+}
+
 /* ===================== 自选字体 ===================== */
 /* 字体栈集中在此定义，面板里的字体预览也用同一批变量，避免两处维护。
    覆盖优先级：「:root[data-font-family=…]」是 (0,2,0)，高于主题自带的
@@ -764,6 +840,23 @@ html[data-accent="retro"] .md-trait-level {
     "PingFang SC",
     "Hiragino Sans GB",
     "Microsoft YaHei",
+    sans-serif;
+  /* 「流畅 · Win11」主题自带的字体意图：微软雅黑。
+     Windows 上 Segoe UI 配拉丁文、雅黑配中文 —— 正是 Windows 11 本机的渲染搭配。
+     雅黑是 Windows 专有字体、不允许自托管分发，所以 Windows 之外的平台
+     回退到已自托管的思源黑体（同为现代无衬线黑体，观感最接近）。 */
+  --font-stack-win11:
+    "Segoe UI",
+    "Microsoft YaHei UI",
+    "Microsoft YaHei",
+    "微软雅黑",
+    "Noto Sans SC",
+    "Source Han Sans SC",
+    "思源黑体",
+    -apple-system,
+    BlinkMacSystemFont,
+    "PingFang SC",
+    "Hiragino Sans GB",
     sans-serif;
 }
 
@@ -833,6 +926,19 @@ html[data-accent="retro"] .md-trait-level {
     "Microsoft JhengHei",
     "Heiti TC",
     sans-serif;
+  /* 繁体下的微软雅黑 = 微軟正黑體（JhengHei，同样是 Windows 专有），
+     回退链同上：本地思源黑體 → 系统繁体黑体。 */
+  --font-stack-hant-win11:
+    "Segoe UI",
+    "Microsoft JhengHei UI",
+    "Microsoft JhengHei",
+    "微軟正黑體",
+    "Noto Sans TC",
+    "Source Han Sans TC",
+    "思源黑體",
+    "PingFang TC",
+    "Heiti TC",
+    sans-serif;
 }
 
 :root[data-variant="hant"] {
@@ -856,6 +962,12 @@ html[data-accent="google"] {
 }
 html[data-variant="hant"][data-accent="google"] {
   --font-stack-default: var(--font-stack-hant-google);
+}
+html[data-accent="win11"] {
+  --font-stack-default: var(--font-stack-win11);
+}
+html[data-variant="hant"][data-accent="win11"] {
+  --font-stack-default: var(--font-stack-hant-win11);
 }
 
 /* ===================== 加粗（无障碍） ===================== */
