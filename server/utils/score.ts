@@ -303,17 +303,17 @@ function scoreGAD7(answers: Record<number, number>): ScoringResult {
   let suggestion = "";
 
   if (totalScore <= 4) {
-    level = "轻度焦虑";
+    level = "无显著焦虑症状";
     suggestion =
       "您的焦虑水平在正常范围内。保持健康的生活方式，学会放松技巧可以帮助维持良好状态。";
   } else if (totalScore <= 9) {
+    level = "轻度焦虑";
+    suggestion =
+      "您存在轻度焦虑症状。建议：\n• 学习深呼吸、渐进式肌肉放松\n• 减少咖啡因摄入\n• 保证充足睡眠\n• 考虑正念冥想练习";
+  } else if (totalScore <= 14) {
     level = "中度焦虑";
     suggestion =
-      "您存在中等程度的焦虑症状。建议：\n• 学习深呼吸、渐进式肌肉放松\n• 减少咖啡因摄入\n• 保证充足睡眠\n• 考虑正念冥想练习";
-  } else if (totalScore <= 14) {
-    level = "中重度焦虑";
-    suggestion =
-      "您的焦虑水平较高。建议：\n• 寻求心理咨询帮助\n• 学习认知行为疗法技巧\n• 规律运动（尤其是有氧运动）\n• 避免饮酒和咖啡因";
+      "您存在中等程度的焦虑症状。建议：\n• 寻求心理咨询帮助\n• 学习认知行为疗法技巧\n• 规律运动（尤其是有氧运动）\n• 避免饮酒和咖啡因";
   } else {
     level = "重度焦虑";
     suggestion =
