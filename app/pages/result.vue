@@ -1,6 +1,6 @@
 <template>
   <div class="min-h-screen py-12" style="background-color: var(--bg);">
-    <div class="container mx-auto px-4" :class="isMBTI || isSeven || isPsyAge ? 'max-w-5xl' : 'max-w-3xl'">
+    <div class="container mx-auto px-4" :class="isMBTI || isSeven || isPsyAge || isMultidim ? 'max-w-5xl' : 'max-w-3xl'">
       <ClientOnly>
         <div v-if="isLoading" class="text-center py-12">
           <div class="text-2xl" style="color: var(--text-secondary);">加载中...</div>
@@ -58,7 +58,7 @@
             </div>
 
             <!-- 等级标签 -->
-            <div v-if="!isMBTI && !isSeven && !isPsyAge" class="text-center mb-6">
+            <div v-if="!isMBTI && !isSeven && !isPsyAge && !isMultidim" class="text-center mb-6">
               <div v-if="!canScore" class="text-2xl font-semibold mb-2" style="color: var(--text);">你的测评结果是:</div>
 
               <div class="inline-block px-6 py-2 rounded-full text-lg font-semibold" :class="levelColorClass">
@@ -73,9 +73,10 @@
             <ResultScl90 v-if="isSCL90 && hasDimensionScores" :scores="result.dimensionScores" />
             <ResultMid60 v-if="isMid60" :result="result" />
             <ResultDes2 v-if="isDES2" :result="result" />
+            <ResultMultidim v-if="isMultidim" :report="multidimReport" :result="result" />
 
             <!-- 建议内容 -->
-            <div v-if="!isMBTI && !isSeven && !isPsyAge" class="rounded-lg p-6 mb-6" style="background-color: var(--primary-light);">
+            <div v-if="!isMBTI && !isSeven && !isPsyAge && !isMultidim" class="rounded-lg p-6 mb-6" style="background-color: var(--primary-light);">
               <h3 class="font-bold text-lg mb-3 flex items-center" style="color: var(--text);">
                 <span class="text-2xl mr-2">💡</span>
                 专业建议
@@ -202,8 +203,8 @@ const saveNote = () => {
   $toast.success(noteDraft.value ? '备注已保存' : '备注已清除', '完成')
 }
 
-// 无总分的量表（MBTI 等），以类型等级作为主要内容
-const typeOnlyTests = ['mbti', 'seven', 'psy-age']
+// 无总分（或总分无实际意义）的量表，以类型等级作为主要内容
+const typeOnlyTests = ['mbti', 'seven', 'psy-age', 'multidim']
 
 // 将结果整理为便于分享 / 供 AI 评估的 Markdown 文本
 const buildResultSummary = (r: any): string => {
@@ -326,7 +327,10 @@ const loadResult = async () => {
     const found = testList.find((el: any) => el.id === testId)
     // 人格性格类量表通常无总分，不展示分数环；BIS/BPAQ 虽属人格特质类但有总分
     const scoredPersonality = ['bis', 'bpaq'].includes(testId)
-    canScore.value = found ? found.category === 'symptom' || found.category === 'special' || scoredPersonality : false
+    // 多维自评量表由专用报告组件呈现，不使用通用分数环
+    canScore.value = found
+      ? (found.category === 'symptom' || found.category === 'special' || scoredPersonality) && testId !== 'multidim'
+      : false
   } catch (e) {
     canScore.value = false
   }
@@ -356,6 +360,8 @@ const isSocial = computed(() => result.value?.testId === 'social')
 const isPhobia = computed(() => result.value?.testId === 'phobia')
 const isAgora = computed(() => result.value?.testId === 'agora')
 const isSepanx = computed(() => result.value?.testId === 'sepanx')
+const isMultidim = computed(() => result.value?.testId === 'multidim')
+const multidimReport = computed(() => result.value?.multidimReport || null)
 const psyAgeReport = computed(() => result.value?.psyAgeReport)
 
 const mbtiReport = computed(() => result.value?.mbtiReport || null)

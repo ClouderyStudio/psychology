@@ -67,12 +67,21 @@
             <div class="p-6" style="background-color: var(--primary); color: white;">
               <h1 class="text-2xl font-bold mb-2">{{ test.title }}</h1>
               <p style="color: rgba(255,255,255,0.9);">{{ test.instructions }}</p>
-              <p class="text-sm mt-2" style="color: rgba(255,255,255,0.7);">⚠️ 请根据您的真实感受作答，共 {{ totalQuestions }} 题</p>
+              <p class="text-sm mt-2" style="color: rgba(255,255,255,0.7);">
+                <template v-if="isMultidim && !selectedMode">⚠️ 请先选择评估模式</template>
+                <template v-else>⚠️ 请根据您的真实感受作答，共 {{ totalQuestions }} 题</template>
+              </p>
             </div>
 
             <!-- 量表介绍（由来 / 作用 / 适配人群）默认全部展示 -->
             <div v-if="test.intro" class="border-b px-6 pt-4 pb-5 text-sm" style="border-color: var(--primary-light);">
               <div class="font-semibold text-base mb-3" style="color: var(--text);">📖 量表介绍</div>
+              <!-- 重要提示（如缺乏文献/实证支持）：醒目展示 -->
+              <div v-if="test.intro?.notice" class="mb-4 p-4 rounded-lg"
+                style="background-color: var(--warning-bg); border: 1px solid var(--warning-border); border-left: 4px solid var(--warning-border); color: var(--warning-text);">
+                <div class="font-bold mb-1">⚠️ 重要提示</div>
+                <p class="leading-relaxed">{{ test.intro.notice }}</p>
+              </div>
               <div class="space-y-4">
                 <div v-if="test.intro?.origin">
                   <div class="font-semibold mb-1" style="color: var(--primary);">📜 由来</div>
@@ -110,17 +119,52 @@
             </div>
 
             <div v-else class="p-6">
-              <label class="flex items-start p-4 rounded-lg cursor-pointer transition-all" style="background-color: var(--bg);">
-                <input type="checkbox" v-model="shuffleOrder" class="w-4 h-4 mr-3 mt-0.5" :style="{ accentColor: 'var(--primary)' }">
-                <div>
-                  <div class="font-semibold" style="color: var(--text);">🔀 打乱题目顺序</div>
-                  <p class="text-sm mt-1" style="color: var(--text-secondary);">勾选后随机排列题目顺序，降低惯性作答的干扰；不勾选则按原顺序作答。</p>
+              <!-- 多维自评量表：先选择评估模式 -->
+              <template v-if="isMultidim && !selectedMode">
+                <div class="font-semibold mb-1" style="color: var(--text);">选择评估模式</div>
+                <p class="text-sm mb-4" style="color: var(--text-secondary);">
+                  四种模式均覆盖全部 20 个核心特征维度；模式越深，每维度的补充题越多、分析越细。每次进入按新种子随机抽题，便于乱序复测。
+                </p>
+                <div class="grid sm:grid-cols-2 gap-3">
+                  <button v-for="mm in multidimModes" :key="mm.id" @click="pickMode(mm.id)"
+                    class="text-left p-4 rounded-lg transition-all"
+                    style="background-color: var(--bg); border: 1px solid var(--border);">
+                    <div class="flex items-center justify-between gap-2">
+                      <span class="font-semibold" style="color: var(--text);">{{ mm.name }}</span>
+                      <span class="text-xs px-2 py-0.5 rounded-full"
+                        style="background-color: var(--primary-light); color: var(--primary);">{{ mm.questionsCount }} 题</span>
+                    </div>
+                    <p class="text-sm mt-1" style="color: var(--text-secondary);">{{ mm.desc }}</p>
+                  </button>
                 </div>
-              </label>
-              <button @click="startTest" class="w-full mt-4 py-3 rounded-lg font-semibold text-white transition-all"
-                style="background-color: var(--primary); box-shadow: var(--shadow-sm);">
-                开始答题
-              </button>
+              </template>
+
+              <template v-else>
+                <div v-if="isMultidim"
+                  class="mb-4 p-3 rounded-lg flex items-center justify-between gap-3 flex-wrap"
+                  style="background-color: var(--bg); border: 1px solid var(--border);">
+                  <span class="text-sm" style="color: var(--text-secondary);">
+                    当前模式：<b style="color: var(--text);">{{ currentModeName }}</b> · {{ totalQuestions }} 题
+                  </span>
+                  <span class="flex gap-2">
+                    <button class="text-xs px-3 py-1.5 rounded-lg" @click="rerollQuestions"
+                      style="background-color: var(--primary-light); color: var(--primary);">🎲 换一套题</button>
+                    <button class="text-xs px-3 py-1.5 rounded-lg" @click="changeMode"
+                      style="background-color: var(--card-bg); color: var(--text-secondary); border: 1px solid var(--border);">切换模式</button>
+                  </span>
+                </div>
+                <label class="flex items-start p-4 rounded-lg cursor-pointer transition-all" style="background-color: var(--bg);">
+                  <input type="checkbox" v-model="shuffleOrder" class="w-4 h-4 mr-3 mt-0.5" :style="{ accentColor: 'var(--primary)' }">
+                  <div>
+                    <div class="font-semibold" style="color: var(--text);">🔀 打乱题目顺序</div>
+                    <p class="text-sm mt-1" style="color: var(--text-secondary);">勾选后随机排列题目顺序，降低惯性作答的干扰；不勾选则按原顺序作答。</p>
+                  </div>
+                </label>
+                <button @click="startTest" class="w-full mt-4 py-3 rounded-lg font-semibold text-white transition-all"
+                  style="background-color: var(--primary); box-shadow: var(--shadow-sm);">
+                  开始答题
+                </button>
+              </template>
             </div>
 
             <!-- SIOSS 正式模式：阅读声明后方可答题 -->
@@ -392,11 +436,57 @@ const isClient = ref(false)
 const QUESTIONS_PER_PAGE = 10
 
 // 获取题库数据
-const { data: response, error } = await useFetch(`/api/tests/${testId}`)
+// 多维自评量表题目随 ?mode&seed 变化：URL 用响应式 getter，切换模式/换题时自动重新拉取。
+const multidimQuery = computed(() => {
+  if (testId !== 'multidim') return ''
+  const m = route.query.mode
+  if (typeof m !== 'string' || !m) return ''
+  const s = route.query.seed
+  return `?mode=${encodeURIComponent(m)}${typeof s === 'string' && s ? `&seed=${encodeURIComponent(s)}` : ''}`
+})
+const { data: response, error } = await useFetch(() => `/api/tests/${testId}${multidimQuery.value}`)
 const test = computed(() => {
   const data = response.value?.data
   return Array.isArray(data) ? null : data
 })
+
+// ===== 多维自评量表：模式选择 + 乱序复测 =====
+const isMultidim = computed(() => testId === 'multidim')
+const multidimModes = computed<any[]>(() => ((test.value as any)?.modes as any[]) || [])
+const selectedMode = computed(() =>
+  typeof route.query.mode === 'string' && route.query.mode ? route.query.mode : null,
+)
+const currentModeName = computed(
+  () => multidimModes.value.find((m) => m.id === selectedMode.value)?.name || selectedMode.value || '',
+)
+
+// 切换模式 / 换一套题前，清空当前作答与题序，避免旧题号混入新题集
+function resetForNewQuestionSet() {
+  answers.value = {}
+  answerStore.clearAnswers()
+  clearOrder()
+  started.value = false
+  currentPage.value = 1
+}
+
+// 选择模式：写入 mode + 新种子（种子使每次进入随机抽题，实现乱序复测）
+function pickMode(mode: string) {
+  resetForNewQuestionSet()
+  router.replace({ query: { mode, seed: String(Date.now()) } })
+}
+
+// 换一套题：同模式、新种子
+function rerollQuestions() {
+  if (!selectedMode.value) return
+  resetForNewQuestionSet()
+  router.replace({ query: { mode: selectedMode.value, seed: String(Date.now()) } })
+}
+
+// 返回模式选择
+function changeMode() {
+  resetForNewQuestionSet()
+  router.replace({ query: {} })
+}
 
 // 使用 Pinia 存储答案
 const answers = ref<Record<number, number>>({})
@@ -410,6 +500,9 @@ const allQuestions = ref<any[]>([])
 const started = ref(false)        // 是否已进入答题（每次进入都先显示开始页询问是否打乱）
 const shuffleOrder = ref(false)   // 开始页勾选：是否打乱题目顺序
 const isSubmitting = ref(false)   // 提交中锁：防止重复提交
+
+// 多维自评量表默认开启题目乱序（配合服务端按种子随机抽题，实现乱序复测）
+if (testId === 'multidim') shuffleOrder.value = true
 
 // SIOSS 等高敏感量表：勾选"已阅读声明"才可进入
 const formalAcknowledged = ref(false)
@@ -628,7 +721,10 @@ onMounted(async () => {
 
   const savedAnswers = answerStore.getAnswers()
 
-  if (savedAnswers && Object.keys(savedAnswers).length > 0) {
+  // 多维量表在未选定模式前不恢复旧作答（旧题集可能与当前模式不一致）
+  const canRestore = !isMultidim.value || !!selectedMode.value
+
+  if (savedAnswers && Object.keys(savedAnswers).length > 0 && canRestore) {
     const completedCount = Object.keys(savedAnswers).length
     const totalCount = totalQuestions.value
 
@@ -772,12 +868,19 @@ async function doSubmit() {
   try {
     $toast.info('正在提交中，请稍候...', '提交中')
 
+    const submitBody: any = {
+      testId,
+      answers: answers.value,
+    }
+    // 多维自评量表：带回评估模式与种子，服务端据此复现同一套题目再做校验
+    if (isMultidim.value) {
+      submitBody.mode = selectedMode.value
+      submitBody.seed = typeof route.query.seed === 'string' ? route.query.seed : undefined
+    }
+
     const result = await $fetch('/api/submit', {
       method: 'POST',
-      body: {
-        testId,
-        answers: answers.value
-      }
+      body: submitBody
     })
 
     if (result?.success) {

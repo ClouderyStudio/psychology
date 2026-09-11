@@ -24,9 +24,12 @@ import { scoreSocial } from "./scoring-rules/scoreSocial";
 import { scorePhobia } from "./scoring-rules/scorePhobia";
 import { scoreAgora } from "./scoring-rules/scoreAgora";
 import { scoreSepanx } from "./scoring-rules/scoreSepanx";
+import { scoreMultidim } from "./scoring-rules/scoreMultidim";
 interface ScoringInput {
   testId: string;
   answers: Record<number, number>;
+  /** 多维自评量表等支持模式的量表：本次作答所用模式 */
+  mode?: string;
 }
 
 export interface ScoringResult {
@@ -39,6 +42,7 @@ export interface ScoringResult {
   mbtiReport?: Record<string, any>;
   sevenReport?: Record<string, any>;
   psyAgeReport?: Record<string, any>;
+  multidimReport?: Record<string, any>;
   rawScore?: number;
   standardizedScore?: number;
 }
@@ -144,7 +148,7 @@ function scoreRSES(answers: Record<number, number>): ScoringResult {
 }
 
 export function calculateScore(input: ScoringInput): ScoringResult {
-  const { testId, answers } = input;
+  const { testId, answers, mode } = input;
 
   switch (testId) {
     case "phq9":
@@ -221,6 +225,8 @@ export function calculateScore(input: ScoringInput): ScoringResult {
       return scoreAgora(answers);
     case "sepanx":
       return scoreSepanx(answers);
+    case "multidim":
+      return scoreMultidim(answers, mode);
     default:
       return {
         totalScore: 0,

@@ -1,4 +1,5 @@
 import { calculateScore } from "../utils/score";
+import { isMultidimMode } from "../utils/questions/multidim-questions";
 import {
   validateAnswers,
   type QuestionLike,
@@ -6,7 +7,7 @@ import {
 
 export default defineEventHandler(async (event) => {
   const body = await readBody(event).catch(() => ({}));
-  const { testId, answers, userInfo } = body;
+  const { testId, answers, userInfo, mode, seed } = body;
 
   // 验证数据
   if (!testId) {
@@ -23,10 +24,24 @@ export default defineEventHandler(async (event) => {
     });
   }
 
+  // 多维自评量表按模式出题：提交时必须带回评估模式（与种子），
+  // 以便用同一套题目复现并校验作答完整性。
+  if (testId === "multidim" && !isMultidimMode(mode)) {
+    throw createError({
+      statusCode: 400,
+      message: "缺少评估模式，请返回重新选择模式后再提交",
+    });
+  }
+
   // 拉取测评完整数据（标题 + 题目），用于标题展示与完整性/值域校验
   let testData: any = null;
   try {
-    testData = await $fetch(`/api/tests/${testId}`);
+    let url = `/api/tests/${testId}`;
+    if (testId === "multidim") {
+      url += `?mode=${encodeURIComponent(mode)}`;
+      if (typeof seed === "string" && seed) url += `&seed=${encodeURIComponent(seed)}`;
+    }
+    testData = await $fetch(url);
   } catch {
     throw createError({
       statusCode: 400,
@@ -53,7 +68,11 @@ export default defineEventHandler(async (event) => {
   }
 
   // 计算分数
-  const scoreResult = calculateScore({ testId, answers });
+  const scoreResult = calculateScore({
+    testId,
+    answers,
+    mode: typeof mode === "string" ? mode : undefined,
+  });
 
   // 返回结果
   return {

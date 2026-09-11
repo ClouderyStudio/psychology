@@ -456,6 +456,64 @@
   --rigidity-dark: var(--personality-dark);
 }
 
+[data-accent="mint"] {
+  --primary: #2f9e83;
+  --primary-light: #e2f5ef;
+  --primary-dark: #237a65;
+  --primary-tag: #cfeee4;
+  --personality: #4a90c4;
+  --personality-light: #e8f2fa;
+  --personality-dark: #35719e;
+  --personality-tag: #d5e6f4;
+  --special: #c98a3f;
+  --special-light: #fbf2e4;
+  --special-dark: #a06a2e;
+  --special-tag: #f0e0c4;
+  /* 症状类跟随主色；维度跟随对应分类色 */
+  --symptom: var(--primary);
+  --symptom-light: var(--primary-light);
+  --symptom-dark: var(--primary-dark);
+  --symptom-tag: var(--primary-tag);
+  --disharmony: var(--primary);
+  --disharmony-light: var(--primary-light);
+  --disharmony-dark: var(--primary-dark);
+  --flexibility: var(--special);
+  --flexibility-light: var(--special-light);
+  --flexibility-dark: var(--special-dark);
+  --rigidity: var(--personality);
+  --rigidity-light: var(--personality-light);
+  --rigidity-dark: var(--personality-dark);
+}
+
+[data-accent="mint"][data-theme="dark"] {
+  --primary: #6fd3b5;
+  --primary-light: #16302a;
+  --primary-dark: #a5e6cf;
+  --primary-tag: #1f4a3e;
+  --personality: #7cc2e8;
+  --personality-light: #16283a;
+  --personality-dark: #a5d8f2;
+  --personality-tag: #1e3c52;
+  --special: #d9a35c;
+  --special-light: #2a2015;
+  --special-dark: #e8c084;
+  --special-tag: #3a2e1c;
+  /* 症状类跟随主色；维度跟随对应分类色 */
+  --symptom: var(--primary);
+  --symptom-light: var(--primary-light);
+  --symptom-dark: var(--primary-dark);
+  --symptom-tag: var(--primary-tag);
+  --disharmony: var(--primary);
+  --disharmony-light: var(--primary-light);
+  --disharmony-dark: var(--primary-dark);
+  --flexibility: var(--special);
+  --flexibility-light: var(--special-light);
+  --flexibility-dark: var(--special-dark);
+  --rigidity: var(--personality);
+  --rigidity-light: var(--personality-light);
+  --rigidity-dark: var(--personality-dark);
+}
+
 html {
   font-family:
     "Recursive Mn Csl St Med",

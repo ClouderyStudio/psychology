@@ -28,6 +28,8 @@ export interface ScaleIntro {
   purpose: string;
   /** 适配人群：适合哪些人使用及注意事项 */
   audience: string;
+  /** 重要提示（如缺乏文献/实证支持），在量表介绍中醒目展示 */
+  notice?: string;
 }
 
 export interface Test {
@@ -83,6 +85,7 @@ export interface TestResult {
   mbtiReport?: Record<string, any>;
   sevenReport?: Record<string, any>;
   psyAgeReport?: Record<string, any>;
+  multidimReport?: Record<string, any>;
 }
 export interface TestListItem {
   id: string;

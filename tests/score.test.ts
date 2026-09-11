@@ -1,6 +1,7 @@
 import { describe, it, expect } from "vitest";
 import { calculateScore } from "../server/utils/score";
 import { bisQuestions } from "../server/utils/questions/bis-questions";
+import { buildMultidimQuestions } from "../server/utils/questions/multidim-questions";
 
 /** 生成 count 道题、每题 value 的作答 */
 function full(count: number, value: number): Record<number, number> {
@@ -742,3 +743,66 @@ describe("分离焦虑障碍严重度（SEPANX）", () => {
   });
 });
 
+
+
+describe("心理健康多维自评量表（MULTIDIM）", () => {
+  /** 按模式 + 种子取题，全部填同一作答值 */
+  function answersFor(mode: "light" | "fast" | "standard" | "deep", seed: string, value: number) {
+    const answers: Record<number, number> = {};
+    for (const q of buildMultidimQuestions(mode, seed)) answers[q.id] = value;
+    return answers;
+  }
+
+  it("四种模式题量分别为 20 / 45 / 65 / 105", () => {
+    expect(buildMultidimQuestions("light", "s").length).toBe(20);
+    expect(buildMultidimQuestions("fast", "s").length).toBe(45);
+    expect(buildMultidimQuestions("standard", "s").length).toBe(65);
+    expect(buildMultidimQuestions("deep", "s").length).toBe(105);
+  });
+
+  it("同一种子出题一致，不同种子题目集合不同（乱序复测）", () => {
+    const a = buildMultidimQuestions("standard", "seed-A").map((q) => q.id);
+    const b = buildMultidimQuestions("standard", "seed-A").map((q) => q.id);
+    const c = buildMultidimQuestions("standard", "seed-B").map((q) => q.id);
+    expect(a).toEqual(b);
+    expect(a).not.toEqual(c);
+  });
+
+  it("标准模式全部「不确定」→ 结果良好、效度可信", () => {
+    const r = calculateScore({ testId: "multidim", answers: answersFor("standard", "t1", 0) });
+    const rep: any = r.multidimReport;
+    expect(rep.isNormal).toBe(true);
+    expect(r.level).toBe("评估结果良好");
+    expect(rep.severity.level).toBe("正常");
+    expect(rep.lie.level).toBe("可信");
+    expect(rep.credibility.level).toBe("回答一致性 · 高");
+  });
+
+  it("标准模式全部「非常符合」→ 检出安全信号、效度存疑、严重度极重度，20 维均有数据", () => {
+    const r = calculateScore({ testId: "multidim", answers: answersFor("standard", "t2", 1) });
+    const rep: any = r.multidimReport;
+    expect(r.totalScore).toBeGreaterThanOrEqual(40);
+    expect(rep.severeSignals).toContain("自伤或轻生的念头");
+    expect(rep.severeSignals).toContain("幻觉体验（听到或看到不存在的事物）");
+    expect(rep.lie.level).toBe("回答一致性存疑");
+    expect(rep.severity.level).toBe("极重度");
+    expect(rep.traits.filter((t: any) => !t.noData)).toHaveLength(20);
+    expect(rep.matches.length).toBeGreaterThan(0);
+  });
+
+  it("标准模式全部「完全不符合」→ 未见异常、结果良好", () => {
+    const r = calculateScore({ testId: "multidim", answers: answersFor("standard", "t3", -1) });
+    const rep: any = r.multidimReport;
+    expect(rep.isNormal).toBe(true);
+    expect(rep.severity.level).toBe("未见异常");
+    expect(rep.traits.every((t: any) => t.level === "未见异常")).toBe(true);
+  });
+
+  it("极简模式（20 题，无复问/效度题）→ 效度与一致性为空，20 维仍有数据", () => {
+    const r = calculateScore({ testId: "multidim", answers: answersFor("light", "t4", 1) });
+    const rep: any = r.multidimReport;
+    expect(rep.lie).toBeNull();
+    expect(rep.credibility).toBeNull();
+    expect(rep.traits.filter((t: any) => !t.noData)).toHaveLength(20);
+  });
+});

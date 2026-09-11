@@ -86,6 +86,7 @@
 | **IPIP-EIS 情绪智力量表**     | 64题 | 评估情绪智力的7个维度      |
 | **情绪稳定性测试**            | 30题 | 评估情绪稳定程度和抗压能力 |
 | **SCCS 自我和谐量表**         | 35题 | 评估自我与经验的关系       |
+| **心理健康多维自评量表**      | 20-105题 | 覆盖20个核心特征维度，含极简/快速/标准/深度四种模式、回答一致性与效度校验、乱序复测（AnonUsAl 编制） |
 
 ### 📚 量表来源（部分）
 
@@ -117,6 +118,7 @@
 | 惊恐/社交焦虑/特定恐怖症/广场恐怖/分离焦虑严重度 | APA DSM-5-TR 成人严重度量表（Craske 等） | 2013/2022 | https://www.psychiatry.org/psychiatrists/practice/dsm/educational-resources/assessment-measures |
 | BPNS 基本心理需求 | Deci &amp; Ryan（自我决定理论） | — | https://selfdeterminationtheory.org/ |
 | IPIP-EIS 情绪智力 | IPIP 量表池 | — | https://ipip.ori.org/ |
+| 心理健康多维自评量表 | AnonUsAl 编制（多维特征模型） | 2026（V2.2） | — |
 | 16PF | Cattell | 1949 | — |
 | EPQ | Eysenck | 1975 | — |
 | EPQ-RSC | 艾森克问卷中国简版（钱铭怡 等修订） | — | — |

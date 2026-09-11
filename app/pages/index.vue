@@ -22,7 +22,7 @@
         <div class="stat-item text-center p-4 rounded-xl"
           style="background-color: var(--card-bg); box-shadow: var(--shadow-sm);">
           <div class="stat-num text-3xl md:text-4xl font-bold mb-1" style="color: var(--primary);">
-            {{ tests.length + 1 }}
+            {{ tests.length }}
           </div>
           <div class="stat-label text-sm" style="color: var(--text-secondary);">专业量表</div>
         </div>
@@ -131,8 +131,8 @@
 
       <!-- 量表卡片网格 -->
       <div class="cards-grid grid md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-6xl mx-auto">
-        <!-- 独立页面：心理健康多维自评量表（AnonUsAl） -->
-        <a href="/a.html"
+        <!-- 心理健康多维自评量表（AnonUsAl 编制）—— 已接入题库框架 -->
+        <NuxtLink to="/test/multidim"
           class="external-scale-card card rounded-xl transition-all duration-300 hover:transform hover:-translate-y-1 overflow-hidden flex flex-col relative">
 
           <!-- 卡片顶部色带 -->
@@ -157,7 +157,7 @@
             </p>
 
             <p class="text-sm mb-4 leading-relaxed min-h-[60px]" style="color: var(--text-secondary);">
-              覆盖 <strong class="external-num">20</strong> 个核心特征维度，提供极简自测、快速筛查、标准评估、深度评估四种模式（<strong class="external-num">20-105</strong> 题），内置作答效度校验，支持题目乱序复测。
+              覆盖 <strong class="external-num">20</strong> 个核心特征维度，提供极简自测、快速筛查、标准评估、深度评估四种模式（<strong class="external-num">20-105</strong> 题），内置回答一致性与作答效度校验，支持乱序复测。
             </p>
 
             <div class="flex items-center mt-auto justify-between mb-4 text-xs" style="color: var(--text-muted);">
@@ -179,7 +179,7 @@
               </span>
             </div>
           </div>
-        </a>
+        </NuxtLink>
 
         <div v-for="test in filteredTests" :key="test.id"
           class="card rounded-xl transition-all duration-300 hover:transform hover:-translate-y-1 overflow-hidden flex flex-col"
@@ -311,9 +311,11 @@ const allTags = computed(() => {
 })
 
 // 筛选后的测评列表（分类 + 标签 + 搜索）
+// 多维自评量表由专属卡片呈现，不再在网格中重复列出
 const filteredTests = computed(() => {
   const q = searchQuery.value.trim().toLowerCase()
   return tests.value.filter((test) => {
+    if (test.id === 'multidim') return false
     const catOk = activeFilter.value === 'all' || test.category === activeFilter.value
     const tagOk = !activeTag.value || test.tags.includes(activeTag.value)
     const searchOk = !q || [test.title, test.englishName, test.description]

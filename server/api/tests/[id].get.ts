@@ -118,6 +118,12 @@ import { socialQuestions, socialOptions } from "~~/server/utils/questions/social
 import { phobiaQuestions, phobiaOptions } from "~~/server/utils/questions/phobia-questions";
 import { agoraQuestions, agoraOptions } from "~~/server/utils/questions/agora-questions";
 import { sepanxQuestions, sepanxOptions } from "~~/server/utils/questions/sepanx-questions";
+import {
+  buildMultidimQuestions,
+  isMultidimMode,
+  MULTIDIM_MODES,
+  multidimOptions,
+} from "~~/server/utils/questions/multidim-questions";
 import { testIntros } from "~~/server/utils/test-intros";
 
 // 按题目 id 升序排序（题库文件顺序可能与出题顺序不同）
@@ -128,7 +134,13 @@ function sortQuestionsById<T extends { id: number }>(questions: T[]): T[] {
 export default defineEventHandler(async (event) => {
   const id = getRouterParam(event, "id");
 
-  const testDatabase: Record<string, Test> = {
+  // 多维自评量表：支持 ?mode=light|fast|standard|deep&seed=xxx 按模式出题。
+  // 未指定模式时返回空题目（前端先展示模式选择）；种子用于乱序复测与提交校验复现。
+  const query = getQuery(event);
+  const multidimMode = isMultidimMode(query.mode) ? query.mode : null;
+  const multidimSeed = typeof query.seed === "string" ? query.seed : undefined;
+
+  const testDatabase: Record<string, Test & { modes?: typeof MULTIDIM_MODES }> = {
     phq9: {
       id: "phq9",
       title: "PHQ-9 抑郁筛查量表",
@@ -759,6 +771,26 @@ export default defineEventHandler(async (event) => {
       scoringRules: {
         type: "sepanx",
       },
+    },
+    multidim: {
+      id: "multidim",
+      title: "心理健康多维自评量表",
+      description:
+        "基于多维特征模型的心理健康自评量表，覆盖 20 个核心特征维度，并内置回答一致性与作答效度校验。选择评估模式后按模式出题。",
+      instructions:
+        "请根据最近两周的真实感受作答，选择最符合的选项（非常符合 / 比较符合 / 不确定 / 不太符合 / 完全不符合）。本量表为自评参考与科普用途，不构成临床诊断，不能替代专业医疗。",
+      questions: multidimMode
+        ? buildMultidimQuestions(multidimMode, multidimSeed).map((q) => ({
+            id: q.id,
+            text: q.text,
+            type: "likert" as const,
+            options: multidimOptions,
+          }))
+        : [],
+      scoringRules: {
+        type: "multidim",
+      },
+      modes: MULTIDIM_MODES,
     },
   };
 
