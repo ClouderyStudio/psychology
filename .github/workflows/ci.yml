@@ -13,8 +13,8 @@ jobs:
 
       - name: Setup pnpm
         uses: pnpm/action-setup@v4
-        with:
-          version: 12.2.1
+        # 不指定 version：自动读取 package.json 的 packageManager，
+        # 避免 Action 与 package.json 两处版本不一致导致 ERR_PNPM_BAD_PM_VERSION
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
