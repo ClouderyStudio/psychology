@@ -525,6 +525,178 @@
   --rigidity-dark: var(--personality-dark);
 }
 
+/* 怀旧：白色背景 + 深墨文字 + 衬线字体，面板改为直角 */
+[data-accent="retro"] {
+  --bg: #ffffff;
+  --card-bg: #ffffff;
+  --text: #2b2216;
+  --text-secondary: #4d402e;
+  --text-muted: #716149;
+  --border: #d8c9ac;
+  --primary: #3f5b76;
+  --primary-light: #e4e8ed;
+  --primary-dark: #2c4359;
+  --primary-tag: #d6dde6;
+  --personality: #77587f;
+  --personality-light: #ede6ef;
+  --personality-dark: #5c4262;
+  --personality-tag: #e0d4e3;
+  --special: #96683a;
+  --special-light: #f2e9dc;
+  --special-dark: #754f28;
+  --special-tag: #e7d6bf;
+  /* 症状类跟随主色；维度跟随对应分类色 */
+  --symptom: var(--primary);
+  --symptom-light: var(--primary-light);
+  --symptom-dark: var(--primary-dark);
+  --symptom-tag: var(--primary-tag);
+  --disharmony: var(--primary);
+  --disharmony-light: var(--primary-light);
+  --disharmony-dark: var(--primary-dark);
+  --flexibility: var(--special);
+  --flexibility-light: var(--special-light);
+  --flexibility-dark: var(--special-dark);
+  --rigidity: var(--personality);
+  --rigidity-light: var(--personality-light);
+  --rigidity-dark: var(--personality-dark);
+  font-family: "Songti SC", "STSong", "SimSun", "Noto Serif SC", Georgia, "Times New Roman", serif;
+  letter-spacing: 0.01em;
+}
+
+/* 怀旧：直角化 —— Tailwind 卡片/面板与结果报告内的卡片。
+   用 html[data-accent="retro"] 提高优先级，确保覆盖组件内 scoped 样式；
+   圆形元素（圆点、开关、进度条、胶囊标签）按原样保留。 */
+html[data-accent="retro"] {
+  --md-radius: 0;
+}
+
+html[data-accent="retro"] .rounded-md,
+html[data-accent="retro"] .rounded-lg,
+html[data-accent="retro"] .rounded-xl,
+html[data-accent="retro"] .rounded-2xl,
+html[data-accent="retro"] .md-card,
+html[data-accent="retro"] .md-hero,
+html[data-accent="retro"] .md-match,
+html[data-accent="retro"] .md-summary-cell,
+html[data-accent="retro"] .md-summary-note,
+html[data-accent="retro"] .md-alert,
+html[data-accent="retro"] .md-ok,
+html[data-accent="retro"] .md-stats,
+html[data-accent="retro"] .md-advice-text,
+html[data-accent="retro"] .md-advice-followup,
+html[data-accent="retro"] .md-rank,
+html[data-accent="retro"] .md-tag,
+html[data-accent="retro"] .md-reason-label,
+html[data-accent="retro"] .md-trait-level {
+  border-radius: 0;
+}
+
+[data-accent="retro"][data-theme="dark"] {
+  --bg: #201b15;
+  --card-bg: #2a241c;
+  --text: #ece2d0;
+  --text-secondary: #c3b6a0;
+  --text-muted: #8f8270;
+  --border: #463c2e;
+  --primary: #c7a06a;
+  --primary-light: #352d22;
+  --primary-dark: #e2c593;
+  --primary-tag: #4a3d2a;
+  --personality: #b6a2cc;
+  --personality-light: #2c2436;
+  --personality-dark: #d0bfe2;
+  --personality-tag: #3c3248;
+  --special: #d59a68;
+  --special-light: #3a2c1e;
+  --special-dark: #e8bb8e;
+  --special-tag: #4c3a28;
+  /* 症状类跟随主色；维度跟随对应分类色 */
+  --symptom: var(--primary);
+  --symptom-light: var(--primary-light);
+  --symptom-dark: var(--primary-dark);
+  --symptom-tag: var(--primary-tag);
+  --disharmony: var(--primary);
+  --disharmony-light: var(--primary-light);
+  --disharmony-dark: var(--primary-dark);
+  --flexibility: var(--special);
+  --flexibility-light: var(--special-light);
+  --flexibility-dark: var(--special-dark);
+  --rigidity: var(--personality);
+  --rigidity-light: var(--personality-light);
+  --rigidity-dark: var(--personality-dark);
+}
+
+/* Google 风格：白底 + Google 蓝，分类色取自 Material 调色板（蓝/绿/红） */
+[data-accent="google"] {
+  --bg: #ffffff;
+  --card-bg: #ffffff;
+  --text: #202124;
+  --text-secondary: #5f6368;
+  --text-muted: #80868b;
+  --border: #dadce0;
+  --primary: #1a73e8;
+  --primary-light: #e8f0fe;
+  --primary-dark: #174ea6;
+  --primary-tag: #d2e3fc;
+  --personality: #188038;
+  --personality-light: #e6f4ea;
+  --personality-dark: #0d652d;
+  --personality-tag: #ceead6;
+  --special: #d93025;
+  --special-light: #fce8e6;
+  --special-dark: #a50e0e;
+  --special-tag: #fad2cf;
+  /* 症状类跟随主色；维度跟随对应分类色 */
+  --symptom: var(--primary);
+  --symptom-light: var(--primary-light);
+  --symptom-dark: var(--primary-dark);
+  --symptom-tag: var(--primary-tag);
+  --disharmony: var(--primary);
+  --disharmony-light: var(--primary-light);
+  --disharmony-dark: var(--primary-dark);
+  --flexibility: var(--special);
+  --flexibility-light: var(--special-light);
+  --flexibility-dark: var(--special-dark);
+  --rigidity: var(--personality);
+  --rigidity-light: var(--personality-light);
+  --rigidity-dark: var(--personality-dark);
+}
+
+[data-accent="google"][data-theme="dark"] {
+  --bg: #202124;
+  --card-bg: #292a2d;
+  --text: #e8eaed;
+  --text-secondary: #bdc1c6;
+  --text-muted: #9aa0a6;
+  --border: #3c4043;
+  --primary: #8ab4f8;
+  --primary-light: #1f2b3d;
+  --primary-dark: #aecbfa;
+  --primary-tag: #26374d;
+  --personality: #81c995;
+  --personality-light: #1e2f24;
+  --personality-dark: #a8dab5;
+  --personality-tag: #27402f;
+  --special: #f28b82;
+  --special-light: #3a2422;
+  --special-dark: #f6aea9;
+  --special-tag: #4d2d2a;
+  /* 症状类跟随主色；维度跟随对应分类色 */
+  --symptom: var(--primary);
+  --symptom-light: var(--primary-light);
+  --symptom-dark: var(--primary-dark);
+  --symptom-tag: var(--primary-tag);
+  --disharmony: var(--primary);
+  --disharmony-light: var(--primary-light);
+  --disharmony-dark: var(--primary-dark);
+  --flexibility: var(--special);
+  --flexibility-light: var(--special-light);
+  --flexibility-dark: var(--special-dark);
+  --rigidity: var(--personality);
+  --rigidity-light: var(--personality-light);
+  --rigidity-dark: var(--personality-dark);
+}
+
 html {
   font-family:
     "Recursive Mn Csl St Med",
