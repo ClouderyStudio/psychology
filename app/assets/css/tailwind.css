@@ -697,8 +697,13 @@ html[data-accent="retro"] .md-trait-level {
   --rigidity-dark: var(--personality-dark);
 }
 
-html {
-  font-family:
+/* ===================== 自选字体 ===================== */
+/* 字体栈集中在此定义，面板里的字体预览也用同一批变量，避免两处维护。
+   覆盖优先级：「:root[data-font-family=…]」是 (0,2,0)，高于主题自带的
+   「[data-accent="retro"]」(0,1,0)，所以用户显式选了字体就以用户为准；
+   default 档不定义任何规则，保留主题原本的字体意图（如「怀旧」用宋体）。 */
+:root {
+  --font-stack-default:
     "Recursive Mn Csl St Med",
     "HarmonyOS Sans SC",
     -apple-system,
@@ -708,6 +713,49 @@ html {
     "Helvetica Neue",
     Arial,
     sans-serif;
+  --font-stack-sans:
+    "HarmonyOS Sans SC",
+    -apple-system,
+    BlinkMacSystemFont,
+    "PingFang SC",
+    "Hiragino Sans GB",
+    "Microsoft YaHei",
+    "Segoe UI",
+    Roboto,
+    "Helvetica Neue",
+    Arial,
+    sans-serif;
+  --font-stack-serif:
+    "Songti SC",
+    "STSong",
+    "SimSun",
+    "Noto Serif SC",
+    "Source Han Serif SC",
+    Georgia,
+    "Times New Roman",
+    serif;
+  --font-stack-kai:
+    "Kaiti SC",
+    "STKaiti",
+    "KaiTi",
+    "Noto Serif SC",
+    "Songti SC",
+    Georgia,
+    serif;
+}
+
+:root[data-font-family="sans"] {
+  font-family: var(--font-stack-sans);
+}
+:root[data-font-family="serif"] {
+  font-family: var(--font-stack-serif);
+}
+:root[data-font-family="kai"] {
+  font-family: var(--font-stack-kai);
+}
+
+html {
+  font-family: var(--font-stack-default);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   text-rendering: optimizeLegibility;

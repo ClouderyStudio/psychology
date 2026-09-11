@@ -72,24 +72,24 @@
             </div>
           </div>
 
-          <!-- 文字大小选择 -->
+          <!-- 阅读偏好（文字大小 + 字体） -->
           <div ref="fontWrap" class="relative z-40">
             <button @click="toggleFontPanel"
               class="w-8 h-8 rounded-full flex items-center justify-end gap-0.5 transition-all"
               :style="{ backgroundColor: 'var(--primary-light)', color: 'var(--primary)' }"
-              :title="'调整文字大小（当前：' + currentFontScaleLabel + '）'"
+              :title="'阅读偏好（字号：' + currentFontScaleLabel + ' · 字体：' + currentFontFamilyLabel + '）'"
               @mouseenter="elStyle($event, { boxShadow: '0 0 0 2px ' + currentAccentColor })"
               @mouseleave="elStyle($event, { boxShadow: 'none' })">
               <span class="font-semibold leading-none" style="font-size: 0.6875rem;">A</span>
               <span class="font-semibold leading-none" style="font-size: 1rem;">A</span>
             </button>
-            <div v-if="fontOpen" class="absolute right-0 top-full mt-2 w-52 rounded-xl p-3"
+            <div v-if="fontOpen" class="absolute right-0 top-full mt-2 w-60 rounded-xl p-3"
               style="background-color: var(--card-bg); box-shadow: var(--shadow-lg);">
               <div class="text-xs font-medium mb-2" style="color: var(--text-secondary);">文字大小</div>
               <div class="flex flex-col gap-1">
                 <button v-for="opt in fontScaleOptions" :key="opt.id" type="button"
-                  @click="setFontScale(opt.id); fontOpen = false"
-                  class="flex items-center justify-between px-3 py-2 rounded-lg transition-all text-left"
+                  @click="setFontScale(opt.id)"
+                  class="flex items-center justify-between px-3 py-1.5 rounded-lg transition-all text-left"
                   :style="{
                     backgroundColor: fontScale === opt.id ? 'var(--primary-light)' : 'transparent',
                     color: fontScale === opt.id ? 'var(--primary)' : 'var(--text)',
@@ -97,6 +97,24 @@
                   :aria-pressed="fontScale === opt.id">
                   <span class="font-semibold text-sm">{{ opt.label }}</span>
                   <span class="text-xs" style="color: var(--text-secondary);">{{ opt.desc }}</span>
+                </button>
+              </div>
+
+              <div class="text-xs font-medium mt-3 mb-2 pt-2" style="color: var(--text-secondary);"
+                :style="{ borderTop: '1px solid var(--border)' }">字体</div>
+              <div class="flex flex-col gap-1">
+                <button v-for="opt in fontFamilyOptions" :key="opt.id" type="button"
+                  @click="setFontFamily(opt.id)"
+                  class="flex items-center justify-between gap-2 px-3 py-1.5 rounded-lg transition-all text-left"
+                  :style="{
+                    backgroundColor: fontFamily === opt.id ? 'var(--primary-light)' : 'transparent',
+                  }"
+                  :aria-pressed="fontFamily === opt.id">
+                  <span class="font-semibold text-sm"
+                    :style="{ fontFamily: 'var(' + opt.stackVar + ')', color: fontFamily === opt.id ? 'var(--primary)' : 'var(--text)' }">
+                    {{ opt.label }}
+                  </span>
+                  <span class="text-xs text-right" style="color: var(--text-secondary);">{{ opt.desc }}</span>
                 </button>
               </div>
             </div>
@@ -250,6 +268,24 @@
           </div>
         </div>
 
+        <!-- 移动端字体 -->
+        <div class="pt-2 mt-1 space-y-1.5">
+          <div class="text-xs font-medium" style="color: var(--text-secondary);">字体</div>
+          <div class="grid grid-cols-2 gap-2">
+            <button v-for="opt in fontFamilyOptions" :key="opt.id" type="button" @click="setFontFamily(opt.id)"
+              class="px-2 py-1.5 rounded-lg text-xs font-semibold transition-all"
+              :style="{
+                backgroundColor: fontFamily === opt.id ? 'var(--primary-light)' : 'var(--bg)',
+                border: fontFamily === opt.id ? '1px solid var(--primary)' : '1px solid var(--border)',
+                color: fontFamily === opt.id ? 'var(--primary)' : 'var(--text)',
+                fontFamily: 'var(' + opt.stackVar + ')',
+              }"
+              :aria-pressed="fontFamily === opt.id">
+              {{ opt.label }}
+            </button>
+          </div>
+        </div>
+
         <!-- 移动端进度显示 -->
         <ClientOnly>
           <div v-if="hasUnfinishedTests" class="pt-2 mt-2 border-t" style="border-color: var(--primary-light);">
@@ -305,6 +341,7 @@ const route = useRoute()
 const { $toast, $confirm } = useNuxtApp()
 const { isDark, toggle: toggleTheme, accent, setAccent, accentOptions } = useTheme()
 const { fontScale, setFontScale, fontScaleOptions } = useFontScale()
+const { fontFamily, setFontFamily, fontFamilyOptions } = useFontFamily()
 
 // 内部测试访问凭证由服务端 /api/internal/auth 校验签发，客户端只负责展示密码框
 
@@ -327,11 +364,14 @@ const accentLabel = (o: { label: string }) => (o.label.split(' · ')[0] as strin
 const currentAccentColor = computed(() => accentOptions.find((o) => o.id === accent.value)?.color || '#5b8c9e')
 const currentAccentLabel = computed(() => accentLabel(accentOptions.find((o) => o.id === accent.value) || { label: '天青' }))
 
-// 文字大小下拉状态
+// 阅读偏好（文字大小 + 字体）下拉状态
 const fontOpen = ref(false)
 const fontWrap = ref<HTMLElement | null>(null)
 const currentFontScaleLabel = computed(
   () => fontScaleOptions.find((o) => o.id === fontScale.value)?.label || '标准',
+)
+const currentFontFamilyLabel = computed(
+  () => fontFamilyOptions.find((o) => o.id === fontFamily.value)?.label || '默认',
 )
 
 // 配色与字号两个下拉互斥，避免同时展开重叠
