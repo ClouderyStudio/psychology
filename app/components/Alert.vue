@@ -94,7 +94,7 @@ const handleOverlayClick = () => {
 
 .alert-title {
   font-size: 1.125rem;
-  font-weight: 600;
+  font-weight: var(--fw-semibold);
   color: var(--text);
   margin-bottom: 8px;
 }
@@ -135,7 +135,7 @@ const handleOverlayClick = () => {
   padding: 8px 20px;
   border-radius: 8px;
   font-size: 0.875rem;
-  font-weight: 500;
+  font-weight: var(--fw-medium);
   cursor: pointer;
   transition: all 0.2s;
   border: none;

@@ -754,6 +754,47 @@ html[data-accent="retro"] .md-trait-level {
   font-family: var(--font-stack-kai);
 }
 
+/* ===================== 加粗（无障碍） ===================== */
+/* 全站字重的单一来源。字体粗细有两个消费方，都指向 --fw-*：
+     1. 组件与全局样式里的 font-weight —— 一律写 var(--fw-*)，不写死数值；
+     2. Tailwind 的 font-medium / font-semibold / font-bold 工具类 —— v4 生成的
+        声明是 font-weight: var(--font-weight-*)，所以把 Tailwind 的那批变量
+        间接指向 --fw-*，工具类就自动跟随。
+   这样「加粗」档只要整批上移一档，且能保住标题与正文的相对层级
+   （正文 400→600，小标题 600→700，大标题 700→800），不会全部拉平成一样粗。
+
+   为什么不用给根元素加 font-weight：组件里的 font-weight 都是显式声明，
+   会盖掉继承值；而 CSS 无法按「当前字重」做相对加粗，所以必须走变量。 */
+:root {
+  --fw-normal: 400;
+  --fw-medium: 500;
+  --fw-semibold: 600;
+  --fw-bold: 700;
+  --fw-heavy: 800;
+
+  /* Tailwind v4 工具类的字重令牌，间接指向上面的 --fw-*（保持单一来源） */
+  --font-weight-normal: var(--fw-normal);
+  --font-weight-medium: var(--fw-medium);
+  --font-weight-semibold: var(--fw-semibold);
+  --font-weight-bold: var(--fw-bold);
+  --font-weight-extrabold: var(--fw-heavy);
+  --font-weight-black: var(--fw-heavy);
+}
+
+:root[data-font-weight="bold"] {
+  --fw-normal: 600;
+  --fw-medium: 600;
+  --fw-semibold: 700;
+  --fw-bold: 800;
+  --fw-heavy: 900;
+}
+
+/* 无显式字重的正文（段落、列表、表格单元格等）跟随 --fw-normal。
+   标准档下它就是浏览器默认的 400，等于没写，不会改变现有渲染。 */
+body {
+  font-weight: var(--fw-normal);
+}
+
 html {
   font-family: var(--font-stack-default);
   -webkit-font-smoothing: antialiased;
@@ -810,7 +851,7 @@ html {
 }
 .alert-title {
   font-size: 1.125rem;
-  font-weight: 600;
+  font-weight: var(--fw-semibold);
   color: var(--text);
   margin-bottom: 8px;
 }
@@ -861,7 +902,7 @@ html {
   padding: 8px 20px;
   border-radius: 8px;
   font-size: 0.875rem;
-  font-weight: 500;
+  font-weight: var(--fw-medium);
   cursor: pointer;
   transition: all 0.2s;
   border: none;
@@ -916,13 +957,13 @@ html {
   background-color: var(--danger);
   color: #fff;
   font-size: 0.8125rem;
-  font-weight: 600;
+  font-weight: var(--fw-semibold);
   letter-spacing: 0.15em;
   padding: 4px 14px;
 }
 .formal-decree-title {
   font-size: 1.375rem;
-  font-weight: 700;
+  font-weight: var(--fw-bold);
   text-align: center;
   letter-spacing: 0.12em;
   margin-bottom: 6px;
@@ -940,7 +981,7 @@ html {
 }
 .formal-decree-body b {
   color: var(--danger);
-  font-weight: 700;
+  font-weight: var(--fw-bold);
 }
 .formal-decree-hotline {
   margin-top: 14px;
@@ -997,7 +1038,7 @@ html {
   background-color: var(--danger);
   color: #fff;
   font-size: 0.75rem;
-  font-weight: 700;
+  font-weight: var(--fw-bold);
   letter-spacing: 0.15em;
   padding: 2px 10px;
 }
@@ -1008,7 +1049,7 @@ html {
   gap: 8px;
   border: 2px solid currentColor;
   padding: 6px 14px;
-  font-weight: 700;
+  font-weight: var(--fw-bold);
   letter-spacing: 0.15em;
   font-size: 0.875rem;
   background-color: rgba(255, 255, 255, 0.05);
@@ -1043,7 +1084,7 @@ html {
 }
 .formal-risk-banner-title {
   font-size: 1.375rem;
-  font-weight: 700;
+  font-weight: var(--fw-bold);
   letter-spacing: 0.12em;
   margin-bottom: 4px;
 }
@@ -1075,7 +1116,7 @@ html {
 }
 .formal-resource-card-title {
   font-size: 1rem;
-  font-weight: 700;
+  font-weight: var(--fw-bold);
   letter-spacing: 0.08em;
   margin-bottom: 8px;
   color: var(--danger);
@@ -1101,7 +1142,7 @@ html {
 .formal-resource-list li:last-child { border-bottom: none; }
 .formal-resource-list li b {
   color: var(--danger);
-  font-weight: 700;
+  font-weight: var(--fw-bold);
   letter-spacing: 0.05em;
 }
 .formal-resource-list a {

@@ -46,8 +46,8 @@
           <g v-for="a in sevenRadar?.axis || []" :key="a.key">
             <line :x1="sevenRadar?.cx" :y1="sevenRadar?.cy" :x2="a.sp.x" :y2="a.sp.y" stroke="var(--primary-light)" stroke-width="1" />
             <line :x1="sevenRadar?.cx" :y1="sevenRadar?.cy" :x2="a.vp.x" :y2="a.vp.y" stroke="var(--primary-light)" stroke-width="1" />
-            <text :x="a.upLabel.x" :y="a.upLabel.y" text-anchor="middle" fill="var(--symptom)" font-size="11" font-weight="600">{{ a.sin?.name }}</text>
-            <text :x="a.dnLabel.x" :y="a.dnLabel.y" text-anchor="middle" fill="var(--primary)" font-size="11" font-weight="600">{{ a.vir?.name }}</text>
+            <text :x="a.upLabel.x" :y="a.upLabel.y" text-anchor="middle" fill="var(--symptom)" font-size="11" class="seven-axis-label">{{ a.sin?.name }}</text>
+            <text :x="a.dnLabel.x" :y="a.dnLabel.y" text-anchor="middle" fill="var(--primary)" font-size="11" class="seven-axis-label">{{ a.vir?.name }}</text>
           </g>
           <polygon :points="(sevenRadar?.sinPoly || []).join(' ')" fill="var(--symptom)" fill-opacity="0.15" stroke="var(--symptom)" stroke-width="1.5" />
           <polygon :points="(sevenRadar?.virPoly || []).join(' ')" fill="var(--primary)" fill-opacity="0.15" stroke="var(--primary)" stroke-width="1.5" />
@@ -231,7 +231,7 @@ const sevenRadar = computed(() => {
 <style scoped>
 .seven-report { }
 .seven-hero { display: grid; grid-template-columns: 1fr 1.4fr; gap: 1rem; }
-.seven-hero-desc h3 { font-size: 1.5rem; font-weight: 700; color: var(--text); }
+.seven-hero-desc h3 { font-size: 1.5rem; font-weight: var(--fw-bold); color: var(--text); }
 .seven-eyebrow { color: var(--primary); font-size: 0.75rem; letter-spacing: 0.05em; text-transform: uppercase; }
 .seven-soft { color: var(--text-secondary); font-size: 0.875rem; }
 .seven-indices { display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; }
@@ -241,7 +241,7 @@ const sevenRadar = computed(() => {
 .seven-index-tier { margin-top: 0.6rem; font-size: 0.8rem; line-height: 1.5; padding: 0.5rem 0.75rem; border-radius: 0.5rem; }
 .seven-highlight-box { background-color: var(--bg); border-radius: 0.75rem; padding: 1rem; }
 .seven-section-head { margin-bottom: 0.75rem; }
-.seven-section-head h3 { font-weight: 700; color: var(--text); }
+.seven-section-head h3 { font-weight: var(--fw-bold); color: var(--text); }
 .seven-section-head p { color: var(--text-muted); font-size: 0.8rem; margin-top: 0.25rem; }
 .seven-dim-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 0.75rem; }
 .seven-dim-card { background-color: var(--bg); border-radius: 0.75rem; padding: 0.9rem; }
@@ -254,11 +254,14 @@ const sevenRadar = computed(() => {
 /* 罪德镜像雷达 + 对照表 */
 .seven-radar-wrap { background-color: var(--bg); border-radius: 0.75rem; padding: 1rem; display: flex; justify-content: center; }
 .seven-radar-svg { width: 100%; max-width: 400px; height: auto; }
+/* 雷达轴标签的字体粗细走 --fw-* 变量（原为 SVG 的 font-weight 呈现属性，
+   呈现属性无法用 var()，改由 CSS 承担，以便跟随「加粗」档） */
+.seven-axis-label { font-weight: var(--fw-semibold); }
 .seven-compare { display: flex; flex-direction: column; gap: 0.5rem; }
 .seven-compare-head, .seven-compare-row { display: grid; grid-template-columns: 1fr 40px 1fr; align-items: center; gap: 0.5rem; }
-.seven-compare-head { font-size: 0.75rem; color: var(--text-muted); font-weight: 600; }
+.seven-compare-head { font-size: 0.75rem; color: var(--text-muted); font-weight: var(--fw-semibold); }
 .seven-compare-cell { background-color: var(--bg); border-radius: 0.5rem; padding: 0.5rem 0.75rem; }
-.seven-compare-sep { text-align: center; color: var(--text-muted); font-weight: 700; }
+.seven-compare-sep { text-align: center; color: var(--text-muted); font-weight: var(--fw-bold); }
 .seven-band-chip { font-size: 0.7rem; padding: 0 0.4rem; border-radius: 999px; line-height: 1.4; }
 @media (max-width: 420px) {
   .seven-compare-head, .seven-compare-row { grid-template-columns: 1fr 28px 1fr; }

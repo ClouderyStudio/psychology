@@ -626,7 +626,7 @@ if (error.value) {
   border: none;
   color: var(--text-secondary);
   box-shadow: none;
-  font-weight: 500;
+  font-weight: var(--fw-medium);
 }
 
 /* 主标题：最高文本层级（暗色下随变量呈近白色） */
@@ -641,7 +641,7 @@ if (error.value) {
 
 /* 正文核心数字：加粗 + 主文本色，便于扫视量化信息 */
 .external-num {
-  font-weight: 700;
+  font-weight: var(--fw-bold);
   color: var(--text);
 }
 

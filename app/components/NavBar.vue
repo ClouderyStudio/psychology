@@ -72,12 +72,12 @@
             </div>
           </div>
 
-          <!-- 阅读偏好（文字大小 + 字体） -->
+          <!-- 阅读偏好（文字大小 + 字体 + 字重） -->
           <div ref="fontWrap" class="relative z-40">
             <button @click="toggleFontPanel"
               class="w-8 h-8 rounded-full flex items-center justify-end gap-0.5 transition-all"
               :style="{ backgroundColor: 'var(--primary-light)', color: 'var(--primary)' }"
-              :title="'阅读偏好（字号：' + currentFontScaleLabel + ' · 字体：' + currentFontFamilyLabel + '）'"
+              :title="'阅读偏好（字号：' + currentFontScaleLabel + ' · 字体：' + currentFontFamilyLabel + ' · 字重：' + currentFontWeightLabel + '）'"
               @mouseenter="elStyle($event, { boxShadow: '0 0 0 2px ' + currentAccentColor })"
               @mouseleave="elStyle($event, { boxShadow: 'none' })">
               <span class="font-semibold leading-none" style="font-size: 0.6875rem;">A</span>
@@ -115,6 +115,22 @@
                     {{ opt.label }}
                   </span>
                   <span class="text-xs text-right" style="color: var(--text-secondary);">{{ opt.desc }}</span>
+                </button>
+              </div>
+
+              <div class="text-xs font-medium mt-3 mb-2 pt-2" style="color: var(--text-secondary);"
+                :style="{ borderTop: '1px solid var(--border)' }">字重</div>
+              <div class="flex flex-col gap-1">
+                <button v-for="opt in fontWeightOptions" :key="opt.id" type="button"
+                  @click="setFontWeight(opt.id)"
+                  class="flex items-center justify-between px-3 py-1.5 rounded-lg transition-all text-left"
+                  :style="{
+                    backgroundColor: fontWeight === opt.id ? 'var(--primary-light)' : 'transparent',
+                    color: fontWeight === opt.id ? 'var(--primary)' : 'var(--text)',
+                  }"
+                  :aria-pressed="fontWeight === opt.id">
+                  <span class="text-sm" :style="{ fontWeight: opt.id === 'bold' ? 'var(--fw-semibold)' : 'var(--fw-normal)' }">{{ opt.label }}</span>
+                  <span class="text-xs" style="color: var(--text-secondary);">{{ opt.desc }}</span>
                 </button>
               </div>
             </div>
@@ -286,6 +302,24 @@
           </div>
         </div>
 
+        <!-- 移动端字重 -->
+        <div class="pt-2 mt-1 space-y-1.5">
+          <div class="text-xs font-medium" style="color: var(--text-secondary);">字重</div>
+          <div class="flex items-center gap-2">
+            <button v-for="opt in fontWeightOptions" :key="opt.id" type="button" @click="setFontWeight(opt.id)"
+              class="flex-1 px-2 py-1.5 rounded-lg text-xs transition-all"
+              :style="{
+                backgroundColor: fontWeight === opt.id ? 'var(--primary-light)' : 'var(--bg)',
+                border: fontWeight === opt.id ? '1px solid var(--primary)' : '1px solid var(--border)',
+                color: fontWeight === opt.id ? 'var(--primary)' : 'var(--text)',
+                fontWeight: opt.id === 'bold' ? 'var(--fw-semibold)' : 'var(--fw-normal)',
+              }"
+              :aria-pressed="fontWeight === opt.id">
+              {{ opt.label }}
+            </button>
+          </div>
+        </div>
+
         <!-- 移动端进度显示 -->
         <ClientOnly>
           <div v-if="hasUnfinishedTests" class="pt-2 mt-2 border-t" style="border-color: var(--primary-light);">
@@ -342,6 +376,7 @@ const { $toast, $confirm } = useNuxtApp()
 const { isDark, toggle: toggleTheme, accent, setAccent, accentOptions } = useTheme()
 const { fontScale, setFontScale, fontScaleOptions } = useFontScale()
 const { fontFamily, setFontFamily, fontFamilyOptions } = useFontFamily()
+const { fontWeight, setFontWeight, fontWeightOptions } = useFontWeight()
 
 // 内部测试访问凭证由服务端 /api/internal/auth 校验签发，客户端只负责展示密码框
 
@@ -364,7 +399,7 @@ const accentLabel = (o: { label: string }) => (o.label.split(' · ')[0] as strin
 const currentAccentColor = computed(() => accentOptions.find((o) => o.id === accent.value)?.color || '#5b8c9e')
 const currentAccentLabel = computed(() => accentLabel(accentOptions.find((o) => o.id === accent.value) || { label: '天青' }))
 
-// 阅读偏好（文字大小 + 字体）下拉状态
+// 阅读偏好（文字大小 + 字体 + 字重）下拉状态
 const fontOpen = ref(false)
 const fontWrap = ref<HTMLElement | null>(null)
 const currentFontScaleLabel = computed(
@@ -372,6 +407,9 @@ const currentFontScaleLabel = computed(
 )
 const currentFontFamilyLabel = computed(
   () => fontFamilyOptions.find((o) => o.id === fontFamily.value)?.label || '默认',
+)
+const currentFontWeightLabel = computed(
+  () => fontWeightOptions.find((o) => o.id === fontWeight.value)?.label || '标准',
 )
 
 // 配色与字号两个下拉互斥，避免同时展开重叠
@@ -610,7 +648,7 @@ defineExpose({
 
 .nav-link.active {
   color: var(--primary);
-  font-weight: 600;
+  font-weight: var(--fw-semibold);
   background-color: var(--primary-light);
 }
 
@@ -633,7 +671,7 @@ defineExpose({
 
 .mobile-nav-link.mobile-active {
   color: var(--primary);
-  font-weight: 600;
+  font-weight: var(--fw-semibold);
   background-color: var(--primary-light);
 }
 
@@ -646,7 +684,7 @@ defineExpose({
   padding: 6px 12px;
   border-radius: 8px;
   font-size: 0.8125rem;
-  font-weight: 500;
+  font-weight: var(--fw-medium);
   color: var(--text-muted);
   border: 1px dashed var(--primary-light);
   background: none;
@@ -698,7 +736,7 @@ defineExpose({
 
 .internal-modal-title {
   font-size: 1.125rem;
-  font-weight: 600;
+  font-weight: var(--fw-semibold);
   color: var(--text);
   margin-bottom: 8px;
 }
@@ -744,7 +782,7 @@ defineExpose({
   padding: 8px 20px;
   border-radius: 8px;
   font-size: 0.875rem;
-  font-weight: 500;
+  font-weight: var(--fw-medium);
   cursor: pointer;
   transition: all 0.2s;
   border: none;

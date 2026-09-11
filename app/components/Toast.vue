@@ -165,7 +165,7 @@ defineExpose({
 
 .toast-title {
   font-size: 1rem;
-  font-weight: 600;
+  font-weight: var(--fw-semibold);
   color: var(--text);
   margin-bottom: 4px;
 }

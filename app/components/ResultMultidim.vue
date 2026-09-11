@@ -312,7 +312,7 @@ const radar = computed(() => {
 
 .md-hero-badge {
   font-size: 0.6875rem;
-  font-weight: 600;
+  font-weight: var(--fw-semibold);
   padding: 2px 10px;
   border-radius: 999px;
   border: 1px solid rgba(255, 255, 255, 0.55);
@@ -322,7 +322,7 @@ const radar = computed(() => {
 
 .md-hero-title {
   font-size: 1.375rem;
-  font-weight: 700;
+  font-weight: var(--fw-bold);
   letter-spacing: 0.02em;
   margin: 0 0 4px;
 }
@@ -363,7 +363,7 @@ const radar = computed(() => {
   align-items: center;
   gap: 8px;
   font-size: 0.9375rem;
-  font-weight: 700;
+  font-weight: var(--fw-bold);
   color: var(--md-ink);
   margin: 0 0 12px;
 }
@@ -412,7 +412,7 @@ const radar = computed(() => {
 
 .md-summary-value {
   font-size: 0.84375rem;
-  font-weight: 700;
+  font-weight: var(--fw-bold);
   line-height: 1.45;
   color: var(--md-ink-soft);
 }
@@ -420,7 +420,7 @@ const radar = computed(() => {
 .md-summary-value.sv-ok { color: var(--md-ok); }
 .md-summary-value.sv-warn { color: var(--md-warn); }
 .md-summary-value.sv-severe { color: var(--md-severe); }
-.md-summary-value.sv-plain { font-weight: 600; }
+.md-summary-value.sv-plain { font-weight: var(--fw-semibold); }
 
 .md-summary-note {
   font-size: 0.78125rem;
@@ -463,7 +463,7 @@ const radar = computed(() => {
 
 .md-alert-seal {
   font-size: 0.6875rem;
-  font-weight: 700;
+  font-weight: var(--fw-bold);
   letter-spacing: 0.08em;
   padding: 2px 8px;
   border-radius: 6px;
@@ -472,7 +472,7 @@ const radar = computed(() => {
 }
 
 .md-alert-body { margin: 0; }
-.md-alert-body a { color: inherit; font-weight: 700; text-decoration: underline; }
+.md-alert-body a { color: inherit; font-weight: var(--fw-bold); text-decoration: underline; }
 
 /* 效度 */
 .md-lie-row {
@@ -485,7 +485,7 @@ const radar = computed(() => {
 
 .md-lie-level {
   font-size: 0.75rem;
-  font-weight: 700;
+  font-weight: var(--fw-bold);
   padding: 3px 10px;
   border-radius: 999px;
   color: #2f8f6b;
@@ -522,7 +522,7 @@ const radar = computed(() => {
 
 .md-chip {
   font-size: 0.78125rem;
-  font-weight: 600;
+  font-weight: var(--fw-semibold);
   color: var(--md-mint);
   background: var(--md-mint-soft);
   border: 1px solid var(--md-mint);
@@ -584,7 +584,7 @@ const radar = computed(() => {
   align-items: center;
   justify-content: center;
   font-size: 0.9375rem;
-  font-weight: 700;
+  font-weight: var(--fw-bold);
   color: #fff;
   background: var(--md-grad);
 }
@@ -596,7 +596,7 @@ const radar = computed(() => {
 
 .md-match-name {
   font-size: 0.90625rem;
-  font-weight: 700;
+  font-weight: var(--fw-bold);
   color: var(--md-ink);
   display: flex;
   align-items: center;
@@ -608,7 +608,7 @@ const radar = computed(() => {
 
 .md-tag {
   font-size: 0.65625rem;
-  font-weight: 600;
+  font-weight: var(--fw-semibold);
   color: var(--md-ink-faint);
   border: 1px solid var(--md-line);
   border-radius: 6px;
@@ -641,7 +641,7 @@ const radar = computed(() => {
   padding: 1px 8px;
   border-radius: 6px;
   font-size: 0.6875rem;
-  font-weight: 600;
+  font-weight: var(--fw-semibold);
   color: var(--md-sky);
   background: var(--md-sky-soft);
   border: 1px solid var(--md-sky);
@@ -650,7 +650,7 @@ const radar = computed(() => {
 .md-match-score {
   grid-area: score;
   font-size: 1.0625rem;
-  font-weight: 700;
+  font-weight: var(--fw-bold);
   color: var(--md-sky);
   font-variant-numeric: tabular-nums;
 }
@@ -702,7 +702,7 @@ const radar = computed(() => {
 .md-trait:last-child { border-bottom: none; }
 
 .md-trait-name {
-  font-weight: 600;
+  font-weight: var(--fw-semibold);
   color: var(--md-ink-soft);
   font-size: 0.75rem;
   white-space: nowrap;
@@ -739,7 +739,7 @@ const radar = computed(() => {
 .md-trait-level {
   text-align: center;
   font-size: 0.65625rem;
-  font-weight: 700;
+  font-weight: var(--fw-bold);
   padding: 2px 4px;
   border-radius: 6px;
   white-space: nowrap;
@@ -772,7 +772,7 @@ const radar = computed(() => {
   align-items: center;
   gap: 6px;
   font-size: 0.8125rem;
-  font-weight: 700;
+  font-weight: var(--fw-bold);
   color: var(--md-ink-soft);
   margin: 0 0 6px;
 }
