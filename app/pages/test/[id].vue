@@ -160,6 +160,28 @@
                     <p class="text-sm mt-1" style="color: var(--text-secondary);">勾选后随机排列题目顺序，降低惯性作答的干扰；不勾选则按原顺序作答。</p>
                   </div>
                 </label>
+
+                <!-- 答题方式：每页 10 题 / 一页一题 -->
+                <div class="mt-3 p-4 rounded-lg" style="background-color: var(--bg);">
+                  <div class="font-semibold" style="color: var(--text);">📄 答题方式</div>
+                  <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 mt-3">
+                    <button v-for="opt in perPageOptions" :key="opt.value" type="button"
+                      @click="setPerPageMode(opt.value)"
+                      class="text-left px-3 py-2 rounded-lg transition-all"
+                      :style="{
+                        backgroundColor: perPageMode === opt.value ? 'var(--primary-light)' : 'var(--card-bg)',
+                        border: perPageMode === opt.value ? '2px solid var(--primary)' : '1px solid var(--border)',
+                      }"
+                      :aria-pressed="perPageMode === opt.value">
+                      <span class="block font-semibold text-sm"
+                        :style="{ color: perPageMode === opt.value ? 'var(--primary)' : 'var(--text)' }">
+                        {{ opt.label }}
+                      </span>
+                      <span class="block text-xs mt-0.5" style="color: var(--text-secondary);">{{ opt.desc }}</span>
+                    </button>
+                  </div>
+                </div>
+
                 <button @click="startTest" class="w-full mt-4 py-3 rounded-lg font-semibold text-white transition-all"
                   style="background-color: var(--primary); box-shadow: var(--shadow-sm);">
                   开始答题
@@ -177,6 +199,28 @@
                   <p class="text-sm mt-1" style="color: var(--text-secondary);">勾选后随机排列题目顺序，降低惯性作答的干扰；不勾选则按原顺序作答。</p>
                 </div>
               </label>
+
+              <!-- 答题方式：每页 10 题 / 一页一题（高敏感量表一页一题更专注） -->
+              <div class="mb-4 p-4 rounded-lg" style="background-color: var(--bg); border: 1px solid var(--border);">
+                <div class="font-semibold" style="color: var(--text);">📄 答题方式</div>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 mt-3">
+                  <button v-for="opt in perPageOptions" :key="opt.value" type="button"
+                    @click="setPerPageMode(opt.value)"
+                    class="text-left px-3 py-2 rounded-lg transition-all"
+                    :style="{
+                      backgroundColor: perPageMode === opt.value ? 'var(--primary-light)' : 'var(--card-bg)',
+                      border: perPageMode === opt.value ? '2px solid var(--primary)' : '1px solid var(--border)',
+                    }"
+                    :aria-pressed="perPageMode === opt.value">
+                    <span class="block font-semibold text-sm"
+                      :style="{ color: perPageMode === opt.value ? 'var(--primary)' : 'var(--text)' }">
+                      {{ opt.label }}
+                    </span>
+                    <span class="block text-xs mt-0.5" style="color: var(--text-secondary);">{{ opt.desc }}</span>
+                  </button>
+                </div>
+              </div>
+
               <label class="flex items-start p-3 rounded-lg cursor-pointer transition-all"
                 style="background-color: var(--bg); border: 1px solid var(--border);">
                 <input type="checkbox" v-model="formalAcknowledged" class="w-4 h-4 mr-3 mt-1"
@@ -215,10 +259,10 @@
         <!-- 分页信息和操作按钮 -->
         <div class="flex justify-between items-center mb-4">
           <div class="text-sm" style="color: var(--text-muted);">
-            第 {{ currentPage }} / {{ totalPages }} 页
+            第 {{ currentPage }} / {{ totalPages }} {{ isOnePerPage ? '题' : '页' }}
           </div>
           <div class="flex gap-2">
-            <div class="text-sm" style="color: var(--text-muted);">
+            <div v-if="!isOnePerPage" class="text-sm" style="color: var(--text-muted);">
               本页 {{ currentPageQuestions.length }} 题
             </div>
             <!-- 清除本页答案按钮 -->
@@ -241,8 +285,8 @@
           style="background-color: var(--card-bg); box-shadow: var(--shadow-sm);">
           <span class="text-sm" style="color: var(--text-secondary);">快速跳转：</span>
 
-          <!-- 页码按钮 -->
-          <div class="flex flex-wrap gap-1">
+          <!-- 页码按钮（一页一题时页码过多，隐藏按钮组，仅保留输入框跳转） -->
+          <div v-if="!isOnePerPage" class="flex flex-wrap gap-1">
             <button v-for="page in visiblePages" :key="page" @click="goToPage(page)"
               class="min-w-[32px] h-8 rounded-md text-sm transition-all" :style="{
                 'background-color': currentPage === page ? 'var(--primary)' : 'var(--card-bg)',
@@ -261,7 +305,7 @@
               class="w-16 px-2 py-1 text-center rounded border text-sm"
               style="background-color: var(--bg); border-color: var(--primary-light); color: var(--text);"
               @keyup.enter="jumpToPage" />
-            <span class="text-xs" style="color: var(--text-muted);">页</span>
+            <span class="text-xs" style="color: var(--text-muted);">{{ isOnePerPage ? '题' : '页' }}</span>
             <button @click="jumpToPage" class="px-3 py-1 rounded text-xs transition-colors"
               style="background-color: var(--primary); color: white;"
               @mouseenter="elStyle($event, { backgroundColor: 'var(--primary-dark)' })"
@@ -340,6 +384,7 @@
                       :value="answers[question.id] ?? rangeMid(question)"
                       @pointerdown="ensureRange(question.id, question.min, question.max)"
                       @input="onRangeInput(question.id, $event)"
+                      @change="scheduleAutoAdvance(520)"
                       class="w-full h-2" :style="{ accentColor: 'var(--primary)' }">
                   </div>
                 </template>
@@ -351,7 +396,8 @@
                     borderColor: answers[question.id] === option.value ? 'var(--primary)' : 'transparent'
                   }">
                   <input type="radio" :name="`q${question.id}`" :value="option.value" v-model="answers[question.id]"
-                    class="w-4 h-4 mr-3" :style="{ accentColor: 'var(--primary)' }">
+                    class="w-4 h-4 mr-3" :style="{ accentColor: 'var(--primary)' }"
+                    @change="scheduleAutoAdvance()">
                   <span style="color: var(--text);">{{ option.label }}</span>
                 </label>
                 </template>
@@ -381,20 +427,20 @@
               下一页 →
             </button>
 
-            <button v-else @click="submitTest" :disabled="!isComplete || isSubmitting"
+            <button v-else @click="onSubmitClick" :disabled="!canClickSubmit"
               class="flex-1 py-3 rounded-lg font-semibold transition-all disabled:opacity-50 disabled:cursor-not-allowed"
               :style="{
-                backgroundColor: isComplete && !isSubmitting ? 'var(--primary)' : 'var(--text-muted)',
+                backgroundColor: canClickSubmit ? 'var(--primary)' : 'var(--text-muted)',
                 color: 'white',
                 boxShadow: 'var(--shadow-sm)'
               }">
-              {{ isSubmitting ? '提交中…' : (isComplete ? '提交测评' : `还需完成 ${remainingCount} 题`) }}
+              {{ submitButtonText }}
             </button>
           </div>
         </div>
 
-        <!-- 快速跳转提示（仅当页数较多时显示） -->
-        <div v-if="totalPages > 5" class="text-center">
+        <!-- 快速跳转提示（仅当页数较多时显示；一页一题时页码过多，不显示） -->
+        <div v-if="totalPages > 5 && !isOnePerPage" class="text-center">
           <div class="inline-flex gap-2 flex-wrap justify-center">
             <button v-for="page in visiblePages" :key="page" @click="goToPage(page)"
               class="w-10 h-10 rounded-lg transition-all" :style="{
@@ -432,8 +478,28 @@ const SIOSS_DANGER_ITEMS = new Set<number>([11, 17, 22, 26])
 // 客户端标志
 const isClient = ref(false)
 
-// 每页显示题目数
-const QUESTIONS_PER_PAGE = 10
+// ===== 答题方式：每页 10 题（默认）/ 一页一题 =====
+type PerPageMode = 'ten' | 'one'
+const PER_PAGE_STORAGE_KEY = 'psychology_per_page_mode'
+const perPageMode = ref<PerPageMode>('ten')
+const isOnePerPage = computed(() => perPageMode.value === 'one')
+const questionsPerPage = computed(() => (isOnePerPage.value ? 1 : 10))
+
+const perPageOptions: { value: PerPageMode; label: string; desc: string }[] = [
+  { value: 'ten', label: '每页 10 题', desc: '一次浏览多题' },
+  { value: 'one', label: '一页一题', desc: '选完自动下一题' },
+]
+
+// 切换答题方式并记住选择（下次进入默认沿用）
+function setPerPageMode(mode: PerPageMode) {
+  perPageMode.value = mode
+  if (typeof window === 'undefined') return
+  try {
+    localStorage.setItem(PER_PAGE_STORAGE_KEY, mode)
+  } catch (e) {
+    console.error('保存答题方式失败', e)
+  }
+}
 
 // 获取题库数据
 // 多维自评量表题目随 ?mode&seed 变化：URL 用响应式 getter，切换模式/换题时自动重新拉取。
@@ -584,12 +650,14 @@ function startTest() {
   if (typeof window !== "undefined") window.scrollTo({ top: 0, behavior: "smooth" })
 }
 const totalQuestions = computed(() => allQuestions.value.length)
-const totalPages = computed(() => Math.ceil(totalQuestions.value / QUESTIONS_PER_PAGE))
+const totalPages = computed(() =>
+  Math.max(1, Math.ceil(totalQuestions.value / questionsPerPage.value))
+)
 
 // 当前页显示的题目
 const currentPageQuestions = computed(() => {
-  const start = (currentPage.value - 1) * QUESTIONS_PER_PAGE
-  const end = start + QUESTIONS_PER_PAGE
+  const start = (currentPage.value - 1) * questionsPerPage.value
+  const end = start + questionsPerPage.value
   return allQuestions.value.slice(start, end)
 })
 
@@ -712,6 +780,14 @@ const clearAllAnswers = () => {
 
 // 初始化时加载已保存的答案
 onMounted(async () => {
+  // 恢复上次选择的答题方式（须在任何页码计算之前确定每页题数）
+  try {
+    const savedMode = localStorage.getItem(PER_PAGE_STORAGE_KEY)
+    if (savedMode === 'one' || savedMode === 'ten') perPageMode.value = savedMode
+  } catch (e) {
+    console.error('读取答题方式失败', e)
+  }
+
   jumpPage.value = currentPage.value
   isClient.value = true
 
@@ -738,7 +814,7 @@ onMounted(async () => {
       const lastAnsweredId = answeredIds.reduce((max, id) => (id > max ? id : max), 0)
       const questionIndex = allQuestions.value.findIndex(q => q.id === lastAnsweredId)
       if (questionIndex !== -1) {
-        currentPage.value = Math.floor(questionIndex / QUESTIONS_PER_PAGE) + 1
+        currentPage.value = Math.floor(questionIndex / questionsPerPage.value) + 1
       }
     }
 
@@ -761,8 +837,65 @@ watch(answers, (newAnswers) => {
   }
 }, { deep: true })
 
+// ===== 一页一题：作答后自动前进 =====
+let autoAdvanceTimer: ReturnType<typeof setTimeout> | null = null
+
+function cancelAutoAdvance() {
+  if (autoAdvanceTimer !== null) {
+    clearTimeout(autoAdvanceTimer)
+    autoAdvanceTimer = null
+  }
+}
+
+// 作答后自动跳到下一题（仅一页一题模式；最后一题停留等待提交）
+function scheduleAutoAdvance(delay = 320) {
+  if (!isOnePerPage.value || !started.value) return
+  cancelAutoAdvance()
+  autoAdvanceTimer = setTimeout(() => {
+    autoAdvanceTimer = null
+    if (!isOnePerPage.value || !started.value || isLastPage.value) return
+    currentPage.value++
+    if (typeof window !== 'undefined') window.scrollTo({ top: 0, behavior: 'smooth' })
+  }, delay)
+}
+
+onUnmounted(cancelAutoAdvance)
+
+// 定位到第一道未作答的必答题（一页一题模式下用于找回漏答的题）
+function goToFirstUnanswered(): boolean {
+  const idx = allQuestions.value.findIndex(
+    (q) => !isNumberQuestion(q) && answers.value[q.id] === undefined,
+  )
+  if (idx === -1) return false
+  currentPage.value = Math.floor(idx / questionsPerPage.value) + 1
+  if (typeof window !== 'undefined') window.scrollTo({ top: 0, behavior: 'smooth' })
+  $toast.info(`已定位到第 ${idx + 1} 题（尚未作答）`, '还有题目未完成')
+  return true
+}
+
+// 提交按钮文案与可点击性：一页一题时允许点击以定位漏答，多题模式保持原有禁用逻辑
+const submitButtonText = computed(() => {
+  if (isSubmitting.value) return '提交中…'
+  if (isComplete.value) return '提交测评'
+  return `还需完成 ${remainingCount.value} 题`
+})
+const canClickSubmit = computed(() => {
+  if (isSubmitting.value) return false
+  return isComplete.value || isOnePerPage.value
+})
+function onSubmitClick() {
+  if (isComplete.value) {
+    submitTest()
+    return
+  }
+  if (!goToFirstUnanswered()) {
+    $toast.warning(`请完成所有题目后再提交（还剩 ${remainingCount.value} 题）`, '提示')
+  }
+}
+
 // 分页导航函数
 function nextPage() {
+  cancelAutoAdvance()
   if (currentPage.value < totalPages.value) {
     currentPage.value++
     window.scrollTo({ top: 0, behavior: 'smooth' })
@@ -772,6 +905,7 @@ function nextPage() {
 }
 
 function prevPage() {
+  cancelAutoAdvance()
   if (currentPage.value > 1) {
     currentPage.value--
     window.scrollTo({ top: 0, behavior: 'smooth' })
@@ -785,6 +919,7 @@ const jumpPage = ref(1)
 
 // 跳转到指定页面的函数
 const jumpToPage = () => {
+  cancelAutoAdvance()
   let targetPage = jumpPage.value
   if (isNaN(targetPage)) targetPage = 1
   targetPage = Math.max(1, Math.min(totalPages.value, targetPage))
@@ -804,6 +939,7 @@ const goToPage = (page: number) => {
   if (page === -1) return
   if (page === currentPage.value) return
 
+  cancelAutoAdvance()
   currentPage.value = page
   jumpPage.value = page
   window.scrollTo({ top: 0, behavior: 'smooth' })
