@@ -395,7 +395,12 @@ const loadResult = async () => {
   isLoading.value = false
 }
 
-await loadResult()
+// 结果在本机存档（localStorage）里，只有浏览器读得到。
+// 这里原先写的是顶层 await loadResult()：服务端渲染时同样会执行，
+// 那时 getResultRecord 读不到记录会返回 null，代码随即走到下面的
+// $toast.error(...) —— 而 $toast 由 app/plugins/toast.client.ts 提供，
+// 服务端没有这个实例，于是整页 500（Cannot read properties of undefined
+// (reading 'error')）。改为在 onMounted 里执行，服务端只输出 <ClientOnly> 的空壳。
 
 // 判断是否为 SCL90
 const isSCL90 = computed(() => result.value?.testId === 'scl90')
@@ -543,13 +548,14 @@ const setButtonBg = (event: Event, color: string) => {
   }
 }
 
-// 如果没有结果，重定向到首页
+// 装载结果、并在没有结果时重定向到首页。
+// 两步必须都在浏览器里、且按顺序执行：服务端渲染阶段既没有 localStorage，
+// 也没有 $toast（client-only 插件），放顶层执行会让 /result 直接 500。
 onMounted(async () => {
+  await loadResult()
   if (!result.value) {
     router.push('/')
   }
-
-
 })
 
 function retakeTest() {
