@@ -247,6 +247,54 @@ describe("评分边界与维度补充", () => {
     expect(r.dimensionScores?.liking?.avg).toBe(1);
   });
 
+  // 第三批报告 5：子维度分数曾超过自己声明的上限（20 vs 声明 max 16）
+  it("RSES：子维度分数永远不超过声明的上限（各 5 题 × 4 分 = 20）", () => {
+    expect(calculateScore({ testId: "rses", answers: full(10, 1) }).dimensionScores?.competence?.max).toBe(20);
+    expect(calculateScore({ testId: "rses", answers: full(10, 1) }).dimensionScores?.liking?.max).toBe(20);
+
+    // 穷举所有"全选同一档"的极端作答，以及若干混合模式
+    const patterns: Record<number, number>[] = [1, 2, 3, 4].map((v) => full(10, v));
+    const pos = [1, 2, 4, 6, 7];
+    const neg = [3, 5, 8, 9, 10];
+    for (const v of [1, 2, 3, 4]) {
+      for (const w of [1, 2, 3, 4]) {
+        const a: Record<number, number> = {};
+        pos.forEach((i) => (a[i] = v));
+        neg.forEach((i) => (a[i] = w));
+        patterns.push(a);
+      }
+    }
+    for (const answers of patterns) {
+      const d = calculateScore({ testId: "rses", answers }).dimensionScores || {};
+      for (const k of ["competence", "liking"]) {
+        expect(d[k].score).toBeGreaterThanOrEqual(5);
+        expect(d[k].score).toBeLessThanOrEqual(d[k].max);
+      }
+      // 两因子之和恒等于总分：5 题正向原始分 + 5 题反向折算分
+      expect(d.competence.score + d.liking.score).toBe(
+        calculateScore({ testId: "rses", answers }).totalScore,
+      );
+    }
+  });
+
+  it("RSES：两个因子按措辞方向划分，全选同一档时数值恒为 5 与 20 对调", () => {
+    const low = calculateScore({ testId: "rses", answers: full(10, 1) }).dimensionScores;
+    expect(low?.competence?.score).toBe(5);
+    expect(low?.liking?.score).toBe(20);
+
+    const high = calculateScore({ testId: "rses", answers: full(10, 4) }).dimensionScores;
+    expect(high?.competence?.score).toBe(20);
+    expect(high?.liking?.score).toBe(5);
+
+    // 两种极端作答总分相同（反向题等幅抵消），这正是"不能只用总分判读"的原因，
+    // 因此结果里必须带上措辞方向的说明
+    expect(calculateScore({ testId: "rses", answers: full(10, 1) }).totalScore).toBe(25);
+    expect(calculateScore({ testId: "rses", answers: full(10, 4) }).totalScore).toBe(25);
+    expect(String(high?.note)).toContain("措辞方向");
+    expect(high?.competence?.name).toContain("正向表述题");
+    expect(high?.liking?.name).toContain("反向表述题");
+  });
+
   // —— PSS 两因子：无助感 / 自我效能 ——
   it("PSS：全 4 → 无助感 24、掌控感 16（方向与条目语义一致）", () => {
     const r = calculateScore({ testId: "pss", answers: full(10, 4) });

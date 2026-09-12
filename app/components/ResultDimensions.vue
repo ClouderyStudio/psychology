@@ -308,7 +308,8 @@ const config = computed(() => {
     title = '自尊 · 双因子剖面'
     icon = '✨'
     color = 'var(--special)'
-    hint = '自我胜任感与自我接纳（喜欢）两个因子，各 1-4 均值。'
+    hint = '两个因子各 5 题、均为 1-4 均值（合计 5-20 分）。它们按题目措辞方向划分，天然负相关，差距大通常反映作答风格而非两种自我评价。'
+    if (s.note) subtitle = String(s.note)
     ;['competence', 'liking'].forEach((k) => {
       const d = (s[k] || {}) as any
       const avg = Number(d.avg) || 0

@@ -118,6 +118,12 @@ function scoreRSES(answers: Record<number, number>): ScoringResult {
   }
 
   // RSES 双因子：自我胜任感(正向 1,2,4,6,7) / 自我接纳(反向 3,5,8,9,10，反向补值 5)
+  //
+  // 上限说明：两个因子各 5 题、每题 1-4 分，因此各自的实际范围是 5-20，
+  // 不是 16（原实现把上限写成了 16，导致极端作答下会出现"20/16"）。
+  // 另外这两个因子是按**题目措辞方向**划分的（正向表述 5 题 / 反向表述 5 题），
+  // 天然高度负相关：全选同一档时两者恒为 5 与 20 对调，差距大通常反映作答风格，
+  // 而不是"胜任感"与"接纳"两种独立的自我评价。判读以总分（10-40）为主。
   const competenceItems = [1, 2, 4, 6, 7];
   const likingItems = [3, 5, 8, 9, 10];
   let competenceSum = 0;
@@ -148,17 +154,21 @@ function scoreRSES(answers: Record<number, number>): ScoringResult {
     severity: totalScore / 40,
     dimensionScores: {
       type: 'rses',
+      note:
+        '这两个因子按题目措辞方向划分（正向表述 5 题 / 反向表述 5 题），各自范围 5-20，' +
+        '天然高度负相关——两者差距大通常反映作答风格，而不是两种不同的自我评价。' +
+        '判读请以总分（10-40）为主要参考。',
       competence: {
-        name: '自我胜任感',
+        name: '自我胜任感（正向表述题）',
         score: competenceSum,
-        max: 16,
+        max: 20,
         avg: competenceAvg,
         desc: competenceDesc,
       },
       liking: {
-        name: '自我接纳 / 喜欢',
+        name: '自我接纳 / 喜欢（反向表述题）',
         score: likingSum,
-        max: 16,
+        max: 20,
         avg: likingAvg,
         desc: likingDesc,
       },
