@@ -13,6 +13,10 @@
           <div class="p-8 text-center" :style="{ backgroundColor: getHeaderColor() }">
             <h2 class="text-3xl font-bold mb-2 text-white">测评结果</h2>
             <p class="text-white/90">{{ result.testTitle }}</p>
+            <!-- 评估时间范围：各量表窗口并不一致，结果页要说明这份结果评的是哪个时间段 -->
+            <p v-if="resultTimeFrame" class="text-sm mt-1" style="color: rgba(255,255,255,0.85);">
+              评估时间范围 · {{ resultTimeFrame }}
+            </p>
             <p class="text-sm mt-2 text-white/70">测评时间：{{ formattedTime }}</p>
           </div>
 
@@ -233,6 +237,7 @@ const buildResultSummary = (r: any): string => {
   lines.push(`# 测评结果 · ${r.testTitle || r.testId}`)
   lines.push('')
   lines.push(`- 量表：${r.testTitle || r.testId}${r.testId ? `（${r.testId}）` : ''}`)
+  if (resultTimeFrame.value) lines.push(`- 评估时间范围：${resultTimeFrame.value}`)
   lines.push(`- 测评时间：${time}`)
 
   const typeOnly = isTypeOnlyTest(r.testId)
@@ -327,6 +332,8 @@ const isFormalTest = computed(() => FORMAL_TESTS.includes(result.value?.testId))
 
 // 判断应该计分
 const canScore = ref(false)
+// 评估时间范围：由 /api/tests/list 下发（各量表窗口不一致，结果里也要能说明）
+const resultTimeFrame = ref('')
 
 // 人格性格类量表通常无总分，不展示分数环；BIS/BPAQ 虽属人格特质类但有总分。
 // 多维自评量表由专用报告组件呈现，同样不使用通用分数环。
@@ -340,6 +347,7 @@ const syncCanScore = async () => {
     await nextTick()
     const testList = ((await $fetch<any>('/api/tests/list'))?.data) || []
     const found = testList.find((el: any) => el.id === testId)
+    resultTimeFrame.value = found?.timeFrame || ''
     const scoredPersonality = ['bis', 'bpaq'].includes(testId)
     canScore.value = found
       ? (found.category === 'symptom' || found.category === 'special' || scoredPersonality) &&

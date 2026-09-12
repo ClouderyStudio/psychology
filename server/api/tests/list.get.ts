@@ -1,4 +1,5 @@
 import type { TestListItem } from "~/types/test";
+import { timeFrameOf } from "~~/server/utils/test-timeframe";
 
 export default defineEventHandler(() => {
   const testList: TestListItem[] = [
@@ -402,6 +403,11 @@ export default defineEventHandler(() => {
 
   return {
     success: true,
-    data: testList,
+    // 评估时间范围随列表下发：结果页要能说明"这份结果评的是哪个时间段"，
+    // 而各量表窗口并不一致（两周 / 一周 / 48 小时 / 一年），不能靠标题猜。
+    data: testList.map((t) => {
+      const timeFrame = timeFrameOf(t.id);
+      return timeFrame ? { ...t, timeFrame } : t;
+    }),
   };
 });

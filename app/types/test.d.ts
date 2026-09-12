@@ -45,6 +45,18 @@ export interface Test {
   title: string;
   description: string;
   instructions: string;
+  /**
+   * 本次评估的时间范围（如「最近两周」「过去 7 天」）。
+   * 各量表窗口并不一致（PHQ-9 两周 / SDS 一周 / YMRS 48 小时 / SDQ-20 一年），
+   * 单靠题面看不出用的是哪个窗口，因此显式下发并在作答页与结果页固定展示。
+   */
+  timeFrame?: string;
+  /**
+   * 作答前提（如严重度量表的「惊恐发作」「社交情境」具体指什么）。
+   * 这类量表的题面统一写「这些情境」，前提只出现在量表说明里，
+   * 翻页后就看不到了，容易误答，因此单独下发并在题目上方常驻展示。
+   */
+  contextHint?: string;
   questions: Question[];
   scoringRules: {
     type: string;
@@ -104,4 +116,6 @@ export interface TestListItem {
   questionsCount: number;
   tags: string[];
   category: "symptom" | "personality" | "special";
+  /** 评估时间范围（如「最近两周」），随 /api/tests/list 下发 */
+  timeFrame?: string;
 }

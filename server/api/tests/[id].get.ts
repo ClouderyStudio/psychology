@@ -129,6 +129,7 @@ import {
 import { testIntros } from "~~/server/utils/test-intros";
 import { createQuestionToken } from "~~/server/utils/question-token";
 import { enforceRateLimit } from "~~/server/utils/rate-limit";
+import { timeFrameOf, contextHintOf } from "~~/server/utils/test-timeframe";
 
 // 按题目 id 升序排序（题库文件顺序可能与出题顺序不同）
 function sortQuestionsById<T extends { id: number }>(questions: T[]): T[] {
@@ -761,7 +762,8 @@ export default defineEventHandler(async (event) => {
       id: "agora",
       title: "广场恐怖严重度",
       description: "广场恐怖成人严重度量表（DSM-5-TR，10 题）评估过去 7 天在人群、公共场所、使用交通工具、独自出行或离家等情境中的恐惧与回避。",
-      instructions: "请按这些情境在过去 7 天内的实际频率作答（从未 / 偶尔 / 一半时间 / 大部分时间 / 几乎所有时间）。",
+      instructions:
+        "这里的情境指：人群、公共场所、乘坐交通工具、独自出行或离家。请按这些情境在过去 7 天内的实际频率作答（从未 / 偶尔 / 一半时间 / 大部分时间 / 几乎所有时间）。",
       questions: agoraQuestions.map((q) => ({
         id: q.id,
         text: q.text,
@@ -826,7 +828,14 @@ export default defineEventHandler(async (event) => {
   }
 
   const intro = testIntros[id as string];
-  const payload: any = intro ? { ...test, intro } : { ...test };
+  // 评估时间范围与作答前提统一取自 server/utils/test-timeframe.ts：
+  // 作答页需要固定展示"这次在评什么时间段"，结果页的量表列表也需要同一份数据，
+  // 各写一份迟早会漂移。
+  const timing = {
+    ...(timeFrameOf(String(id)) ? { timeFrame: timeFrameOf(String(id)) } : {}),
+    ...(contextHintOf(String(id)) ? { contextHint: contextHintOf(String(id)) } : {}),
+  };
+  const payload: any = intro ? { ...test, ...timing, intro } : { ...test, ...timing };
 
   // 多维自评量表：签发出题凭证。提交时以凭证内的 mode / seed 为准，
   // 避免客户端的「出题参数」与「评分参数」可以不是同一套。
