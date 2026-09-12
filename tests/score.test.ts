@@ -1,7 +1,11 @@
 import { describe, it, expect } from "vitest";
 import { calculateScore } from "../server/utils/score";
 import { bisQuestions } from "../server/utils/questions/bis-questions";
-import { buildMultidimQuestions } from "../server/utils/questions/multidim-questions";
+import {
+  buildMultidimQuestions,
+  multidimQuestionById,
+  multidimQuestions,
+} from "../server/utils/questions/multidim-questions";
 
 /** 生成 count 道题、每题 value 的作答 */
 function full(count: number, value: number): Record<number, number> {
@@ -838,5 +842,93 @@ describe("心理健康多维自评量表（MULTIDIM）", () => {
     expect(rep.lie).toBeNull();
     expect(rep.credibility).toBeNull();
     expect(rep.traits.filter((t: any) => !t.noData)).toHaveLength(20);
+  });
+
+  /* ===== 问题报告 P0-1 / P1-3 的回归用例 ===== */
+
+  /** 全题库按同一作答值填充，再覆写个别题号；不依赖抽题种子 */
+  function answersAll(overrides: Record<number, number>, base = -1) {
+    const answers: Record<number, number> = {};
+    for (const q of multidimQuestions) answers[q.id] = base;
+    return Object.assign(answers, overrides);
+  }
+
+  it("第 86 题（被害 / 关系观念）归属 paranoia，不再计入幻觉维度", () => {
+    expect(multidimQuestionById[86].trait).toBe("paranoia");
+    // 幻觉维度只保留真正描述感知异常的条目
+    const hallucinationIds = multidimQuestions
+      .filter((q) => q.trait === "hallucination")
+      .map((q) => q.id);
+    expect(hallucinationIds).not.toContain(86);
+    expect(hallucinationIds).toContain(13);
+  });
+
+  it("仅第 86 题肯定作答 → 不再触发幻觉安全提示（被害观念不冒充精神病性体验）", () => {
+    const r = calculateScore({ testId: "multidim", answers: answersAll({ 86: 1 }) });
+    const rep: any = r.multidimReport;
+    expect(rep.severeSignals).not.toContain("幻觉体验（听到或看到不存在的事物）");
+    expect(rep.severeSignals).toHaveLength(0);
+    expect(rep.severeSignalDetails).toHaveLength(0);
+    // 幻觉维度维持「未见异常」，与安全提示不再互相矛盾
+    const hallucination = rep.traits.find((t: any) => t.trait === "hallucination");
+    expect(hallucination.levelKind).toBe("none");
+  });
+
+  it("仅感知异常主问（第 13 题）肯定作答 → 触发幻觉提示，并解释与维度分的差异", () => {
+    const r = calculateScore({ testId: "multidim", answers: answersAll({ 13: 1 }) });
+    const rep: any = r.multidimReport;
+    expect(rep.severeSignals).toContain("幻觉体验（听到或看到不存在的事物）");
+    const detail = rep.severeSignalDetails.find((s: any) => s.trait === "hallucination");
+    expect(detail.itemIds).toContain(13);
+    // 条目级触发时必须给出解释，而不是与「未见异常」并列
+    expect(detail.detail).toContain("13");
+    expect(detail.detail).toContain("条目级提示");
+  });
+
+  it("仅感知异常追问（第 71 题）肯定作答 → 只给关注方向，不升级为精神病性安全提示", () => {
+    const r = calculateScore({ testId: "multidim", answers: answersAll({ 71: 1 }) });
+    const rep: any = r.multidimReport;
+    expect(rep.severeSignals).toHaveLength(0);
+    expect(rep.concernSignals).toContain("对感知异常的担忧（主诉条目未肯定）");
+  });
+
+  it("被害观念与冲动攻击只进关注信号，与幻觉安全提示分离", () => {
+    const paranoiaIds = multidimQuestions.filter((q) => q.trait === "paranoia").map((q) => q.id);
+    const impulseIds = multidimQuestions.filter((q) => q.trait === "impulse").map((q) => q.id);
+    const positives: Record<number, number> = {};
+    for (const id of [...paranoiaIds, ...impulseIds]) positives[id] = 1;
+    const r = calculateScore({ testId: "multidim", answers: answersAll(positives) });
+    const rep: any = r.multidimReport;
+    expect(rep.severeSignals).toHaveLength(0);
+    expect(rep.concernSignals).toContain("强烈的被害 / 关系观念");
+    expect(rep.concernSignals).toContain("难以控制的冲动或攻击行为");
+  });
+
+  it("自伤 / 轻生按条目触发（安全优先），单题肯定即可触发", () => {
+    const r = calculateScore({ testId: "multidim", answers: answersAll({ 105: 1 }) });
+    const rep: any = r.multidimReport;
+    expect(rep.severeSignals).toContain("自伤或轻生的念头");
+    const detail = rep.severeSignalDetails.find((s: any) => s.trait === "suicide");
+    expect(detail.itemIds).toEqual([105]);
+    expect(detail.detail).toContain("安全筛查条目按单题处理");
+  });
+
+  it("效度字段语义：score / items / hits / rate，阈值按题量归一化", () => {
+    const r = calculateScore({ testId: "multidim", answers: answersFor("standard", "t5", 1) });
+    const rep: any = r.multidimReport;
+    expect(rep.lie.items).toBe(5);
+    expect(rep.lie.score).toBeCloseTo(5, 5);
+    expect(rep.lie.hits).toBe(5);
+    expect(rep.lie.rate).toBeCloseTo(1, 5);
+    expect(rep.lie.level).toBe("回答一致性存疑");
+    // 语义颠倒的旧字段名不再出现
+    expect(rep.lie.total).toBeUndefined();
+    expect(rep.lie.count).toBeUndefined();
+  });
+
+  it("效度题不再包含与理想化无关的「读心」条目", () => {
+    const lieTexts = multidimQuestions.filter((q) => q.kind === "lie").map((q) => q.text);
+    expect(lieTexts).toHaveLength(5);
+    expect(lieTexts.some((t) => t.includes("猜到别人接下来"))).toBe(false);
   });
 });

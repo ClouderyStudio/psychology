@@ -14,6 +14,7 @@ import {
   MULTIDIM_TRAIT_ORDER,
   multidimQuestionById,
   multidimQuestions,
+  type MultidimKind,
 } from "../questions/multidim-questions";
 
 /* ===== 参考方向（疾病特征库）===== */
@@ -135,6 +136,51 @@ const KIND_WEIGHT: Record<string, number> = { main: 1.0, dup: 0.5, sev: 1.2, lif
 
 const SUSPECT_THRESHOLD = 40; // 达到该吻合度才作为“参考方向”展示
 const SEVERE_SCORE = 60; // 吻合度较高 → 标记“信号较强”
+
+/** 安全 / 关注信号：维度加权均值达到该值即视为该方向成立 */
+const SIGNAL_MEAN = 0.5;
+/** 维度内低于该均值视为“未出现一致信号”（与 getTraitScores 的活跃阈值同口径） */
+const SIGNAL_MEAN_QUIET = 0.35;
+
+/** 描述感知异常本身的条目（主问与一致性复问） */
+const PERCEPTION_KINDS: MultidimKind[] = ["main", "dup"];
+/** 条件式追问条目（严重度问 / 生活场景问）：只有在主诉成立时才被提问 */
+const FOLLOW_UP_KINDS: MultidimKind[] = ["sev", "life"];
+
+/**
+ * 安全 / 关注信号。
+ * 与维度分使用同一套题目，并记录触发来源（条目级 or 维度级）与维度分，
+ * 便于前端在两者不一致时给出解释，而不是并列两个相反结论。
+ */
+interface MultidimSignal {
+  trait: string;
+  label: string;
+  level: "danger" | "warn";
+  /** 触发该信号时该维度的加权均值 */
+  traitMean: number;
+  /** 以条目级方式触发时的题号（维度级触发为空数组） */
+  itemIds: number[];
+  /** 供前端直接展示的说明文案 */
+  detail: string;
+}
+
+/** 某维度中作出肯定回答（≥0.5）的题号；kinds 为 null 表示不限题型 */
+function hitItems(
+  trait: string,
+  kinds: MultidimKind[] | null,
+  answers: Record<number, number>,
+): number[] {
+  return multidimQuestions
+    .filter((q) => q.trait === trait && (!kinds || kinds.includes(q.kind)))
+    .filter((q) => (answerOf(answers, q.id) ?? -1) >= 0.5)
+    .map((q) => q.id);
+}
+
+/** 维度均值的展示格式，与 20 维总览保持一致 */
+function fmtMean(v: number | undefined): string {
+  if (v === undefined) return "无数据";
+  return (v > 0 ? "+" : "") + v.toFixed(2);
+}
 
 /** 20 特征针对性建议库 */
 const ADVICE_MAP: Record<string, string> = {
@@ -279,25 +325,36 @@ function computeCredibility(answers: Record<number, number>) {
   return { rate, total: pairs.length, consistent, level, kind };
 }
 
-/** 效度：效度题答“符合”计分，分数越高越可能理想化作答 */
+/**
+ * 效度：效度题是“几乎没人能做到”的罕见条目，答“符合”计分，得分越高越可能理想化作答。
+ *
+ * 字段语义（原实现把两者写反，见 reports/ 的问题报告 P1-3）：
+ *   score = 命中得分之和（可为小数），items = 本次实际作答的效度题量，
+ *   hits  = 选择“符合”方向的题数，rate = score / items。
+ * 阈值按 rate 归一化，效度题量变化时判定行为保持一致。
+ */
 function computeLies(answers: Record<number, number>) {
   const lieIds = multidimQuestions.filter((q) => q.kind === "lie").map((q) => q.id);
   const answered = lieIds.filter((id) => answerOf(answers, id) !== undefined);
   if (answered.length === 0) return null;
-  const total = answered.reduce((s, id) => s + Math.max(0, answerOf(answers, id) as number), 0);
+  const values = answered.map((id) => answerOf(answers, id) as number);
+  const score = values.reduce((s, v) => s + Math.max(0, v), 0);
+  const items = answered.length;
+  const hits = values.filter((v) => v >= 0.5).length;
+  const rate = score / items;
   let level = "可信";
-  let detail = "效度题中未出现明显的理想化作答倾向，本次结果回答一致性较高。";
-  if (total > 3) {
+  let detail = "效度题中未出现明显的理想化作答倾向。";
+  if (rate > 0.6) {
     level = "回答一致性存疑";
     detail = "您有多道效度题选择了“非常符合/比较符合”，可能存在美化回答的倾向。本次评估结果请谨慎参考，建议放松心态后重新作答。";
-  } else if (total > 1.5) {
+  } else if (rate > 0.3) {
     level = "存在理想化倾向";
-    detail = "部分效度题选择了较为极端的自我评价，可能存在轻微美化倾向，结果仅作参考。";
-  } else if (total > 0.5) {
+    detail = "部分效度题选择了较为理想的自我评价，可能存在轻微美化倾向，结果仅作参考。";
+  } else if (rate > 0.1) {
     level = "基本可信";
-    detail = "效度题整体通过，仅个别回答略显理想化，结果整体可参考。";
+    detail = "效度题整体通过，仅个别条目选择了较理想的自我评价，属常见作答倾向，结果整体可参考。";
   }
-  return { total, count: answered.length, level, detail, alert: total > 1.5 };
+  return { score, items, hits, rate, level, detail, alert: rate > 0.3 };
 }
 
 /** 严重程度：以“确认存在困扰”的正向回答为准 */
@@ -360,15 +417,74 @@ export function scoreMultidim(
         ? { label: "判别区分度 · 中", kind: "mid" }
         : { label: "判别区分度 · 低", kind: "low" };
 
-  // 安全信号：自伤/轻生念头、幻觉体验
-  const severeSignals: string[] = [];
-  for (const q of multidimQuestions) {
-    const w = answerOf(answers, q.id);
-    if (w === undefined) continue;
-    if (q.trait === "suicide" && w >= 0.5) severeSignals.push("自伤或轻生的念头");
-    else if (q.trait === "hallucination" && w >= 0.5) severeSignals.push("幻觉体验（听到或看到不存在的事物）");
+  // —— 安全信号（danger 级）与关注信号（warn 级）——
+  // 设计约束：
+  //   1) 信号与维度分使用同一套题目，「幻觉」只能由感知异常条目触发；
+  //   2) 自伤 / 轻生按条目触发（安全优先，与 PHQ-9 第 9 题同口径），不设均值门槛；
+  //   3) 条目级触发与维度分不一致时输出解释，而不是并列两个相反结论。
+  const signals: MultidimSignal[] = [];
+  const hallucinationMean = traitMeans.hallucination ?? 0;
+  const perceptionHits = hitItems("hallucination", PERCEPTION_KINDS, answers);
+  const perceptionFollowUpHits = hitItems("hallucination", FOLLOW_UP_KINDS, answers);
+  const suicideHits = hitItems("suicide", null, answers);
+
+  if (suicideHits.length > 0) {
+    signals.push({
+      trait: "suicide",
+      label: "自伤或轻生的念头",
+      level: "danger",
+      traitMean: traitMeans.suicide ?? 0,
+      itemIds: suicideHits,
+      detail: `您在第 ${suicideHits.join("、")} 题上作出了肯定回答（该维度整体得分 ${fmtMean(traitMeans.suicide)}）。安全筛查条目按单题处理，无论整体得分高低都请优先按上方提示采取行动。`,
+    });
   }
-  const severeUnique = [...new Set(severeSignals)];
+
+  if (perceptionHits.length > 0 || hallucinationMean >= SIGNAL_MEAN) {
+    const byItemOnly = perceptionHits.length > 0 && hallucinationMean < SIGNAL_MEAN_QUIET;
+    signals.push({
+      trait: "hallucination",
+      label: "幻觉体验（听到或看到不存在的事物）",
+      level: "danger",
+      traitMean: hallucinationMean,
+      itemIds: perceptionHits,
+      detail: byItemOnly
+        ? `您在第 ${perceptionHits.join("、")} 题上作出了肯定回答；该维度整体得分 ${fmtMean(hallucinationMean)}，其余条目未出现一致信号。这属于条目级提示，建议与专业人员当面核对。`
+        : perceptionHits.length > 0
+          ? `您在第 ${perceptionHits.join("、")} 题上作出了肯定回答，该维度整体得分 ${fmtMean(hallucinationMean)}。`
+          : `该维度整体得分 ${fmtMean(hallucinationMean)}，属于需要优先处理的方向。`,
+    });
+  } else if (perceptionFollowUpHits.length > 0) {
+    signals.push({
+      trait: "hallucination",
+      label: "对感知异常的担忧（主诉条目未肯定）",
+      level: "warn",
+      traitMean: hallucinationMean,
+      itemIds: perceptionFollowUpHits,
+      detail: `您在第 ${perceptionFollowUpHits.join("、")} 题上作出了肯定回答，但描述具体感知异常的主问与复问均未肯定，建议核对前后作答是否一致。`,
+    });
+  }
+
+  for (const [trait, label] of [
+    ["paranoia", "强烈的被害 / 关系观念"],
+    ["impulse", "难以控制的冲动或攻击行为"],
+  ] as const) {
+    const mean = traitMeans[trait] ?? 0;
+    if (mean >= SIGNAL_MEAN) {
+      signals.push({
+        trait,
+        label,
+        level: "warn",
+        traitMean: mean,
+        itemIds: [],
+        detail: `该维度整体得分 ${fmtMean(mean)}，属于需要关注的方向。`,
+      });
+    }
+  }
+
+  const severeSignals = signals.filter((s) => s.level === "danger");
+  const concernSignals = signals.filter((s) => s.level === "warn");
+  const severeUnique = [...new Set(severeSignals.map((s) => s.label))];
+  const concernUnique = [...new Set(concernSignals.map((s) => s.label))];
 
   const isNormal = severeUnique.length === 0 && top.score < SUSPECT_THRESHOLD;
   const shown = ranked.filter((x) => x.score >= SUSPECT_THRESHOLD).slice(0, 3);
@@ -440,9 +556,12 @@ export function scoreMultidim(
   } else if (sevLevel === "极重度" || sevLevel === "重度") {
     overallKind = "heavy";
     overall = "您回答中的多项信号较强，建议近期安排一次专业评估（精神科或心理门诊），不要独自应对。本量表结果可作为与专业人员沟通时的参考材料。";
-  } else if (sevLevel === "中度") {
+  } else if (sevLevel === "中度" || concernUnique.length > 0) {
     overallKind = "moderate";
-    overall = "您回答中部分方面存在信号，建议在未来 2–4 周关注对应方面的变化，尝试下方针对性建议；若持续无改善，建议进行专业咨询。";
+    overall =
+      concernUnique.length > 0
+        ? `您回答中出现了${concernUnique.join("、")}相关信号，建议在未来 2–4 周关注对应方面的变化，尝试下方针对性建议；若持续无改善，建议进行专业咨询。`
+        : "您回答中部分方面存在信号，建议在未来 2–4 周关注对应方面的变化，尝试下方针对性建议；若持续无改善，建议进行专业咨询。";
   } else {
     overallKind = "light";
     overall = "您回答整体信号较弱。建议保持规律作息、适度运动与稳定的社交联结，并定期关注自己的情绪状态。";
@@ -496,6 +615,8 @@ export function scoreMultidim(
   let summaryNote: string;
   if (severeUnique.length > 0) {
     summaryNote = "本次回答包含需要重视的安全信号，请优先参照上方安全提示采取行动，并尽快安排专业评估。";
+  } else if (concernUnique.length > 0) {
+    summaryNote = `本次回答在「${concernUnique.join("、")}」方向上出现需要关注的信号，建议参照上方提示与针对性建议，并在 2–4 周后复测观察变化。`;
   } else if (isNormal) {
     summaryNote = "各维度信号整体平稳，未发现达到关注标准的异常信号；建议保持规律作息与适度运动，并定期自我关注。";
   } else if (posCount <= 2) {
@@ -510,6 +631,8 @@ export function scoreMultidim(
     traitsText: topTraits.length > 0 ? topTraits.join("、") : "无明显特征方向",
     severeText: severeUnique.length > 0 ? "检出（详见安全提示）" : "未检出",
     severeKind: severeUnique.length > 0 ? "severe" : "ok",
+    concernText: concernUnique.length > 0 ? concernUnique.join("、") : "未检出",
+    concernKind: concernUnique.length > 0 ? "warn" : "ok",
     matchText: matchList.length > 0 ? `${matchList[0]!.name}（特征吻合度 ${matchList[0]!.score}%）` : "未达提示阈值",
     note: summaryNote,
   };
@@ -569,6 +692,9 @@ export function scoreMultidim(
       lie,
       confidence,
       severeSignals: severeUnique,
+      severeSignalDetails: severeSignals,
+      concernSignals: concernUnique,
+      concernSignalDetails: concernSignals,
       topTraits,
       posCount,
       advice: { overallKind, overall, targeted, daily, followUp, note: adviceNote },

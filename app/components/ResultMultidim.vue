@@ -17,16 +17,35 @@
     </header>
 
     <!-- 安全提示（自伤 / 幻觉信号） -->
-    <section v-if="report.severeSignals.length" class="md-alert md-alert--danger">
+    <section v-if="severeSignals.length" class="md-alert md-alert--danger">
       <div class="md-alert-head">
         <span class="md-alert-seal">请优先处理</span>
         <b>本次回答包含需要重视的安全信号</b>
       </div>
       <p class="md-alert-body">
-        您回答中出现了 <b>{{ report.severeSignals.join("、") }}</b> 相关信号。请立即联系信任的亲友，
+        您回答中出现了 <b>{{ severeSignals.join("、") }}</b> 相关信号。请立即联系信任的亲友，
         或拨打全国统一心理援助热线 <a href="tel:12356">12356</a>（24 小时、免费）；若念头强烈或已有具体计划，
         请拨打 <a href="tel:120">120</a> 或前往就近医院急诊，并尽快安排精神科评估。
       </p>
+      <ul v-if="severeSignalDetails.length" class="md-alert-list">
+        <li v-for="s in severeSignalDetails" :key="s.trait + s.label">
+          <b>{{ s.label }}：</b>{{ s.detail }}
+        </li>
+      </ul>
+    </section>
+
+    <!-- 关注提示（被害 / 关系观念、冲动等，与感知异常区分开） -->
+    <section v-if="concernSignals.length" class="md-alert md-alert--warn">
+      <div class="md-alert-head">
+        <span class="md-alert-seal md-alert-seal--warn">需要关注</span>
+        <b>本次回答包含需要关注的方向</b>
+      </div>
+      <ul v-if="concernSignalDetails.length" class="md-alert-list">
+        <li v-for="s in concernSignalDetails" :key="s.trait + s.label">
+          <b>{{ s.label }}：</b>{{ s.detail }}
+        </li>
+      </ul>
+      <p v-else class="md-alert-body">{{ concernSignals.join("、") }}</p>
     </section>
 
     <!-- 评估摘要 -->
@@ -199,6 +218,12 @@ const formattedTime = computed(() => {
   const ts = props.result?.timestamp;
   return ts ? new Date(ts).toLocaleString("zh-CN") : "—";
 });
+
+// 安全 / 关注信号（旧版本记录没有这些字段，统一兜底为空数组）
+const severeSignals = computed<string[]>(() => props.report?.severeSignals || []);
+const concernSignals = computed<string[]>(() => props.report?.concernSignals || []);
+const severeSignalDetails = computed<any[]>(() => props.report?.severeSignalDetails || []);
+const concernSignalDetails = computed<any[]>(() => props.report?.concernSignalDetails || []);
 
 const answeredCount = computed(() => {
   const answers = props.result?.answers;
@@ -473,6 +498,36 @@ const radar = computed(() => {
 
 .md-alert-body { margin: 0; }
 .md-alert-body a { color: inherit; font-weight: var(--fw-bold); text-decoration: underline; }
+
+.md-alert-seal--warn {
+  background: var(--md-warn);
+  color: #fff;
+}
+
+.md-alert-list {
+  margin: 8px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.md-alert-list li {
+  position: relative;
+  padding: 2px 0 2px 14px;
+  font-size: 0.78125rem;
+  line-height: 1.65;
+}
+
+.md-alert-list li::before {
+  content: "";
+  position: absolute;
+  left: 2px;
+  top: 10px;
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: currentColor;
+  opacity: 0.65;
+}
 
 /* 效度 */
 .md-lie-row {

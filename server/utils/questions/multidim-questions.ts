@@ -186,7 +186,9 @@ export const multidimQuestions: MultidimQuestion[] = [
   { id: 83, trait: "social_fear", kind: "life", text: "发消息或打电话之前，你是不是总要反复斟酌措辞，怕说错了被人笑话？" },
   { id: 84, trait: "body_image", kind: "life", text: "你是不是经常称体重，体重数字稍微一浮动，就能影响你一整天的心情？" },
   { id: 85, trait: "somatization", kind: "life", text: "压力大或者心情不好的时候，你的胃、头或者心脏是不是最先“闹脾气”？" },
-  { id: 86, trait: "hallucination", kind: "life", text: "有没有过你认定有人在监视、议论或者针对你，但其实拿不出任何证据？" },
+  // 归属修正：该题描述的是被害 / 关系观念，不含任何感知异常成分，
+  // 原先误归 hallucination，会导致「幻觉体验」维度与安全提示同时出现相反结论。
+  { id: 86, trait: "paranoia", kind: "life", text: "有没有过你认定有人在监视、议论或者针对你，但其实拿不出任何证据？" },
   { id: 87, trait: "impulse", kind: "life", text: "等红灯、排队或者被人插队时，你是不是常常压不住火，想立刻发作？" },
   { id: 88, trait: "suicide", kind: "life", text: "你有没有过伤害自己的行为，比如割伤自己、撞头，用这种方式来缓解痛苦？" },
   { id: 89, trait: "low_mood", kind: "life", text: "别人安慰你的时候，你是不是常觉得他们根本不理解你，心情还是好不起来？" },
@@ -245,7 +247,10 @@ export const multidimQuestions: MultidimQuestion[] = [
   { id: 142, trait: "lie", kind: "lie", text: "不管发生什么事，我都能完全管住自己的情绪，从来不会发脾气。" },
   { id: 143, trait: "lie", kind: "lie", text: "我几乎从来不觉得累，也几乎不需要什么休息。" },
   { id: 144, trait: "lie", kind: "lie", text: "我答应别人的事一定能做到，从来不会食言。" },
-  { id: 145, trait: "lie", kind: "lie", text: "我经常能准确猜到别人接下来会说什么、做什么。" },
+  // 原第 145 题为「我经常能准确猜到别人接下来会说什么、做什么」——该题考察的是社会认知 / 共情自评，
+  // 与掩饰、理想化无关，且与 social_deficits 维度反向耦合（社交敏锐者如实作答反被记为掩饰），故替换为
+  // 同族的罕见条目。
+  { id: 145, trait: "lie", kind: "lie", text: "我从来没有对任何人产生过反感、不满或者嫉妒。" },
 ];
 
 /** 题号 → 题目元数据，供评分规则按特征/题型聚合 */
