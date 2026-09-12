@@ -135,11 +135,18 @@
     <!-- 特征强度总览 -->
     <section class="md-card">
       <h4 class="md-card-title">20 项特征强度总览</h4>
-      <p class="md-card-hint">条形长度代表该特征的相对信号强度，数值范围 -1.00 ~ +1.00。</p>
+      <p class="md-card-hint">
+        条形长度代表该特征的相对信号强度，数值范围 -1.00 ~ +1.00。
+        多数题目问的是最近两周；标有「作答范围」的题目问的是其他时间范围，其得分同样计入对应维度。
+      </p>
       <p v-if="report.traitStatsText" class="md-stats">{{ report.traitStatsText }}</p>
+      <p v-if="report.windowNotice" class="md-stats md-stats--warn">{{ report.windowNotice }}</p>
       <div class="md-traits">
         <div v-for="row in report.traits" :key="row.trait" class="md-trait">
-          <span class="md-trait-name">{{ row.label }}</span>
+          <span class="md-trait-name">
+            {{ row.label }}
+            <span v-if="row.windowMixed" class="md-window-badge" :title="`作答范围：${row.window}`">跨窗口</span>
+          </span>
           <div class="md-trait-bar">
             <div class="md-trait-fill" :class="`lv-${row.levelKind}`" :style="{ width: `${row.noData ? 0 : row.width}%` }"></div>
           </div>
@@ -618,6 +625,26 @@ const radar = computed(() => {
   border-radius: 10px;
   padding: 7px 12px;
   line-height: 1.6;
+}
+
+.md-stats--warn {
+  color: var(--md-warn);
+  background: rgba(176, 122, 31, 0.08);
+  border-color: var(--md-warn);
+}
+
+/* 跨时间窗口合成的维度标记 */
+.md-window-badge {
+  display: inline-block;
+  margin-left: 6px;
+  padding: 1px 6px;
+  border-radius: 999px;
+  font-size: 0.625rem;
+  font-weight: var(--fw-normal);
+  color: var(--md-warn);
+  border: 1px solid var(--md-warn);
+  vertical-align: middle;
+  white-space: nowrap;
 }
 
 .md-traits { display: flex; flex-direction: column; }

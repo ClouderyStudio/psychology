@@ -2,10 +2,13 @@ import { describe, it, expect } from "vitest";
 import { calculateScore } from "../server/utils/score";
 import { bisQuestions } from "../server/utils/questions/bis-questions";
 import {
+  MULTIDIM_QUESTION_WINDOWS,
   MULTIDIM_TRAIT_ORDER,
+  MULTIDIM_WINDOW_LABEL,
   buildMultidimQuestions,
   multidimQuestionById,
   multidimQuestions,
+  multidimWindowOf,
 } from "../server/utils/questions/multidim-questions";
 
 /** 生成 count 道题、每题 value 的作答 */
@@ -1100,6 +1103,64 @@ describe("心理健康多维自评量表（MULTIDIM）", () => {
       expect(rows[i]!.pct).toBeGreaterThanOrEqual(rows[i - 1]!.pct);
     }
     expect(rows[rows.length - 1]!.level).toBeGreaterThan(rows[0]!.level);
+  });
+
+  /* ===== 问题报告 P1-1 的回归用例：时间窗口 ===== */
+
+  it("每道题都有明确的时间窗口，且覆盖表只收录真实存在的题号", () => {
+    const ids = new Set(multidimQuestions.map((q) => q.id));
+    for (const q of multidimQuestions) {
+      expect(["2w", "episode", "lifelong"]).toContain(multidimWindowOf(q.id));
+    }
+    for (const key of Object.keys(MULTIDIM_QUESTION_WINDOWS)) {
+      expect(ids.has(Number(key))).toBe(true);
+    }
+    // 三种窗口都有中文标签，供作答页直接展示
+    for (const w of ["2w", "episode", "lifelong"] as const) {
+      expect(MULTIDIM_WINDOW_LABEL[w].length).toBeGreaterThan(0);
+    }
+  });
+
+  it("题干写明「从小」「一直」的归入长期窗口，「有没有过」的归入既往窗口", () => {
+    // 长期 / 发育性条目
+    for (const id of [9, 22, 37, 66, 67, 94, 122]) {
+      expect(multidimWindowOf(id)).toBe("lifelong");
+    }
+    // 既往发作 / 曾经经历
+    for (const id of [3, 6, 18, 46, 86, 88, 131]) {
+      expect(multidimWindowOf(id)).toBe("episode");
+    }
+    // 明确写「最近两周」的仍为默认窗口
+    for (const id of [15, 16, 30]) {
+      expect(multidimWindowOf(id)).toBe("2w");
+    }
+    // 默认窗口占比过半，说明该表只做例外标注
+    const nonDefault = Object.keys(MULTIDIM_QUESTION_WINDOWS).length;
+    expect(nonDefault).toBeLessThan(multidimQuestions.length / 2);
+  });
+
+  it("结果按维度标注时间窗口，跨窗口合成的维度会被点名", () => {
+    const rep: any = calculateScore({
+      testId: "multidim",
+      answers: answersAll({}),
+    }).multidimReport;
+
+    const focusLoss = rep.traits.find((t: any) => t.trait === "focus_loss");
+    expect(focusLoss.windowMixed).toBe(true);
+    expect(focusLoss.windows).toContain("lifelong");
+    expect(focusLoss.windows).toContain("2w");
+
+    const sleepIssue = rep.traits.find((t: any) => t.trait === "sleep_issue");
+    expect(sleepIssue.windowMixed).toBe(true);
+
+    // 全部条目都是最近两周的维度不应被标记
+    const compulsion = rep.traits.find((t: any) => t.trait === "compulsion");
+    expect(compulsion.windowMixed).toBe(false);
+    expect(compulsion.windows).toEqual(["2w"]);
+
+    expect(rep.windowNotice).toContain("跨窗口");
+    expect(rep.mixedWindowTraits.length).toBeGreaterThan(0);
+    expect(rep.mixedWindowTraits.map((x: any) => x.trait)).toContain("focus_loss");
   });
 
   it("strongTraits 取信号最强的 4 项，而非题目顺序靠前的 4 项", () => {

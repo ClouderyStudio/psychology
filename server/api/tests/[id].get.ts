@@ -122,7 +122,9 @@ import {
   buildMultidimQuestions,
   isMultidimMode,
   MULTIDIM_MODES,
+  MULTIDIM_WINDOW_LABEL,
   multidimOptions,
+  multidimWindowOf,
 } from "~~/server/utils/questions/multidim-questions";
 import { testIntros } from "~~/server/utils/test-intros";
 
@@ -778,14 +780,21 @@ export default defineEventHandler(async (event) => {
       description:
         "基于多维特征模型的心理健康自评量表，覆盖 20 个核心特征维度，并内置回答一致性与作答效度校验。选择评估模式后按模式出题。",
       instructions:
-        "请根据最近两周的真实感受作答，选择最符合的选项（非常符合 / 比较符合 / 不确定 / 不太符合 / 完全不符合）。本量表为自评参考与科普用途，不构成临床诊断，不能替代专业医疗。",
+        "请选择最符合的选项（非常符合 / 比较符合 / 不确定 / 不太符合 / 完全不符合）。多数题目问的是最近两周的情况；少数题目会在题号旁标注其他时间范围（如「曾经有过的一段时期」「长期 / 从小一直」），请按该题标注的范围作答。本量表为自评参考与科普用途，不构成临床诊断，不能替代专业医疗。",
       questions: multidimMode
-        ? buildMultidimQuestions(multidimMode, multidimSeed).map((q) => ({
-            id: q.id,
-            text: q.text,
-            type: "likert" as const,
-            options: multidimOptions,
-          }))
+        ? buildMultidimQuestions(multidimMode, multidimSeed).map((q) => {
+            // 标注题目的时间窗口：少数题目问的不是「最近两周」，
+            // 不标注会让作答者把长期特征与近期状态混在一起作答。
+            const win = q.kind === "lie" ? null : multidimWindowOf(q.id);
+            return {
+              id: q.id,
+              text: q.text,
+              type: "likert" as const,
+              options: multidimOptions,
+              window: win,
+              windowLabel: win ? MULTIDIM_WINDOW_LABEL[win] : null,
+            };
+          })
         : [],
       scoringRules: {
         type: "multidim",

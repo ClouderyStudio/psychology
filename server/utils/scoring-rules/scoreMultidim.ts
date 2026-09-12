@@ -12,9 +12,12 @@ import {
   MULTIDIM_TRAIT_DESC,
   MULTIDIM_TRAIT_LABELS,
   MULTIDIM_TRAIT_ORDER,
+  MULTIDIM_WINDOW_LABEL,
   multidimQuestionById,
   multidimQuestions,
+  multidimWindowOf,
   type MultidimKind,
+  type MultidimWindow,
 } from "../questions/multidim-questions";
 
 /* ===== 参考方向（疾病特征库）已移除 =====
@@ -126,6 +129,24 @@ function aggregateTraitMeans(answers: Record<number, number>): Record<string, nu
 /** 某维度的展示标签（缺失时回退到特征 id） */
 function traitLabel(trait: string): string {
   return MULTIDIM_TRAIT_LABELS[trait] || trait;
+}
+
+/**
+ * 本次实际作答中，某维度各题的时间窗口构成。
+ * 同一维度下混合了「最近两周」与「长期 / 曾经」条目时，均值本身是跨窗口的，
+ * 应当在结果里标注出来，而不是让读者以为它只反映近期状态。
+ */
+function traitWindows(trait: string, answers: Record<number, number>) {
+  const ids = multidimQuestions
+    .filter((q) => q.trait === trait && q.kind !== "lie")
+    .map((q) => q.id)
+    .filter((id) => answerOf(answers, id) !== undefined);
+  const windows = [...new Set(ids.map((id) => multidimWindowOf(id)))];
+  return {
+    windows,
+    mixed: windows.length > 1,
+    label: windows.map((w) => MULTIDIM_WINDOW_LABEL[w]).join(" + "),
+  };
 }
 /** 回答一致性：一致性复问与同特征主问的差异 ≤ 0.5 记为一致 */
 function computeCredibility(answers: Record<number, number>) {
@@ -402,6 +423,7 @@ export function scoreMultidim(
       return { trait: t, label: MULTIDIM_TRAIT_LABELS[t], value: 0, width: 0, display: "—", noData: true, level: "无数据", levelKind: "none" as const };
     }
     const lv = traitLevel(value);
+    const win = traitWindows(t, answers);
     return {
       trait: t,
       label: MULTIDIM_TRAIT_LABELS[t],
@@ -411,8 +433,19 @@ export function scoreMultidim(
       noData: false,
       level: lv.text,
       levelKind: lv.kind,
+      // 该维度本次作答覆盖的时间窗口；mixed 为 true 表示维度分是跨窗口合成的
+      window: win.label,
+      windows: win.windows,
+      windowMixed: win.mixed,
     };
   });
+
+  // 跨窗口合成的维度提示：这些维度的分数同时包含近期状态与长期 / 既往特征
+  const mixedWindowTraits = traits.filter((row) => !row.noData && row.windowMixed);
+  const windowNotice =
+    mixedWindowTraits.length > 0
+      ? `以下维度本次同时包含「最近两周」与其他时间范围的条目，其分数是跨窗口合成的，解读时请留意：${mixedWindowTraits.map((r) => `${r.label}（${r.window}）`).join("；")}。`
+      : "";
 
   // 程度分布统计
   const lvCount: Record<string, number> = {};
@@ -593,6 +626,8 @@ export function scoreMultidim(
       isNormal,
       traits,
       traitStatsText,
+      windowNotice,
+      mixedWindowTraits: mixedWindowTraits.map((r) => ({ trait: r.trait, label: r.label, window: r.window })),
       summary,
       severity,
       credibility,

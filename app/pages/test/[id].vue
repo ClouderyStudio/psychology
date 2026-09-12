@@ -485,6 +485,11 @@
                   class="formal-question-danger-tag">
                   危险信号条目
                 </span>
+                <span v-if="question.window && question.window !== '2w'"
+                  class="inline-block ml-2 align-middle text-xs px-2 py-0.5 rounded-full whitespace-nowrap"
+                  :style="{ backgroundColor: 'var(--primary-light)', color: 'var(--primary)' }">
+                  作答范围 · {{ question.windowLabel }}
+                </span>
               </p>
 
               <div class="space-y-3">

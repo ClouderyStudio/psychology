@@ -253,6 +253,72 @@ export const multidimQuestions: MultidimQuestion[] = [
   { id: 145, trait: "lie", kind: "lie", text: "我从来没有对任何人产生过反感、不满或者嫉妒。" },
 ];
 
+/* ===== 题目时间窗口 =====
+ *
+ * 全量表统一说明为「最近两周」，但题库中有相当一部分题目明确指向别的时间范围：
+ * 「从小学起就有」「有没有过那么一段时间」「曾经经历过」。若不作标注，作答者会把
+ * 长期特征、既往发作与近两周状态混在同一份作答里计分——这正是问题报告中
+ * 「用两周窗口匹配慢性 / 发育性病程」的成因，也会让同一维度下的题目互相打架。
+ */
+
+export type MultidimWindow = "2w" | "episode" | "lifelong";
+
+export const MULTIDIM_WINDOW_LABEL: Record<MultidimWindow, string> = {
+  "2w": "最近两周",
+  episode: "曾经有过的一段时期",
+  lifelong: "长期 / 从小一直",
+};
+
+/**
+ * 与默认窗口（最近两周）不同的题号。
+ * 判定依据只看题干自身的表述，不引入任何临床推断：
+ *   - 出现「从小」「一直」「习惯性地」→ lifelong
+ *   - 出现「有没有过（那么一段时间）」「曾经」「那几天」「错过过」→ episode
+ */
+export const MULTIDIM_QUESTION_WINDOWS: Record<number, MultidimWindow> = {
+  // —— 既往发作 / 曾经有过（发作性疾病与创伤经历） ——
+  3: "episode", // 情绪高涨：有没有过那么一段时间
+  6: "episode", // 创伤：有没有经历过特别可怕的事
+  13: "episode", // 幻觉：有没有听到过
+  14: "episode", // 冲动：有没有一时冲动跟人吵过架
+  18: "episode", // 情绪高涨：有没有连续好几天几乎不用睡觉
+  27: "episode",
+  29: "episode", // 自伤念头：特别低落的时候有没有闪过
+  32: "episode",
+  46: "episode",
+  47: "episode", // 惊恐：有没有突然心跳加速
+  56: "episode",
+  58: "episode",
+  61: "episode",
+  68: "episode", // 社交恐惧：是不是错过过机会
+  72: "episode",
+  76: "episode",
+  86: "episode", // 被害观念：有没有过你认定有人在监视
+  88: "episode", // 自伤行为：有没有过伤害自己的行为
+  91: "episode",
+  102: "episode", // 躯体化：有没有过查不出原因的经历
+  116: "episode",
+  131: "episode", // 多疑：有没有过因为认定别人针对你而对峙
+  // —— 长期 / 从小一直（发育性与特质性条目） ——
+  9: "lifelong", // 社交互动困难主问
+  22: "lifelong", // 睡眠：一直不太好
+  37: "lifelong", // 注意力：从小就有
+  52: "lifelong",
+  66: "lifelong", // 注意力：从小就有
+  67: "lifelong", // 社交互动困难：从小就这样
+  82: "lifelong",
+  94: "lifelong", // 创伤：一直处于草木皆兵的警觉状态
+  96: "lifelong",
+  97: "lifelong",
+  98: "lifelong",
+  122: "lifelong", // 自我价值感：习惯性地把自己往坏处想
+};
+
+/** 题目所属时间窗口；未在覆盖表中列出的题目一律按「最近两周」处理 */
+export function multidimWindowOf(id: number): MultidimWindow {
+  return MULTIDIM_QUESTION_WINDOWS[id] ?? "2w";
+}
+
 /** 题号 → 题目元数据，供评分规则按特征/题型聚合 */
 export const multidimQuestionById = Object.fromEntries(
   multidimQuestions.map((q) => [q.id, q]),
