@@ -961,6 +961,15 @@ onMounted(async () => {
   } else {
     answers.value = {}
   }
+
+  if (isMultidim.value) {
+    $confirm({
+      title: '重要提示',
+      message: '此量表没有相关文献支持，也未经过实验或临床测试，不具备心理测量学验证。请勿将其结果当作临床诊断或筛查结论；如您正受情绪困扰，请咨询精神科或心理专业人员。',
+      confirmText: '我已了解',
+      cancelText: '关闭',
+    })
+  }
 })
 
 // 监听答案变化，整体同步 store 与 sessionStorage 并刷新进度

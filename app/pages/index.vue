@@ -232,7 +232,8 @@
             <!-- 按钮区域 -->
             <div class="flex gap-2 pt-2 min-h-[44px]">
               <button @click="startTest(test.id, false)"
-                class="flex-1 py-2.5 rounded-lg font-semibold transition-all text-sm"
+                class="category-action flex-1 py-2.5 rounded-lg font-semibold transition-all text-sm"
+                :class="'category-action-' + test.category"
                 :style="{ backgroundColor: getButtonColor(test.category), color: 'white' }"
                 @mouseenter="elStyle($event, { backgroundColor: getButtonHoverColor(test.category) })"
                 @mouseleave="elStyle($event, { backgroundColor: getButtonColor(test.category) })">

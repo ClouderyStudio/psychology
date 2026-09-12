@@ -1803,71 +1803,266 @@ html[data-accent="win98"][data-theme="dark"] ::-webkit-scrollbar-thumb {
 }
 
 /* ===================================================================
-   Win98 精修：按 Windows 95/98 控件规范逐项还原
-   （30px 标题栏 / 三连窗口钮 / 灰底对话框 / 状态栏 / 默认按钮框）
+   Win11 / Win98 主题收口：统一页面表面、移动菜单和窗口状态
    =================================================================== */
 
-/* ---------- 标题栏：经典 30px 高度、13px Tahoma 粗体白字 ---------- */
-html[data-accent="win98"] nav .h-16 {
-  height: 30px;
+/* ---------- Win11：把页面内容分成 Mica 背景与 Fluent 表面 ---------- */
+html[data-accent="win11"] body {
+  color-scheme: light;
+}
+html[data-accent="win11"][data-theme="dark"] body {
+  color-scheme: dark;
+}
+html[data-accent="win11"] .card,
+html[data-accent="win11"] .exam-q,
+html[data-accent="win11"] .external-scale-card {
+  background-color: var(--card-bg);
+  border-color: var(--border);
+  box-shadow: var(--shadow-sm);
+}
+html[data-accent="win11"] .card:hover,
+html[data-accent="win11"] .external-scale-card:hover {
+  box-shadow: var(--shadow-md);
+}
+html[data-accent="win11"] nav {
+  min-height: 56px;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.06);
+}
+html[data-accent="win11"][data-theme="dark"] nav {
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.28);
+}
+html[data-accent="win11"] nav > div.md\:hidden.absolute {
+  position: fixed;
+  top: 56px !important;
+  max-height: calc(100dvh - 56px);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  border-top: 1px solid rgba(0, 0, 0, 0.08);
+}
+html[data-accent="win11"][data-theme="dark"] nav > div.md\:hidden.absolute {
+  border-top-color: rgba(255, 255, 255, 0.08);
+}
+html[data-accent="win11"] nav > div.md\:hidden.absolute .mobile-nav-link {
+  min-height: 40px;
+}
+html[data-accent="win11"] button:disabled,
+html[data-accent="win11"] input:disabled,
+html[data-accent="win11"] select:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+/* ---------- Win98：页面是桌面，内容面板才是窗口客户区 ---------- */
+html[data-accent="win98"] body {
+  background-color: #008080;
+  color-scheme: light;
+}
+html[data-accent="win98"][data-theme="dark"] body {
+  background-color: #000000;
+  color-scheme: dark;
+}
+html[data-accent="win98"] .card,
+html[data-accent="win98"] .exam-q,
+html[data-accent="win98"] .external-scale-card {
+  background-color: #ffffff !important;
+  border: 1px solid #000000 !important;
+  box-shadow: var(--bevel-raised) !important;
+}
+html[data-accent="win98"][data-theme="dark"] .card,
+html[data-accent="win98"][data-theme="dark"] .exam-q,
+html[data-accent="win98"][data-theme="dark"] .external-scale-card {
+  background-color: #000000 !important;
+  border-color: #ffffff !important;
+}
+html[data-accent="win98"] nav {
   min-height: 30px;
+}
+html[data-accent="win98"] nav > div.md\:hidden.absolute {
+  z-index: 60;
+}
+html[data-accent="win98"] nav > div.md\:hidden.absolute .accent-dots button {
+  box-shadow: var(--bevel-raised) !important;
+}
+html[data-accent="win98"] button:disabled,
+html[data-accent="win98"] input:disabled,
+html[data-accent="win98"] select:disabled {
+  color: #808080 !important;
+  background-color: #c0c0c0 !important;
+  box-shadow: inset 1px 1px 0 #ffffff, inset -1px -1px 0 #808080 !important;
+  cursor: default;
+}
+html[data-accent="win98"][data-theme="dark"] button:disabled,
+html[data-accent="win98"][data-theme="dark"] input:disabled,
+html[data-accent="win98"][data-theme="dark"] select:disabled {
+  color: #808080 !important;
+  background-color: #000000 !important;
+  box-shadow: inset 1px 1px 0 #808080, inset -1px -1px 0 #404040 !important;
+}
+
+/* ---------- Win98 专属：多维自评量表使用 VGA 紫色作为特殊入口 ---------- */
+html[data-accent="win98"] .external-scale-card {
+  border-color: #800080 !important;
+}
+html[data-accent="win98"] .external-band {
+  background: #800080 !important;
+}
+html[data-accent="win98"] .external-tag {
+  background-color: #e8d6e8 !important;
+  color: #5a005a !important;
+  border: 1px solid #800080;
+}
+html[data-accent="win98"] .external-btn {
+  background-color: #c0c0c0 !important;
+  background-image: none !important;
+  color: #5a005a !important;
+  box-shadow: var(--bevel-raised) !important;
+  border: 1px solid #800080;
+}
+html[data-accent="win98"] .external-scale-card:hover .external-btn {
+  background-color: #d8c0d8 !important;
+  filter: none;
+}
+html[data-accent="win98"] .external-scale-card:active .external-btn {
+  box-shadow: var(--bevel-sunken) !important;
+}
+html[data-accent="win98"][data-theme="dark"] .external-scale-card {
+  border-color: #ff00ff !important;
+}
+html[data-accent="win98"][data-theme="dark"] .external-band {
+  background: #ff00ff !important;
+}
+html[data-accent="win98"][data-theme="dark"] .external-tag {
+  background-color: #241024 !important;
+  color: #ffb0ff !important;
+  border-color: #ff00ff;
+}
+html[data-accent="win98"][data-theme="dark"] .external-btn {
+  background-color: #000000 !important;
+  color: #ffb0ff !important;
+  border-color: #ff00ff;
+}
+html[data-accent="win98"][data-theme="dark"] .external-scale-card:hover .external-btn {
+  background-color: #241024 !important;
+}
+
+/* ---------- Win11 移动端：菜单使用不透明窗口表面，避免内容透出 ---------- */
+html[data-accent="win11"] nav .mobile-menu-toggle {
+  width: 40px;
+  height: 40px;
+  padding: 8px;
+  border: 1px solid rgba(0, 0, 0, 0.12);
+  border-radius: 4px;
+  background-color: var(--primary-light) !important;
+  color: var(--primary) !important;
+  box-shadow: var(--shadow-sm);
+}
+html[data-accent="win11"] nav .mobile-menu-toggle:hover,
+html[data-accent="win11"] nav .mobile-menu-toggle:active {
+  background-color: var(--primary-tag) !important;
+}
+html[data-accent="win11"] nav .mobile-menu-panel {
+  background-color: var(--card-bg) !important;
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+  border-top: 1px solid var(--border);
+  box-shadow: var(--shadow-lg);
+  opacity: 1;
+}
+html[data-accent="win11"][data-theme="dark"] nav .mobile-menu-toggle {
+  border-color: rgba(255, 255, 255, 0.14);
+}
+
+/* ---------- Win11 首页量表操作按钮：保留分类色，不被 Accent 蓝统一覆盖 ---------- */
+html[data-accent="win11"] .card button.category-action-symptom {
+  background-color: var(--symptom-dark) !important;
+}
+html[data-accent="win11"] .card button.category-action-personality {
+  background-color: var(--personality-dark) !important;
+}
+html[data-accent="win11"] .card button.category-action-special {
+  background-color: var(--special-dark) !important;
+}
+html[data-accent="win11"] .card button.category-action-symptom:hover {
+  background-color: var(--symptom) !important;
+}
+html[data-accent="win11"] .card button.category-action-personality:hover {
+  background-color: var(--personality) !important;
+}
+html[data-accent="win11"] .card button.category-action-special:hover {
+  background-color: var(--special) !important;
+}
+html[data-accent="win11"] .card button.category-action-symptom:active,
+html[data-accent="win11"] .card button.category-action-personality:active,
+html[data-accent="win11"] .card button.category-action-special:active {
+  filter: brightness(0.88);
+}
+
+/* ===================================================================
+   Win98 精修：按 Windows 95/98 控件规范逐项还原
+  （40px 标题栏 / 三连窗口钮 / 灰底对话框 / 状态栏 / 默认按钮框）
+   =================================================================== */
+
+/* ---------- 标题栏：经典 40px 高度、15px Tahoma 粗体白字 ---------- */
+html[data-accent="win98"] nav .h-16 {
+  height: 40px;
+  min-height: 40px;
 }
 html[data-accent="win98"] nav .container {
   padding-top: 0 !important;
   padding-bottom: 0 !important;
 }
-/* logo：18px 灰底凸起小方块 + 11px 图标 */
+/* logo：24px 灰底凸起小方块 + 14px 图标 */
 html[data-accent="win98"] nav .w-8.h-8.rounded-lg {
-  width: 18px;
-  height: 18px;
+  width: 24px;
+  height: 24px;
   border-radius: 0;
   background-color: #c0c0c0 !important;
   box-shadow: var(--bevel-raised);
 }
 html[data-accent="win98"] nav .w-8.h-8.rounded-lg .text-xl {
-  font-size: 11px;
+  font-size: 14px;
   line-height: 1;
 }
 html[data-accent="win98"] nav span.font-semibold.text-lg {
   color: #ffffff !important;
-  font-size: 13px !important;
+  font-size: 15px !important;
   font-weight: 700 !important;
   letter-spacing: 0.5px;
 }
-/* 桌面端菜单文字 12px */
+/* 桌面端菜单文字 13px */
 html[data-accent="win98"] nav .nav-link {
-  padding: 2px 8px;
-  font-size: 12px;
+  padding: 4px 9px;
+  font-size: 13px;
   font-weight: 400;
   border-radius: 0;
 }
-/* 标题栏工具圆钮（深色模式/配色/字号）→ 22x20 方形小钮 */
+/* 标题栏工具圆钮（深色模式/配色/字号）→ 28x26 方形小钮 */
 html[data-accent="win98"] nav .hidden.md\:flex .w-8.h-8.rounded-full {
-  width: 22px;
-  height: 20px;
-  min-width: 22px;
+  width: 28px;
+  height: 26px;
+  min-width: 28px;
   border-radius: 0 !important;
   padding: 0;
 }
 html[data-accent="win98"] nav .hidden.md\:flex .w-8.h-8.rounded-full svg {
-  width: 13px;
-  height: 13px;
+  width: 16px;
+  height: 16px;
 }
 html[data-accent="win98"] nav .internal-test-entry,
 html[data-accent="win98"] nav .history-entry {
-  height: 20px;
-  padding: 0 6px !important;
-  font-size: 11px !important;
+  height: 26px;
+  padding: 0 8px !important;
+  font-size: 12px !important;
   border-radius: 0;
   display: inline-flex;
   align-items: center;
 }
 /* 未完成数量角标 → 小方块 */
 html[data-accent="win98"] nav .w-4.h-4.rounded-full {
-  width: 13px;
-  height: 13px;
+  width: 16px;
+  height: 16px;
   border-radius: 0;
-  font-size: 10px;
+  font-size: 11px;
 }
 
 /* ---------- 标题栏右侧：最小化 / 最大化 / 关闭 三连钮（仅移动端） ---------- */
@@ -1881,9 +2076,9 @@ html[data-accent="win98"] nav .win98-caption {
   }
 }
 html[data-accent="win98"] nav .win98-cap-btn {
-  width: 22px;
-  height: 20px;
-  min-width: 22px;
+  width: 28px;
+  height: 26px;
+  min-width: 28px;
   padding: 0 !important;
   border-radius: 0 !important;
   display: flex;
@@ -1897,16 +2092,16 @@ html[data-accent="win98"] nav .win98-cap-btn span {
 }
 html[data-accent="win98"] nav .win98-cap-min span {
   font-size: 0;
-  width: 8px;
+  width: 11px;
   height: 2px;
   background: #000000;
   margin-bottom: 3px;
 }
 html[data-accent="win98"] nav .win98-cap-max span {
-  font-size: 12px;
+  font-size: 15px;
 }
 html[data-accent="win98"] nav .win98-cap-close span {
-  font-size: 11px;
+  font-size: 13px;
 }
 html[data-accent="win98"] nav .mobile-menu-toggle {
   display: none !important;
@@ -1921,11 +2116,11 @@ html[data-accent="win98"][data-theme="dark"] nav .win98-cap-min span {
 /* ---------- 移动端展开菜单：经典弹出菜单（fixed 覆盖视口、自身滚动，避免 sticky 内 overflow 在 iOS 吞触摸） ---------- */
 html[data-accent="win98"] nav > div.md\:hidden.absolute {
   position: fixed;
-  top: 30px !important;
+  top: 40px !important;
   left: 0;
   right: 0;
-  height: calc(100vh - 30px);
-  height: calc(100dvh - 30px);
+  height: calc(100vh - 40px);
+  height: calc(100dvh - 40px);
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
   overscroll-behavior: contain;
