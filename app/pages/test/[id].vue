@@ -505,22 +505,17 @@
             </p>
           </div>
 
-          <!-- 作答前提常驻：时间范围 + 量表说明（第三批报告 6）
-               各量表窗口并不一致（PHQ-9 两周 / SDS 一周 / YMRS 48 小时 / SDQ-20 一年），
-               严重度量表的题面只写「这些情境」，前提随翻页滚出视野后极易误答 -->
-          <div class="px-6 py-3 border-t" style="border-color: var(--primary-light); background-color: var(--bg);">
-            <div class="flex flex-wrap items-center gap-x-3 gap-y-1">
-              <span v-if="test.timeFrame" class="text-xs px-2 py-0.5 rounded-full font-semibold whitespace-nowrap"
-                style="background-color: var(--primary-light); color: var(--primary);">
-                作答范围 · {{ test.timeFrame }}
-              </span>
-              <button type="button" class="text-xs underline" style="color: var(--text-muted);"
-                @click="showInstructions = !showInstructions">
-                {{ showInstructions ? '收起量表说明' : '查看量表说明' }}
-              </button>
-            </div>
+          <!-- 作答范围常驻（第三批报告 6）：各量表窗口并不一致（PHQ-9 两周 / SDS 一周 /
+               YMRS 48 小时 / SDQ-20 一年），而窗口只写在头部说明里，翻页后会滚出视野。
+               量表说明本身不再重复展示——头部已经有了；这里只补它没说的两件事：
+               这次评的是哪个时间段，以及题面里「这些情境」具体指什么。 -->
+          <div v-if="test.timeFrame || test.contextHint" class="px-6 py-3 border-t"
+            style="border-color: var(--primary-light); background-color: var(--bg);">
+            <span v-if="test.timeFrame" class="text-xs px-2 py-0.5 rounded-full font-semibold whitespace-nowrap"
+              style="background-color: var(--primary-light); color: var(--primary);">
+              作答范围 · {{ test.timeFrame }}
+            </span>
             <p v-if="test.contextHint" class="text-xs mt-2" style="color: var(--text-secondary);">{{ test.contextHint }}</p>
-            <p v-if="showInstructions" class="text-xs mt-2 whitespace-pre-line" style="color: var(--text-secondary);">{{ test.instructions }}</p>
           </div>
 
           <!-- SIOSS 正式模式：答题中持续提示 -->
@@ -1418,8 +1413,6 @@ const quickCompleteAll = () => {
 
 // 调试菜单状态
 const showDebugMenu = ref(false)
-// 量表说明默认收起（题面上方只留一行链接），需要时展开
-const showInstructions = ref(false)
 
 // 快速完成当前页
 const quickCompleteCurrentPage = () => {
