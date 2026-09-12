@@ -205,4 +205,39 @@ describe("本机测评存档（result-store）", () => {
     expect(dimensionDeltas(arrayShape, unrelated)).toEqual([]);
     expect(dimensionDeltas(null, null)).toEqual([]);
   });
+
+  it("dimensionScores 里的非维度字段不会混进对比表", () => {
+    // MID-60 的 dimensionScores 除 12 个子量表外还有安全标记与分档对照表（数组），
+    // 它们不是可比较的维度；早期实现会把数组也当成 value=0 的维度，
+    // 在对比面板里显示出一行 NaN / 0 的假维度
+    const mk = (amnesia: number) => ({
+      dimensionScores: {
+        type: "mid60",
+        safety: false,
+        selfHarmMax: 0,
+        bandReference: [{ range: "0–7%", literature: "一般人群的常见区间" }],
+        amnesia: { name: "近期遗忘", score: amnesia, max: 100 },
+        pnes: { name: "心因性非癫痫发作", score: 0, max: 100 },
+      },
+    });
+    const deltas = dimensionDeltas(mk(10), mk(40));
+    expect(deltas.map((d) => d.trait).sort()).toEqual(["amnesia", "pnes"]);
+    expect(deltas.find((d) => d.trait === "amnesia")!.delta).toBe(30);
+    for (const d of deltas) {
+      expect(Number.isFinite(d.delta)).toBe(true);
+    }
+    expect(deltas.some((d) => d.trait === "bandReference")).toBe(false);
+    expect(deltas.some((d) => d.trait === "safety")).toBe(false);
+    expect(deltas.some((d) => d.trait === "selfHarmMax")).toBe(false);
+
+    // EPQ 用 tScore、SDS/SAS 用 avg，同样要能进入对比
+    const epq = (n: number) => ({ dimensionScores: { E: { name: "外向", tScore: n } } });
+    expect(dimensionDeltas(epq(40), epq(60))[0]!.delta).toBe(20);
+    const sds = (n: number) => ({ dimensionScores: { affective: { name: "情感症状", avg: n } } });
+    expect(dimensionDeltas(sds(1), sds(2.5))[0]!.delta).toBe(1.5);
+
+    // 没有数值分数的维度（如 PHQ-9 的关键症状卡）不进入对比
+    const phq = { dimensionScores: { highlight: { label: "情绪低落", freq: "几乎每天" } } };
+    expect(dimensionDeltas(phq, phq)).toEqual([]);
+  });
 });

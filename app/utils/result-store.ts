@@ -314,10 +314,17 @@ function normalizeDimensions(result: any): Map<string, { label: string; value: n
   }
 
   for (const [key, d] of Object.entries<any>(src)) {
-    if (key === "type" || !d || typeof d !== "object") continue;
+    // 只保留"带数值分数的维度"：dimensionScores 里还混着数组（分档对照表）、
+    // 布尔（安全标记）与纯文案对象（PHQ-9 的关键症状卡），它们不是可比较的维度，
+    // 以前会被当成 value=0 的维度混进对比表。
+    if (key === "type" || !d || typeof d !== "object" || Array.isArray(d)) continue;
+    const raw = d.value ?? d.score ?? d.tScore ?? d.avg;
+    if (raw === undefined || raw === null) continue;
+    const value = Number(raw);
+    if (!Number.isFinite(value)) continue;
     out.set(key, {
       label: String(d.name ?? d.label ?? key),
-      value: Number(d.value ?? d.score ?? 0),
+      value,
     });
   }
   return out;

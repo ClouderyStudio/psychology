@@ -1,5 +1,7 @@
 import { describe, it, expect } from "vitest";
 import { calculateScore, isRespondentMode } from "../server/utils/score";
+import { MID60_SUBSCALES } from "../server/utils/scoring-rules/scoreMID60";
+import { mid60Questions } from "../server/utils/questions/mid60-questions";
 import { bisQuestions } from "../server/utils/questions/bis-questions";
 import {
   MULTIDIM_BASE_MAINS,
@@ -743,16 +745,89 @@ describe("SIOSS / BIS-11 / BPAQ / YMRS / ISI 计分（2026-09 新增）", () => 
 });
 
 describe("MID-60 多维解离量表", () => {
-  it("全 0 → 总分0，无解离体验", () => {
+  it("全 0 → 总分0，解离体验极低", () => {
     const r = calculateScore({ testId: "mid60", answers: full(60, 0) });
     expect(r.totalScore).toBe(0);
-    expect(r.level).toBe("无解离体验");
+    expect(r.level).toBe("解离体验极低");
   });
 
-  it("全 10 → 总分100，提示严重解离", () => {
+  it("全 10 → 总分100，解离体验极重", () => {
     const r = calculateScore({ testId: "mid60", answers: full(60, 10) });
     expect(r.totalScore).toBe(100);
-    expect(r.level).toBe("严重的解离和创伤后症状");
+    expect(r.level).toBe("极重度解离体验");
+  });
+
+  /* ===== 第三批报告 2：维度归属与障碍名标签 ===== */
+
+  it("每个子量表都接得到自己的题目，没有恒为 0 的维度", () => {
+    // 原实现的「近期遗忘」只装了 42/45/48/58 四条"对自身行为的遗忘"，
+    // 一条"忘记最近发生的事"都没有，导致该维度在遗忘条目答 4-5 分时仍为 0
+    for (const s of MID60_SUBSCALES) {
+      expect(s.items.length).toBeGreaterThan(0);
+      const a = full(60, 0);
+      for (const id of s.items) a[id] = 10;
+      const r = calculateScore({ testId: "mid60", answers: a });
+      expect(r.dimensionScores?.[s.key]?.score).toBe(100);
+    }
+  });
+
+  it("逐题探针：每道题只抬高所属维度，且归属与题目内容一致", () => {
+    const expectMap: Record<number, string> = {
+      1: "amnesia", 6: "trance", 7: "amnesia", 8: "amnesia", 11: "dpdr",
+      17: "dpdr", 20: "amnesia", 21: "fns", 47: "memory-distress", 50: "amnesia",
+    };
+    for (const [idStr, key] of Object.entries(expectMap)) {
+      const id = Number(idStr);
+      const a = full(60, 0);
+      a[id] = 10;
+      const r = calculateScore({ testId: "mid60", answers: a });
+      const moved = MID60_SUBSCALES.filter((s) => r.dimensionScores?.[s.key]?.score > 0).map(
+        (s) => s.key,
+      );
+      expect(moved).toEqual([key]);
+      // 同一道题在题库里的 dimension 字段必须与计分侧一致
+      expect(mid60Questions.find((q) => q.id === id)?.dimension).toBe(key);
+    }
+  });
+
+  it("忘记最近发生的事时「近期遗忘」不再输出 0", () => {
+    const a = full(60, 0);
+    a[1] = 5;
+    a[8] = 4;
+    a[20] = 5;
+    const r = calculateScore({ testId: "mid60", answers: a });
+    expect(r.dimensionScores?.amnesia?.score).toBeGreaterThan(0);
+    expect(r.dimensionScores?.amnesia?.above).toBe(true);
+    // 记忆困扰只保留"因记忆问题而痛苦/受损"的条目
+    expect(r.dimensionScores?.["memory-distress"]?.score).toBe(0);
+  });
+
+  it("题库与计分侧的子量表成员必须完全一致，且覆盖全部 60 题", () => {
+    const covered = MID60_SUBSCALES.flatMap((s) => s.items);
+    expect(covered).toHaveLength(60);
+    expect(new Set(covered).size).toBe(60);
+    expect(covered.slice().sort((x, y) => x - y)).toEqual(
+      Array.from({ length: 60 }, (_, i) => i + 1),
+    );
+  });
+
+  it("总评标签只描述症状强度，不输出障碍名（第三批报告 2）", () => {
+    const r = calculateScore({ testId: "mid60", answers: full(60, 7) });
+    // level 是全站展示的等级标签，不得出现诊断名
+    for (const term of ["DID", "OSDD", "PTSD", "解离性身份障碍", "障碍"]) {
+      expect(r.level).not.toContain(term);
+    }
+    // 障碍名只允许出现在明确标注为"文献对照"的说明里
+    expect(r.suggestion).toContain("文献对照（不是诊断结论）");
+    expect(r.suggestion).toContain("不是诊断");
+    // 分档对照表随结果下发，区间与文献说明成对出现
+    const ref = r.dimensionScores?.bandReference;
+    expect(Array.isArray(ref)).toBe(true);
+    expect(ref).toHaveLength(7);
+    for (const b of ref) {
+      expect(typeof b.range).toBe("string");
+      expect(typeof b.literature).toBe("string");
+    }
   });
 
   it("自伤题（22）≥5 → 触发安全提示", () => {

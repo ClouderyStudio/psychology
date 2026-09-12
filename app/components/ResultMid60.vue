@@ -23,20 +23,27 @@
           <div class="text-xs mt-1" style="color: var(--text-muted);">参考等级</div>
         </div>
       </div>
-      <p class="text-sm mb-3" style="color: var(--text-secondary);">总分大致对应“你自觉在多大比例的时间里经历解离”的感受强度。参考区间如下（当前得分所在区间高亮）：</p>
+      <p class="text-sm mb-3" style="color: var(--text-secondary);">总分大致对应“你自觉在多大比例的时间里经历解离”的感受强度。参考区间如下（当前得分所在区间高亮）——<b>区间只描述症状强度，不是诊断结论</b>：</p>
       <div class="space-y-1.5">
-        <div v-for="b in bands" :key="b.label" class="flex items-start gap-2 p-2 rounded-lg text-sm"
+        <div v-for="b in bands" :key="b.range" class="flex items-start gap-2 p-2 rounded-lg text-sm"
           :style="b.highlight ? { backgroundColor: 'var(--primary-light)', border: '1px solid var(--primary)' } : { backgroundColor: 'var(--bg)' }">
           <span class="font-semibold whitespace-nowrap" style="color: var(--text);">{{ b.range }}</span>
           <span style="color: var(--text-secondary);">{{ b.label }}</span>
         </div>
       </div>
+      <p class="text-xs mt-3 mb-1.5" style="color: var(--text-muted);">各区间在文献中的对应情况（<b>文献对照，不构成诊断</b>）：</p>
+      <ul class="space-y-1">
+        <li v-for="b in bandReference" :key="b.range" class="flex gap-2 text-xs" style="color: var(--text-muted);">
+          <span class="whitespace-nowrap font-medium">{{ b.range }}</span><span>{{ b.literature }}</span>
+        </li>
+      </ul>
     </section>
 
     <!-- 12 子量表 -->
     <section class="mb-6">
-      <h4 class="font-semibold mb-3 flex items-center gap-2" style="color: var(--text);"><span>🧩</span>12 个相关子量表（按临床归属分组）</h4>
-      <p class="text-sm mb-3" style="color: var(--text-secondary);">子量表分 = 该组题目均值 × 10；达到各自“临床参考线”即标记为超线。分数越高、超线子量表越多，越提示对应的临床领域值得进一步留意。</p>
+      <h4 class="font-semibold mb-3 flex items-center gap-2" style="color: var(--text);"><span>🧩</span>12 个相关子量表（按症状领域分组）</h4>
+      <p class="text-sm mb-3" style="color: var(--text-secondary);">子量表分 = 该组题目均值 × 10；达到各自“临床参考线”即标记为超线。分数越高、超线子量表越多，越提示对应的症状领域值得进一步留意。分组名后的括注是文献中的诊断归类，仅用于帮助定位，不是本次结果的结论。</p>
+      <p class="text-xs mb-3" style="color: var(--text-muted);">本实现的 60 题与子量表归属按公开条目整理，并经逐条语义核对后修正过归属（例如"别人说你做过某些事但你完全不记得"属近期遗忘而非人格解体）；各子量表的参考线沿用原量表数值，只作提示。判读以总分与超线项的组合为主，不要用单个子量表下结论。</p>
       <div class="space-y-3">
         <div v-for="group in groups" :key="group.title" class="rounded-lg p-3" style="background-color: var(--bg);">
           <div class="font-semibold text-sm mb-2" style="color: var(--primary);">{{ group.title }}</div>
@@ -108,26 +115,27 @@ const dims = (props.result?.dimensionScores || {}) as Record<string, any>
 const safety = !!dims.safety
 
 const order = ['amnesia', 'alter', 'angry', 'persec', 'dpdr', 'memory-distress', 'autobio', 'flashback', 'fns', 'pnes', 'trance', 'identity'] as const
-const META: Record<string, { group: string; short: string }> = {
-  amnesia: { group: 'DID', short: '近期遗忘：时间“丢失”、出现在意想不到的地方、外观改变却无记忆' },
-  alter: { group: 'DID / OSDD-1', short: '替换人格意识：觉察内在有不同“部分”，各有身份、声音与视角' },
-  angry: { group: 'DID / OSDD-1', short: '愤怒侵入：不受控制的愤怒，冷静后不记得说过/做过' },
-  persec: { group: 'DID / OSDD-1', short: '迫害性内在声音：贬低自己、命令自伤或希望自己死去的内部声音' },
-  dpdr: { group: '人格解体 / 现实解体', short: '对自己、他人或环境不真实，脱离身体/情绪，世界雾化而遥远' },
-  'memory-distress': { group: '解离性失忆', short: '记忆困扰：严重的记忆困难造成主观痛苦并影响日常功能' },
-  autobio: { group: '解离性失忆', short: '自传记忆丧失：个人经历大片空白（如童年缺失、重要事件想不起）' },
-  flashback: { group: 'PTSD', short: '闪回：生动地重新经历创伤记忆（画面、声音、气味）' },
-  fns: { group: '功能性神经症状（转换）', short: '躯体症状：无医学解释的失明、失聪、瘫痪、吞咽困难等' },
-  pnes: { group: '功能性神经症状（转换）', short: '心因性非癫痫发作：非癫痫性的发作 / 抽搐' },
-  trance: { group: '一般解离', short: '恍惚：长时间出神、觉察下降、与现实脱节' },
-  identity: { group: '一般解离', short: '自我困惑：对“我是谁”不确定，难以维持一致的自我感' },
+const META: Record<string, { short: string }> = {
+  amnesia: { short: '近期遗忘：忘记近期做过的事、回过神来发现做过不记得的事、出现在意想不到的地方' },
+  alter: { short: '替换人格意识：觉察内在有不同“部分”，各有身份、声音与视角' },
+  angry: { short: '愤怒侵入：不受控制的愤怒，冷静后不记得说过/做过' },
+  persec: { short: '迫害性内在声音：贬低自己、命令自伤或希望自己死去的内部声音' },
+  dpdr: { short: '人格解体 / 现实解体：对自己、他人或环境不真实，脱离身体/情绪，与周围断开连接' },
+  'memory-distress': { short: '记忆困扰：记忆困难造成主观痛苦、影响日常功能，或突然做不了原本熟练的事' },
+  autobio: { short: '自传记忆丧失：个人经历大片空白（如童年缺失、重要事件想不起）' },
+  flashback: { short: '闪回：生动地重新经历创伤记忆（画面、声音、气味）' },
+  fns: { short: '功能性神经症状：无医学解释的失明、失聪、瘫痪、吞咽困难、行走困难等' },
+  pnes: { short: '心因性非癫痫发作：非癫痫性的发作 / 抽搐' },
+  trance: { short: '恍惚：长时间出神、觉察下降、与现实脱节' },
+  identity: { short: '自我困惑：对“我是谁”不确定，难以维持一致的自我感' },
 };
+// 分组按症状领域命名；括号内是文献中的诊断归类，只用于帮助定位，不是本次结果的结论
 const GROUPS: Array<{ title: string; keys: string[] }> = [
-  { title: '解离性身份障碍（DID）相关', keys: ['amnesia', 'alter', 'angry', 'persec'] },
-  { title: '人格解体 / 现实解体障碍（DP/DR）', keys: ['dpdr'] },
-  { title: '解离性失忆', keys: ['memory-distress', 'autobio'] },
-  { title: '创伤后应激（PTSD）', keys: ['flashback'] },
-  { title: '功能性神经症状（转换障碍）', keys: ['fns', 'pnes'] },
+  { title: '记忆空白与身份相关体验（文献归类：解离性身份障碍）', keys: ['amnesia', 'alter', 'angry', 'persec'] },
+  { title: '自我 / 现实脱离（文献归类：人格解体 / 现实解体）', keys: ['dpdr'] },
+  { title: '记忆困扰与自传记忆（文献归类：解离性失忆）', keys: ['memory-distress', 'autobio'] },
+  { title: '创伤再体验（文献归类：创伤后应激）', keys: ['flashback'] },
+  { title: '无医学解释的躯体症状（文献归类：转换症状）', keys: ['fns', 'pnes'] },
   { title: '一般解离现象', keys: ['trance', 'identity'] },
 ];
 
@@ -145,22 +153,25 @@ const groups = GROUPS.map((g) => ({
 
 const total = Number(props.result?.totalScore) || 0;
 const bands = [
-  { min: 0, max: 6, range: '0–6', label: '基本无解离体验' },
-  { min: 7, max: 14, range: '7–14', label: '极少有诊断意义的解离体验' },
-  { min: 15, max: 20, range: '15–20', label: '轻度的解离症状；可能存在 PTSD 或轻度解离障碍（如解离性失忆、人格/现实解体）' },
-  { min: 21, max: 30, range: '21–30', label: '可能存在解离障碍和 / 或 PTSD' },
-  { min: 31, max: 40, range: '31–40', label: '可能存在解离障碍（如 OSDD-1 或 DID）和 PTSD' },
-  { min: 41, max: 63, range: '41–63', label: '很可能患有 DID 或严重解离障碍和 PTSD' },
-  { min: 64, max: 79, range: '64–79', label: '严重的解离与创伤后症状；DID 常落在此区间，也需排查夸大 / 神经质 / 精神病性' },
-  { min: 80, max: 100, range: '80+', label: '异常高，即便在重度解离障碍样本中也不常见，须重点面询澄清' },
+  { min: 0, max: 6, range: '0–6', label: '解离体验极低' },
+  { min: 7, max: 14, range: '7–14', label: '解离体验偏低' },
+  { min: 15, max: 20, range: '15–20', label: '轻度解离体验' },
+  { min: 21, max: 30, range: '21–30', label: '中度解离体验' },
+  { min: 31, max: 40, range: '31–40', label: '较重解离体验' },
+  { min: 41, max: 63, range: '41–63', label: '重度解离体验' },
+  { min: 64, max: 79, range: '64–79', label: '极重度解离体验' },
+  { min: 80, max: 100, range: '80+', label: '极重度解离体验（异常高，须重点面询澄清）' },
 ].map((b) => ({ ...b, highlight: total >= b.min && total <= b.max }));
+
+// 各区间在文献中的对应情况：随结果下发，只作对照，不构成诊断结论
+const bandReference = (dims.bandReference || []) as Array<{ range: string; literature: string }>;
 
 const aboveSet = new Set(order.filter((k) => dims[k]?.above));
 const hints: string[] = [];
-if (aboveSet.has('flashback') && aboveSet.has('dpdr')) hints.push('闪回 + 人格/现实解体同时超线：提示“解离亚型 PTSD”的可能，建议结合创伤史综合评估。');
-if (aboveSet.has('amnesia') && (aboveSet.has('alter') || aboveSet.has('angry') || aboveSet.has('persec'))) hints.push('近期遗忘 + 身份相关（替换人格 / 愤怒 / 迫害侵入）超线：更提示 DID（解离性身份障碍）特征方向。');
-if (aboveSet.has('memory-distress') || aboveSet.has('autobio')) hints.push('记忆困扰 / 自传记忆丧失超线：提示解离性失忆方向，需区分日常健忘与病理性的记忆空白。');
-if (aboveSet.has('fns') || aboveSet.has('pnes')) hints.push('功能性神经症状超线：提示转换症状可能，应先由医生排除躯体 / 神经系统病因。');
+if (aboveSet.has('flashback') && aboveSet.has('dpdr')) hints.push('闪回与自我 / 现实脱离同时超线：创伤后再体验与现实脱离常同时出现，值得结合创伤史由专业人员评估。');
+if (aboveSet.has('amnesia') && (aboveSet.has('alter') || aboveSet.has('angry') || aboveSet.has('persec'))) hints.push('记忆空白与身份相关体验（内在不同部分 / 愤怒或声音侵入）同时超线：这是文献中与解离性身份障碍关联度最高的组合，需由专业人员面询确认，请勿据此自行判断。');
+if (aboveSet.has('memory-distress') || aboveSet.has('autobio')) hints.push('记忆困扰 / 自传记忆丧失超线：需区分日常健忘、注意力问题与成片的记忆空白，后者才提示解离性失忆方向。');
+if (aboveSet.has('fns') || aboveSet.has('pnes')) hints.push('功能性神经症状超线：应先由医生排除躯体 / 神经系统病因，再考虑转换症状。');
 if (aboveSet.has('trance') || aboveSet.has('identity')) hints.push('恍惚 / 自我困惑超线：属于一般解离现象，是否有临床意义需结合总分与面询。');
 if (hints.length === 0) hints.push('当前各子量表均未超参考线，暂无明确解离症状指向；若仍有明显困扰，建议持续关注。');
 
