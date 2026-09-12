@@ -638,12 +638,29 @@ function setPerPageMode(mode: PerPageMode) {
 
 // 获取题库数据
 // 多维自评量表题目随 ?mode&seed 变化：URL 用响应式 getter，切换模式/换题时自动重新拉取。
-const multidimQuery = computed(() => {
+// URL 未带 mode 时（如从首页卡片 / NavBar「继续测评」进入），回退读取上次保存的模式与种子，
+// 以便恢复同一套题目与作答进度（提交校验也依赖同一套题目）。
+const storedMode = ref('')
+const storedSeed = ref('')
+if (typeof window !== 'undefined' && testId === 'multidim') {
+  storedMode.value = sessionStorage.getItem(`test_${testId}_mode`) || ''
+  storedSeed.value = sessionStorage.getItem(`test_${testId}_seed`) || ''
+}
+
+const effectiveMode = computed(() => {
   if (testId !== 'multidim') return ''
   const m = route.query.mode
-  if (typeof m !== 'string' || !m) return ''
+  return (typeof m === 'string' && m) || storedMode.value
+})
+const effectiveSeed = computed(() => {
+  if (testId !== 'multidim') return ''
   const s = route.query.seed
-  return `?mode=${encodeURIComponent(m)}${typeof s === 'string' && s ? `&seed=${encodeURIComponent(s)}` : ''}`
+  return (typeof s === 'string' && s) || storedSeed.value
+})
+const multidimQuery = computed(() => {
+  if (testId !== 'multidim' || !effectiveMode.value) return ''
+  const seed = effectiveSeed.value
+  return `?mode=${encodeURIComponent(effectiveMode.value)}${seed ? `&seed=${encodeURIComponent(seed)}` : ''}`
 })
 const { data: response, error } = await useFetch(() => `/api/tests/${testId}${multidimQuery.value}`)
 const test = computed(() => {
@@ -654,9 +671,7 @@ const test = computed(() => {
 // ===== 多维自评量表：模式选择 + 乱序复测 =====
 const isMultidim = computed(() => testId === 'multidim')
 const multidimModes = computed<any[]>(() => ((test.value as any)?.modes as any[]) || [])
-const selectedMode = computed(() =>
-  typeof route.query.mode === 'string' && route.query.mode ? route.query.mode : null,
-)
+const selectedMode = computed(() => effectiveMode.value || null)
 const currentModeName = computed(
   () => multidimModes.value.find((m) => m.id === selectedMode.value)?.name || selectedMode.value || '',
 )
@@ -664,7 +679,13 @@ const currentModeName = computed(
 // 切换模式 / 换一套题前，清空当前作答与题序，避免旧题号混入新题集
 function resetForNewQuestionSet() {
   answers.value = {}
+  if (typeof window !== 'undefined') {
+    // 显式移除旧作答：clearAnswers() 会把 currentTestId 置空，导致 saveToSession 不再写入
+    sessionStorage.removeItem(`test_${testId}_answers`)
+  }
   answerStore.clearAnswers()
+  // 重新绑定当前测评，保证换模式后续的作答仍能持续写入进度
+  answerStore.setCurrentTest(testId)
   clearOrder()
   started.value = false
   currentPage.value = 1
@@ -683,9 +704,16 @@ function rerollQuestions() {
   router.replace({ query: { mode: selectedMode.value, seed: String(Date.now()) } })
 }
 
-// 返回模式选择
+// 返回模式选择（同时清除已保存的模式/种子/总数，避免又被自动恢复）
 function changeMode() {
   resetForNewQuestionSet()
+  storedMode.value = ''
+  storedSeed.value = ''
+  if (typeof window !== 'undefined') {
+    sessionStorage.removeItem(`test_${testId}_mode`)
+    sessionStorage.removeItem(`test_${testId}_seed`)
+    sessionStorage.removeItem(`test_${testId}_total`)
+  }
   router.replace({ query: {} })
 }
 
@@ -834,6 +862,28 @@ const requiredQuestions = computed(() => allQuestions.value.filter(q => !isNumbe
 const requiredIds = computed(() => requiredQuestions.value.map(q => q.id))
 const requiredCount = computed(() => requiredIds.value.length)
 
+// 记录进度元数据：实际必答题目数（分母），供首页卡片 / NavBar「未完成测评」使用。
+// 各量表题量固定，但多维量表随模式变化（20/45/65/105），且 number 题为选答，
+// 因此不能直接用列表里的 questionsCount 当分母。
+watch(requiredCount, (total) => {
+  if (typeof window === 'undefined' || total <= 0) return
+  sessionStorage.setItem(`test_${testId}_total`, String(total))
+}, { immediate: true })
+
+// 多维量表另存当前模式与种子：从首页卡片 / NavBar 继续时据此恢复同一套题目，
+// 既保证进度能续答，也保证提交校验用的题目集合一致。
+watch([selectedMode, effectiveSeed], ([mode, seed]) => {
+  if (typeof window === 'undefined' || testId !== 'multidim') return
+  if (mode) {
+    storedMode.value = mode
+    sessionStorage.setItem(`test_${testId}_mode`, mode)
+  }
+  if (seed) {
+    storedSeed.value = seed
+    sessionStorage.setItem(`test_${testId}_seed`, seed)
+  }
+}, { immediate: true })
+
 // 计算已答题数（仅计必答题）
 const answeredCount = computed(() => requiredIds.value.filter(id => answers.value[id] !== undefined).length)
 const remainingCount = computed(() => requiredCount.value - answeredCount.value)
@@ -914,6 +964,19 @@ const clearAllAnswers = () => {
 }
 
 // 初始化时加载已保存的答案
+// 从上次作答恢复：定位到最后一题的页码
+// （多维量表从「继续测评」进入时 URL 无 mode，题目要等客户端回退取回后再定位）
+const pendingResumePosition = ref(false)
+function positionToLastAnswered(saved: Record<number, number>) {
+  const answeredIds = Object.keys(saved || {}).map(Number)
+  if (answeredIds.length === 0) return
+  const lastAnsweredId = answeredIds.reduce((max, id) => (id > max ? id : max), 0)
+  const questionIndex = allQuestions.value.findIndex((q) => q.id === lastAnsweredId)
+  if (questionIndex !== -1) {
+    currentPage.value = Math.floor(questionIndex / questionsPerPage.value) + 1
+  }
+}
+
 onMounted(async () => {
   // 恢复上次选择的答题方式（须在任何页码计算之前确定每页题数）
   try {
@@ -937,7 +1000,11 @@ onMounted(async () => {
 
   if (savedAnswers && Object.keys(savedAnswers).length > 0 && canRestore) {
     const completedCount = Object.keys(savedAnswers).length
-    const totalCount = totalQuestions.value
+    // 分母用保存的实际题量：多维量表随模式为 20/45/65/105，且题目可能尚未取回
+    const storedTotal = Number(sessionStorage.getItem(`test_${testId}_total`))
+    const totalCount = totalQuestions.value > 0
+      ? totalQuestions.value
+      : (Number.isFinite(storedTotal) && storedTotal > 0 ? storedTotal : 0)
 
     answers.value = { ...savedAnswers }
 
@@ -945,18 +1012,16 @@ onMounted(async () => {
     started.value = true
 
     if (totalQuestions.value > 0) {
-      const answeredIds = Object.keys(savedAnswers).map(Number)
-      const lastAnsweredId = answeredIds.reduce((max, id) => (id > max ? id : max), 0)
-      const questionIndex = allQuestions.value.findIndex(q => q.id === lastAnsweredId)
-      if (questionIndex !== -1) {
-        currentPage.value = Math.floor(questionIndex / questionsPerPage.value) + 1
-      }
+      positionToLastAnswered(savedAnswers)
+    } else {
+      // 题集尚未就绪，等 allQuestions 填充后再定位
+      pendingResumePosition.value = true
     }
 
     if (completedCount === totalCount && totalCount > 0) {
       $toast.info(`您已完成所有 ${completedCount} 题，请提交测评`, '温馨提示')
     } else {
-      $toast.info(`检测到您上次答题进度：已完成 ${completedCount}/${totalCount} 题`, '继续答题')
+      $toast.info(`检测到您上次答题进度：已完成 ${completedCount}/${totalCount || '?'} 题`, '继续答题')
     }
   } else {
     answers.value = {}
@@ -970,6 +1035,13 @@ onMounted(async () => {
       cancelText: '关闭',
     })
   }
+})
+
+// 题集回退取回后，补上"定位到上次题号"（见 onMounted 中的 pendingResumePosition）
+watch([totalQuestions, allQuestions], () => {
+  if (!pendingResumePosition.value || totalQuestions.value <= 0) return
+  positionToLastAnswered(answerStore.getAnswers() || {})
+  pendingResumePosition.value = false
 })
 
 // 监听答案变化，整体同步 store 与 sessionStorage 并刷新进度
@@ -1155,7 +1227,7 @@ async function doSubmit() {
     // 多维自评量表：带回评估模式与种子，服务端据此复现同一套题目再做校验
     if (isMultidim.value) {
       submitBody.mode = selectedMode.value
-      submitBody.seed = typeof route.query.seed === 'string' ? route.query.seed : undefined
+      submitBody.seed = effectiveSeed.value || undefined
     }
 
     const result = await $fetch('/api/submit', {
@@ -1166,9 +1238,15 @@ async function doSubmit() {
     if (result?.success) {
       if (typeof window !== 'undefined') {
         sessionStorage.removeItem(`test_${testId}_answers`)
+        // 清除进度元数据：提交后重新进入应重新选择模式，而不是续答旧题集
+        sessionStorage.removeItem(`test_${testId}_total`)
+        sessionStorage.removeItem(`test_${testId}_mode`)
+        sessionStorage.removeItem(`test_${testId}_seed`)
         window.dispatchEvent(new CustomEvent('refreshProgress'))
         window.dispatchEvent(new CustomEvent('newResult'))  // 触发新结果事件
       }
+      storedMode.value = ''
+      storedSeed.value = ''
 
       answerStore.clearAnswers()
 

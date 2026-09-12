@@ -160,6 +160,12 @@
               覆盖 <strong class="external-num">20</strong> 个核心特征维度，提供极简自测、快速筛查、标准评估、深度评估四种模式（<strong class="external-num">20-105</strong> 题），内置回答一致性与作答效度校验，支持乱序复测。
             </p>
 
+            <!-- 进行中的进度（多维量表不在下方网格中，进度显示在此卡片） -->
+            <div v-if="unfinishedTests['multidim']" class="mb-3 p-2 rounded-lg text-xs text-center"
+              style="background-color: var(--warning-bg); color: var(--warning-text);">
+              📌 已完成 {{ unfinishedCounts['multidim'] }}/{{ unfinishedTotals['multidim'] ?? 65 }} 题
+            </div>
+
             <div class="flex items-center mt-auto justify-between mb-4 text-xs" style="color: var(--text-muted);">
               <span>📝 <strong class="external-num">20-105</strong> 题</span>
               <div>
@@ -175,7 +181,7 @@
             <!-- 按钮区域 -->
             <div class="flex gap-2 pt-2 min-h-[44px]">
               <span class="external-btn flex-1 py-2.5 rounded-lg font-semibold transition-all text-sm text-center">
-                开始测评
+                {{ unfinishedTests['multidim'] ? '继续测评' : '开始测评' }}
               </span>
             </div>
           </div>
@@ -215,7 +221,7 @@
             <div v-if="unfinishedTests[test.id]" class="min-h-[42px] pb-2">
               <div class="mb-3 p-2 rounded-lg text-xs text-center"
                 style="background-color: var(--warning-bg); color: var(--warning-text);">
-                📌 已完成 {{ unfinishedCounts[test.id] }}/{{ test.questionsCount }} 题
+                📌 已完成 {{ unfinishedCounts[test.id] }}/{{ unfinishedTotals[test.id] ?? test.questionsCount }} 题
               </div>
             </div>
 
@@ -359,6 +365,7 @@ const uniqueCategories = computed(() => {
 // 存储未完成的测评
 const unfinishedTests = ref<Record<string, boolean>>({})
 const unfinishedCounts = ref<Record<string, number>>({})
+const unfinishedTotals = ref<Record<string, number>>({})
 const hasAnyUnfinished = computed(() => Object.keys(unfinishedTests.value).length > 0)
 
 // 获取分类名称
@@ -438,16 +445,22 @@ const refreshUnfinishedStatus = () => {
       if (saved) {
         const answers = JSON.parse(saved)
         const count = Object.keys(answers).length
-        if (count > 0 && count <= test.questionsCount) {
+        // 分母优先用答题页写入的实际题量（多维量表随模式为 20/45/65/105），取不到时回退列表题数
+        const storedTotal = Number(sessionStorage.getItem(`test_${test.id}_total`))
+        const total = Number.isFinite(storedTotal) && storedTotal > 0 ? storedTotal : test.questionsCount
+        if (count > 0 && count <= total) {
           unfinishedTests.value[test.id] = true
           unfinishedCounts.value[test.id] = count
+          unfinishedTotals.value[test.id] = total
         } else {
           delete unfinishedTests.value[test.id]
           delete unfinishedCounts.value[test.id]
+          delete unfinishedTotals.value[test.id]
         }
       } else {
         delete unfinishedTests.value[test.id]
         delete unfinishedCounts.value[test.id]
+        delete unfinishedTotals.value[test.id]
       }
     } catch (e) {
       console.error('检查进度失败', e)
@@ -468,9 +481,13 @@ function startTest(testId: string, reset: boolean = false) {
       message: '确定要重新开始吗？您的当前进度将被清除。',
       onConfirm: () => {
         sessionStorage.removeItem(`test_${testId}_answers`)
+        sessionStorage.removeItem(`test_${testId}_total`)
+        sessionStorage.removeItem(`test_${testId}_mode`)
+        sessionStorage.removeItem(`test_${testId}_seed`)
         answerStore.clearAnswers()
         delete unfinishedTests.value[testId]
         delete unfinishedCounts.value[testId]
+        delete unfinishedTotals.value[testId]
         answerStore.setCurrentTest(testId)
         router.push(`/test/${testId}`)
         $toast.info('已重置，请重新作答', '提示')
@@ -499,10 +516,13 @@ function clearAllProgress() {
       const keys = Object.keys(sessionStorage)
       let clearedCount = 0
       keys.forEach(key => {
-        if (key.startsWith('test_') && key.endsWith('_answers')) {
-          sessionStorage.removeItem(key)
-          clearedCount++
-        }
+        if (!key.startsWith('test_')) return
+        // 进度相关键：作答、实际题量，以及多维量表的模式/种子
+        const isProgressKey =
+          key.endsWith('_answers') || key.endsWith('_total') ||
+          key.endsWith('_mode') || key.endsWith('_seed')
+        if (isProgressKey) sessionStorage.removeItem(key)
+        if (key.endsWith('_answers')) clearedCount++
       })
       refreshUnfinishedStatus()
       answerStore.clearAnswers()
