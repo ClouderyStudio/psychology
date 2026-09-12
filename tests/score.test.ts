@@ -2,6 +2,8 @@ import { describe, it, expect } from "vitest";
 import { calculateScore, isRespondentMode } from "../server/utils/score";
 import { MID60_SUBSCALES } from "../server/utils/scoring-rules/scoreMID60";
 import { mid60Questions } from "../server/utils/questions/mid60-questions";
+import { DES2_SUBSCALES } from "../server/utils/scoring-rules/scoreDES2";
+import { des2Questions } from "../server/utils/questions/des2-questions";
 import { bisQuestions } from "../server/utils/questions/bis-questions";
 import {
   MULTIDIM_BASE_MAINS,
@@ -862,12 +864,71 @@ describe("DES-II 解离经验量表", () => {
     expect(mid.level).toBe("中度");
   });
 
-  it("Amnesia 六题置满 → 记忆缺失子量表=100", () => {
-    const a = full(28, 0);
-    [3,4,5,8,25,26].forEach((i) => (a[i] = 100));
-    const r = calculateScore({ testId: "des2", answers: a });
-    expect(r.dimensionScores?.amnesia?.score).toBe(100);
-    expect(r.totalScore).toBeGreaterThan(0);
+  /* ===== 第三批报告 3：子量表分组 ===== */
+
+  it("三个因子覆盖全部 28 题，每个条目都有归属", () => {
+    const covered = DES2_SUBSCALES.flatMap((s) => s.items);
+    expect(covered).toHaveLength(28);
+    expect(new Set(covered).size).toBe(28);
+    expect(covered.slice().sort((x, y) => x - y)).toEqual(
+      Array.from({ length: 28 }, (_, i) => i + 1),
+    );
+    // 题库的 dimension 字段与计分侧必须一致
+    for (const q of des2Questions) {
+      expect(DES2_SUBSCALES.find((s) => s.key === q.dimension)!.items).toContain(q.id);
+    }
+  });
+
+  it("每个因子都能接满自己的题目（逐因子置 100 不影响其他因子）", () => {
+    for (const s of DES2_SUBSCALES) {
+      const a = full(28, 0);
+      for (const id of s.items) a[id] = 100;
+      const r = calculateScore({ testId: "des2", answers: a });
+      expect(r.dimensionScores?.[s.key]?.score).toBe(100);
+      for (const other of DES2_SUBSCALES) {
+        if (other.key === s.key) continue;
+        expect(r.dimensionScores?.[other.key]?.score).toBe(0);
+      }
+    }
+  });
+
+  it("分组表随结果下发，且按题目内容而非原版题号（第三批报告 3）", () => {
+    // 报告里点到的两条错位：「照镜子认不出自己」曾被算作记忆缺失，
+    // 「深度专注/沉浸式想象」曾被算作人格解体
+    const byId = (id: number) => des2Questions.find((q) => q.id === id)?.dimension;
+    expect(byId(8)).toBe("dpdr"); // 照镜子觉得镜中的自己像陌生人
+    expect(byId(11)).toBe("absorption"); // 深度专注于内在活动或手头的事
+    expect(byId(27)).toBe("absorption"); // 聆听音乐时脑中浮现画面
+    expect(byId(13)).toBe("amnesia"); // 发现随身物品被移动却不记得放置
+    expect(byId(10)).toBe("amnesia"); // 突然意识到在某个地点，不记得如何到达
+    expect(byId(19)).toBe("dpdr"); // 熟悉的地方突然感觉格外陌生
+
+    const r = calculateScore({ testId: "des2", answers: full(28, 50) });
+    for (const s of DES2_SUBSCALES) {
+      const d = r.dimensionScores?.[s.key];
+      expect(d.items).toEqual(s.items);
+      expect(d.itemCount).toBe(s.items.length);
+      expect(Number(d.score).toFixed(1)).toBe("50.0");
+    }
+    // 子量表等级不再套用总分的"解离倾向"措辞
+    expect(r.dimensionScores?.amnesia?.level).not.toContain("解离倾向");
+    expect(r.level).toBe("显著解离倾向");
+    expect(r.suggestion).toContain("不能与文献中的分量表数值直接比较");
+    expect(r.suggestion).toContain("覆盖全部 28 题");
+  });
+
+  it("子量表沿用总分区间但区间归属正确", () => {
+    const cases: Array<[number, string]> = [
+      [5, "低（0–11，沿用总分区间）"],
+      [15, "轻度（12–19，沿用总分区间）"],
+      [25, "中度（20–29，沿用总分区间）"],
+      [40, "高（30–45，沿用总分区间）"],
+      [60, "显著（≥46，沿用总分区间）"],
+    ];
+    for (const [v, expected] of cases) {
+      const r = calculateScore({ testId: "des2", answers: full(28, v) });
+      expect(r.dimensionScores?.amnesia?.level).toBe(expected);
+    }
   });
 });
 

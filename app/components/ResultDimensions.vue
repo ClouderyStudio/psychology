@@ -343,7 +343,7 @@ const config = computed(() => {
     title = 'DES-II · 解离子量表'
     icon = '🌀'
     color = 'var(--symptom)'
-    hint = '三子量表（各 6 题均值，0-100）；记忆缺失与人格/现实解体偏高更提示病理性解离，吸收沉浸单独偏高常属正常沉浸。'
+    hint = '三子量表（各自题目均值 0-100，覆盖全部 28 题）；记忆缺失与人格/现实解体偏高更提示病理性解离，吸收沉浸单独偏高常属正常沉浸。分量表没有独立常模，只宜作本次作答内部的相对比较。'
     const des2Order = ['amnesia', 'dpdr', 'absorption']
     des2Order.forEach((k) => {
       const d = (s[k] || {}) as any
