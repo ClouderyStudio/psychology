@@ -25,11 +25,23 @@ import { scorePhobia } from "./scoring-rules/scorePhobia";
 import { scoreAgora } from "./scoring-rules/scoreAgora";
 import { scoreSepanx } from "./scoring-rules/scoreSepanx";
 import { scoreMultidim } from "./scoring-rules/scoreMultidim";
+/** 作答来源：本人自评 / 他人代答（知情者评估） */
+export type RespondentMode = "self" | "proxy";
+
+export function isRespondentMode(value: unknown): value is RespondentMode {
+  return value === "self" || value === "proxy";
+}
+
 interface ScoringInput {
   testId: string;
   answers: Record<number, number>;
   /** 多维自评量表等支持模式的量表：本次作答所用模式 */
   mode?: string;
+  /**
+   * 作答来源。代答（家属 / 陪伴者依据观察作答）在计分时必须与自评区分：
+   * 掩饰与一致性条目本就是为自评设计的，套用到代答上会给出没有依据的效度结论。
+   */
+  respondent?: RespondentMode;
 }
 
 export interface ScoringResult {
@@ -148,7 +160,7 @@ function scoreRSES(answers: Record<number, number>): ScoringResult {
 }
 
 export function calculateScore(input: ScoringInput): ScoringResult {
-  const { testId, answers, mode } = input;
+  const { testId, answers, mode, respondent } = input;
 
   switch (testId) {
     case "phq9":
@@ -226,7 +238,7 @@ export function calculateScore(input: ScoringInput): ScoringResult {
     case "sepanx":
       return scoreSepanx(answers);
     case "multidim":
-      return scoreMultidim(answers, mode);
+      return scoreMultidim(answers, mode, respondent);
     default:
       return {
         totalScore: 0,

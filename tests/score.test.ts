@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { calculateScore } from "../server/utils/score";
+import { calculateScore, isRespondentMode } from "../server/utils/score";
 import { bisQuestions } from "../server/utils/questions/bis-questions";
 import {
   MULTIDIM_BASE_MAINS,
@@ -871,6 +871,65 @@ describe("心理健康多维自评量表（MULTIDIM）", () => {
     expect(rep.traits.filter((t: any) => !t.noData)).toHaveLength(20);
     expect(rep.severity.elevated).toBe(20);
     expect(r.level).toContain("多维特征自评");
+  });
+
+  /* ===== 补充报告 D4：知情者代答 ===== */
+
+  it("代答时效度与一致性校验标为不适用，并标注数据来源", () => {
+    const answers = answersWavy("standard", "t7", 1);
+    const proxy: any = calculateScore({
+      testId: "multidim",
+      answers,
+      mode: "standard",
+      respondent: "proxy",
+    }).multidimReport;
+
+    expect(proxy.respondent.mode).toBe("proxy");
+    expect(proxy.respondent.label).toContain("代答");
+    // 代答说明必须点出「高估可观察行为、低估内在体验」这一系统性偏差
+    expect(proxy.respondent.notice).toContain("低估");
+    expect(proxy.respondent.notice).toContain("高估");
+
+    // 掩饰题与主问-复问一致率都是为自评设计的，代答不适用
+    expect(proxy.lie.level).toBe("不适用（知情者代答）");
+    expect(proxy.lie.alert).toBe(false);
+    expect(proxy.credibility.level).toBe("回答一致性 · 不适用（知情者代答）");
+    expect(proxy.credibility.rate).toBe(0);
+
+    // 维度分与安全信号不受作答来源影响，仍按同一套口径计算
+    expect(proxy.severity.elevated).toBe(20);
+    expect(proxy.severeSignals.length).toBeGreaterThan(0);
+  });
+
+  it("自评（默认）不受代答分支影响", () => {
+    const answers = answersWavy("standard", "t7", 1);
+    const self: any = calculateScore({ testId: "multidim", answers, mode: "standard" })
+      .multidimReport;
+    expect(self.respondent.mode).toBe("self");
+    expect(self.respondent.label).toBe("本人自评");
+    expect(self.respondent.notice).toBe("");
+    expect(self.credibility.level).toBe("回答一致性 · 高");
+    expect(self.lie.level).toBe("回答一致性存疑");
+  });
+
+  it("代答 + 直线作答仍判无效（作答行为问题优先于来源标注）", () => {
+    const rep: any = calculateScore({
+      testId: "multidim",
+      answers: answersAll({}),
+      mode: "standard",
+      respondent: "proxy",
+    }).multidimReport;
+    expect(rep.validity.valid).toBe(false);
+    expect(rep.summary.level).toBe("作答无效");
+    expect(rep.lie.alert).toBe(true);
+  });
+
+  it("respondent 取值校验：只有 self / proxy 被接受", () => {
+    expect(isRespondentMode("self")).toBe(true);
+    expect(isRespondentMode("proxy")).toBe(true);
+    for (const bad of ["SELF", "proxy ", "", null, undefined, 0, {}, "other"]) {
+      expect(isRespondentMode(bad)).toBe(false);
+    }
   });
 
   it("结果不再输出障碍名与吻合度百分比（P0-2 / P1-1 / P1-2）", () => {

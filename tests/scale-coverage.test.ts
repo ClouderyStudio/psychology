@@ -18,6 +18,11 @@ describe("量表覆盖边界声明", () => {
     expect(intro.coverage).toContain("解离");
     // 避免「没有提示」被读成「没有问题」
     expect(intro.coverage).toContain("不等于");
+    // 报告点名的其余缺口也要写明，不能只提解离
+    expect(intro.coverage).toContain("情感麻木");
+    expect(intro.coverage).toContain("性别身份");
+    // 报告实测的关键词命中数为 0，这一事实应写进声明
+    expect(intro.coverage).toContain("命中数为 0");
   });
 
   it("相关量表都指向平台上真实存在的量表，且各自说明理由", () => {

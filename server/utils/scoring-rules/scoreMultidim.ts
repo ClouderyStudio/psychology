@@ -6,7 +6,7 @@
 //   3) 回答一致性（主问 vs 一致性复问）与效度（理想化倾向）校验；
 //   4) 严重程度分级与分档建议。
 // 仅作自我了解与筛查参考，不构成诊断。
-import type { ScoringResult } from "../score";
+import type { RespondentMode, ScoringResult } from "../score";
 import {
   MULTIDIM_MODES,
   MULTIDIM_TRAIT_DESC,
@@ -298,8 +298,11 @@ function traitLevel(s: number): { text: string; kind: "none" | "mild" | "moderat
 export function scoreMultidim(
   answers: Record<number, number>,
   mode?: string,
+  respondent: RespondentMode = "self",
 ): ScoringResult {
   const modeName = MULTIDIM_MODES.find((m) => m.id === mode)?.name || "标准评估";
+  // 代答（知情者依据观察作答）：作答来源不同，效度与一致性结论不能沿用自评口径
+  const isProxy = respondent === "proxy";
   const traitMeans = aggregateTraitMeans(answers);
   // 严重度与维度总览同源：都取自这组加权均值
   const severity = computeSeverity(traitMeans);
@@ -401,9 +404,19 @@ export function scoreMultidim(
     .slice(0, 4)
     .map((x) => traitLabel(x.t));
 
-  // 直线作答时，一致性 / 效度校验都不成立：一致率恒为 1、效度分恒为 0，
-  // 若照常输出会把最典型的无效作答包装成「回答一致性 · 高 + 效度可信」。
+  // 代答：掩饰题（「我长这么大从来没说过一句谎话」）与主问-复问一致率都是为自评设计的，
+  // 代答者回答的是「我观察到的这个人」，套用同一套效度判据会给出没有依据的结论，
+  // 因此只保留作答行为层面的直线作答检测，效度与一致性一律标为不适用。
   let credibility = computeCredibility(answers);
+  if (isProxy && credibility) {
+    credibility = {
+      rate: 0,
+      total: credibility.total ?? 0,
+      consistent: 0,
+      level: "回答一致性 · 不适用（知情者代答）",
+      kind: "low",
+    };
+  }
   if (invalidResponse) {
     credibility = {
       rate: 0,
@@ -414,6 +427,15 @@ export function scoreMultidim(
     };
   }
   let lie = computeLies(answers);
+  if (isProxy && lie) {
+    lie = {
+      ...lie,
+      level: "不适用（知情者代答）",
+      detail:
+        "本次为他人代答。掩饰与理想化条目针对的是当事人的自我报告，代答者无法据此判断，故效度校验不适用。",
+      alert: false,
+    };
+  }
   if (invalidResponse && lie) {
     lie = {
       ...lie,
@@ -630,6 +652,14 @@ export function scoreMultidim(
     multidimReport: {
       reportVersion: MULTIDIM_REPORT_VERSION,
       modeName,
+      // 作答来源：代答会系统性改变结果的含义，必须在报告里显式标注
+      respondent: {
+        mode: respondent,
+        label: isProxy ? "他人代答（知情者评估）" : "本人自评",
+        notice: isProxy
+          ? "本报告由他人依据观察代答生成，反映的是代答者看到的侧面，不是当事人的自我感受。代答通常会高估可被观察到的行为表现（睡眠、发脾气、丢三落四），并显著低估只有本人才知道的内在体验（情绪低落、空虚、自伤念头），因此本报告只适合作为与当事人或专业人员沟通的材料。"
+          : "",
+      },
       isNormal,
       traits,
       traitStatsText,

@@ -1,4 +1,4 @@
-import { calculateScore } from "../utils/score";
+import { calculateScore, isRespondentMode, type RespondentMode } from "../utils/score";
 import { isMultidimMode } from "../utils/questions/multidim-questions";
 import {
   validateAnswers,
@@ -17,8 +17,21 @@ export default defineEventHandler(async (event) => {
   enforceRateLimit(event, { scope: "submit", limit: 30, windowMs: 10 * 60 * 1000 });
 
   const body = await readBody(event).catch(() => ({}));
-  const { testId, answers, userInfo, mode, seed, questionToken, submissionId } =
-    body || {};
+  const {
+    testId,
+    answers,
+    userInfo,
+    mode,
+    seed,
+    questionToken,
+    submissionId,
+    respondent,
+  } = body || {};
+
+  // 作答来源：本人自评 / 他人代答。取值非法时按自评处理，但会记入结果供排查。
+  const respondentMode: RespondentMode = isRespondentMode(respondent)
+    ? respondent
+    : "self";
 
   // 验证数据
   if (!testId || typeof testId !== "string") {
@@ -101,6 +114,7 @@ export default defineEventHandler(async (event) => {
     testId,
     answers,
     mode: typeof effectiveMode === "string" ? effectiveMode : undefined,
+    respondent: respondentMode,
   });
 
   // 返回结果。

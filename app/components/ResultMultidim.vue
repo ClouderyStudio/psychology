@@ -12,9 +12,15 @@
         <span class="md-meta-chip">🕒 {{ formattedTime }}</span>
         <span class="md-meta-chip">📝 {{ answeredCount }} 题</span>
         <span class="md-meta-chip">🔎 需关注 {{ elevatedCount }} / {{ traitTotal }} 维</span>
+        <span v-if="isProxyReport" class="md-meta-chip">🧑‍🤝‍🧑 他人代答</span>
         <span v-if="report.credibility" class="md-meta-chip">{{ report.credibility.level }}</span>
       </div>
     </header>
+
+    <!-- 代答：数据来源与自评不同，必须放在最前面说明 -->
+    <div v-if="isProxyReport" class="md-alert md-alert--warn">
+      <b>{{ report.respondent.label }}：</b>{{ report.respondent.notice }}
+    </div>
 
     <!-- 旧版本记录：结构可能缺字段，先提示再展示 -->
     <div v-if="isLegacyRecord" class="md-alert md-alert--warn">
@@ -221,7 +227,9 @@
         本量表不会给出任何信号。以下方向不在本量表的覆盖范围内：
       </p>
       <ul class="md-coverage">
-        <li>解离体验：出神、记忆空白、身份或现实感改变</li>
+        <li>解离体验：出神、记忆空白、身份或现实感改变（「对自己陌生」「像隔了一层」「时间感断裂」）</li>
+        <li>情感麻木与主观「空」感（「兴趣减退」只覆盖其中一部分）</li>
+        <li>性身份 / 性别身份相关条目（临床上与情绪问题及自伤风险高度相关）</li>
         <li>进食障碍、物质使用、人格障碍的完整评估</li>
         <li>儿童与青少年发育问题、双相病程的时间轴判断</li>
       </ul>
@@ -276,6 +284,7 @@ const formattedTime = computed(() => {
 const isInvalid = computed(() => props.report?.validity?.valid === false);
 
 // 旧版本记录（缺 reportVersion）与主要列表的兜底，避免结构变更后整页白屏
+const isProxyReport = computed(() => props.report?.respondent?.mode === "proxy");
 const isLegacyRecord = computed(() => !props.report?.reportVersion);
 const topTraits = computed<string[]>(() => props.report?.topTraits || []);
 

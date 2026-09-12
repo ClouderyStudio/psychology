@@ -170,7 +170,31 @@
                       style="background-color: var(--card-bg); color: var(--text-secondary); border: 1px solid var(--border);">切换模式</button>
                   </span>
                 </div>
-                <label class="flex items-start p-4 rounded-lg cursor-pointer transition-all" style="background-color: var(--bg);">
+                <!-- 作答方式：代答会改变结果的含义，先选清楚再开始 -->
+                <div class="mt-3 p-4 rounded-lg" style="background-color: var(--bg);">
+                  <div class="font-semibold" style="color: var(--text);">🧑‍🤝‍🧑 谁来作答</div>
+                  <p class="text-sm mt-1 mb-3" style="color: var(--text-secondary);">
+                    代答会降低结果可靠性：可被观察到的行为（睡眠、发脾气）容易被高估，
+                    只有本人才知道的内在体验（情绪低落、空虚、自伤念头）容易被低估。
+                  </p>
+                  <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                    <label v-for="opt in respondentOptions" :key="opt.value"
+                      class="flex items-start p-3 rounded-lg cursor-pointer transition-all"
+                      :style="{
+                        backgroundColor: respondent === opt.value ? 'var(--primary-light)' : 'var(--card-bg)',
+                        border: respondent === opt.value ? '1px solid var(--primary)' : '1px solid var(--border)'
+                      }">
+                      <input type="radio" :value="opt.value" v-model="respondent" class="w-4 h-4 mr-3 mt-0.5"
+                        :style="{ accentColor: 'var(--primary)' }">
+                      <div>
+                        <div class="font-medium text-sm" style="color: var(--text);">{{ opt.label }}</div>
+                        <p class="text-xs mt-1" style="color: var(--text-secondary);">{{ opt.desc }}</p>
+                      </div>
+                    </label>
+                  </div>
+                </div>
+
+                <label class="flex items-start p-4 rounded-lg cursor-pointer transition-all mt-3" style="background-color: var(--bg);">
                   <input type="checkbox" v-model="shuffleOrder" class="w-4 h-4 mr-3 mt-0.5" :style="{ accentColor: 'var(--primary)' }">
                   <div>
                     <div class="font-semibold" style="color: var(--text);">🔀 打乱题目顺序</div>
@@ -759,6 +783,14 @@ const isSubmitting = ref(false)   // 提交中锁：防止重复提交
 // 幂等键：一次测评一个 id（进入答题时生成），重复提交只结算一次
 const submissionId = `${testId}-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 10)}`
 
+// 作答来源：默认本人自评。他人代答时服务端会把效度与一致性校验标为不适用，
+// 并在报告里显式标注数据来源
+const respondent = ref<'self' | 'proxy'>('self')
+const respondentOptions = [
+  { value: 'self' as const, label: '本人自评', desc: '由当事人自己按最近的真实感受作答，结果按自评口径解读。' },
+  { value: 'proxy' as const, label: '他人代答', desc: '由家属、朋友或长期陪伴者依据观察作答；报告会标注代答，效度与一致性校验不适用。' },
+]
+
 // 多维自评量表不默认乱序：服务端已按「严重议题优先」排好序（自伤 / 幻觉条目排在前面），
 // 默认乱序会把该安全排序完全打掉。需要乱序复测时由用户在开始页勾选。
 
@@ -1267,6 +1299,7 @@ async function doSubmit() {
     }
     // 幂等键：同一次测评重复提交（双击、超时重试）只结算一次
     submitBody.submissionId = submissionId
+    submitBody.respondent = respondent.value
 
     const result = await $fetch('/api/submit', {
       method: 'POST',
