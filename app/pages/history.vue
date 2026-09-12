@@ -115,13 +115,9 @@ interface HistoryItem {
 const historyList = ref<HistoryItem[]>([])
 const isLoading = ref(true)
 
-// 无总分的量表（如 MBTI）展示类型名称而非数字分
-const typeOnlyTests = ['mbti', 'seven', 'psy-age']
-
-const buildDisplayScore = (r: any) => {
-  if (typeOnlyTests.includes(r.testId)) return r.level || '--'
-  return `${r.totalScore ?? 0}/${r.maxScore ?? '--'}`
-}
+// 无总分的量表（如 MBTI、多维自评）展示类型 / 等级而非数字分；
+// 清单统一来自 app/utils/test-display.ts，避免与结果页、首页卡片漂移
+const buildDisplayScore = (r: any) => formatResultScore(r)
 
 const loadHistory = () => {
   isLoading.value = true

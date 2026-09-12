@@ -215,8 +215,8 @@ const saveNote = () => {
   $toast.success(noteDraft.value ? '备注已保存' : '备注已清除', '完成')
 }
 
-// 无总分（或总分无实际意义）的量表，以类型等级作为主要内容
-const typeOnlyTests = ['mbti', 'seven', 'psy-age', 'multidim']
+// 无总分（或总分无实际意义）的量表，以类型等级作为主要内容；
+// 清单统一来自 app/utils/test-display.ts（自动导入）
 
 // 将结果整理为便于分享 / 供 AI 评估的 Markdown 文本
 const buildResultSummary = (r: any): string => {
@@ -227,14 +227,16 @@ const buildResultSummary = (r: any): string => {
   lines.push(`- 量表：${r.testTitle || r.testId}${r.testId ? `（${r.testId}）` : ''}`)
   lines.push(`- 测评时间：${time}`)
 
-  if (typeOnlyTests.includes(r.testId)) {
+  const typeOnly = isTypeOnlyTest(r.testId)
+  if (typeOnly) {
     lines.push(`- 结果类型：${r.level || '--'}`)
     if (r.totalScore) lines.push(`- 参考分数：${r.totalScore}`)
   } else {
     lines.push(`- 总分：${r.totalScore ?? 0} / ${r.maxScore ?? '--'}`)
     if (r.level) lines.push(`- 等级：${r.level}`)
   }
-  if (r.severity !== undefined && r.severity !== null) {
+  // 类型型量表的 severity 与「总分」同源，对读者没有意义，不再输出
+  if (!typeOnly && r.severity !== undefined && r.severity !== null) {
     lines.push(`- 严重程度：${Math.round(r.severity * 100)}%`)
   }
 

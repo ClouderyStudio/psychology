@@ -545,19 +545,14 @@ const formatLastResultTime = computed(() => {
   return `${date.getMonth() + 1}/${date.getDate()} ${date.getHours().toString().padStart(2, '0')}:${date.getMinutes().toString().padStart(2, '0')}`
 })
 
-// 以类型/等级呈现而非分数的量表（人格、类型、专项类，分数无意义或无最高分）
-const typeOnlyTests = ['mbti', 'sixteenPF', 'epq', 'epq-rsc', 'temperament', 'seven', 'psy-age']
-const isTypeOnly = computed(() => {
-  const result = lastResult.value
-  return !!result && typeOnlyTests.includes(result.testId)
-})
+// 以类型/等级呈现而非分数的量表；清单统一来自 app/utils/test-display.ts
+const isTypeOnly = computed(() => isTypeOnlyTest(lastResult.value?.testId))
 
 // 显示分数（类型型量表则显示其类型/等级）
 const lastResultDisplayScore = computed(() => {
   const result = lastResult.value
   if (!result) return '--'
-  if (isTypeOnly.value) return result.level || '--'
-  return `${result.totalScore}/${result.maxScore}`
+  return formatResultScore(result)
 })
 
 // 查看最后一次结果

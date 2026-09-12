@@ -17,125 +17,18 @@ import {
   type MultidimKind,
 } from "../questions/multidim-questions";
 
-/* ===== 参考方向（疾病特征库）===== */
-interface MultidimCondition {
-  id: string;
-  name: string;
-  desc: string;
-  /** 特征 id → 判别权重（-1..1，负值代表反向特征） */
-  traits: Record<string, number>;
-}
-
-const conditions: MultidimCondition[] = [
-  {
-    id: "mdd",
-    name: "重性抑郁障碍 (MDD)",
-    desc: "以持续心境低落、兴趣减退和精力下降为核心表现的心境障碍。",
-    traits: { low_mood: 1.0, anhedonia: 1.0, sleep_issue: 0.8, energy_loss: 0.9, focus_loss: 0.3, mania: -1.0, somatization: 0.4, suicide: 0.7, irritability: 0.6, self_esteem: 0.9, appetite: 0.6 },
-  },
-  {
-    id: "gad",
-    name: "广泛性焦虑障碍 (GAD)",
-    desc: "以对多种日常事务的过度担忧与紧张不安为核心表现的焦虑障碍。",
-    traits: { low_mood: 0.4, anhedonia: 0.1, sleep_issue: 0.7, energy_loss: 0.5, focus_loss: 0.4, mania: -0.8, panic: 0.9, compulsion: 0.1, trauma: 0.2, social_deficits: 0.0, social_fear: 0.5, body_image: 0.1, somatization: 0.6, hallucination: 0.05, impulse: 0.15, suicide: 0.2, irritability: 0.6, self_esteem: 0.3, paranoia: 0.1, appetite: 0.3 },
-  },
-  {
-    id: "bipolar_1",
-    name: "双相情感障碍 (I型/II型)",
-    desc: "以躁狂或轻躁狂发作与抑郁发作交替出现为特征的心境障碍。",
-    traits: { low_mood: 0.8, anhedonia: 0.6, sleep_issue: 0.8, energy_loss: 0.4, mania: 1.0, panic: 0.2, compulsion: -0.2, trauma: 0.2, social_deficits: -0.1, social_fear: 0.1, body_image: 0.0, somatization: 0.2, hallucination: 0.35, impulse: 0.5, suicide: 0.45, irritability: 0.7, self_esteem: 0.4, paranoia: 0.4, appetite: 0.3 },
-  },
-  {
-    id: "ocd",
-    name: "强迫症 (OCD)",
-    desc: "以反复侵入的强迫思维和难以自控的强迫行为为核心表现的障碍。",
-    traits: { low_mood: 0.3, anhedonia: 0.1, sleep_issue: 0.5, energy_loss: 0.4, mania: -0.6, panic: 0.7, compulsion: 1.0, trauma: 0.1, social_deficits: -0.2, social_fear: 0.2, body_image: 0.2, somatization: 0.2, hallucination: 0.05, impulse: 0.1, suicide: 0.2, irritability: 0.3, self_esteem: 0.4, paranoia: 0.1, appetite: 0.1 },
-  },
-  {
-    id: "ptsd",
-    name: "创伤后应激障碍 (PTSD)",
-    desc: "在经历创伤事件后出现闯入性回忆、回避与警觉性增高的应激相关障碍。",
-    traits: { low_mood: 0.6, anhedonia: 0.5, sleep_issue: 0.9, energy_loss: 0.5, mania: -0.5, panic: 0.8, compulsion: 0.2, trauma: 1.0, social_deficits: 0.2, social_fear: 0.4, body_image: 0.0, somatization: 0.3, hallucination: 0.05, impulse: 0.3, suicide: 0.4, irritability: 0.5, self_esteem: 0.3, paranoia: 0.3, appetite: 0.2 },
-  },
-  {
-    id: "adhd",
-    name: "注意缺陷与多动障碍 (ADHD)",
-    desc: "以注意力难以集中、多动与冲动为主要表现的神经发育障碍。",
-    traits: { low_mood: 0.2, anhedonia: 0.2, sleep_issue: 0.6, energy_loss: 0.3, mania: 0.3, panic: 0.3, compulsion: -0.3, focus_loss: 1.0, social_deficits: 0.3, social_fear: 0.1, body_image: -0.1, somatization: 0.1, hallucination: 0.05, impulse: 0.6, suicide: 0.15, irritability: 0.4, self_esteem: 0.2, paranoia: 0.1, appetite: 0.1 },
-  },
-  {
-    id: "asd",
-    name: "自闭症谱系障碍 (ASD)",
-    desc: "以社交沟通与互动困难、兴趣狭窄和重复刻板行为为特征的神经发育障碍。",
-    traits: { low_mood: 0.1, anhedonia: 0.0, sleep_issue: 0.5, energy_loss: 0.2, mania: -0.5, panic: 0.3, compulsion: 0.6, trauma: 0.0, focus_loss: 0.5, social_deficits: 1.0, social_fear: 0.4, body_image: 0.0, somatization: 0.15, hallucination: 0.05, impulse: 0.1, suicide: 0.2, irritability: 0.5, self_esteem: 0.3, paranoia: 0.2, appetite: 0.1 },
-  },
-  {
-    id: "sad",
-    name: "社交焦虑障碍 (SAD)",
-    desc: "对社交场合或被他人审视的情境产生显著而持续恐惧的焦虑障碍。",
-    traits: { low_mood: 0.4, anhedonia: 0.2, sleep_issue: 0.4, energy_loss: 0.3, mania: -0.8, panic: 0.8, compulsion: 0.0, trauma: 0.1, social_deficits: 0.2, social_fear: 1.0, body_image: 0.2, somatization: 0.3, hallucination: 0.05, impulse: 0.1, suicide: 0.25, irritability: 0.2, self_esteem: 0.5, paranoia: 0.3, appetite: 0.2 },
-  },
-  {
-    id: "anorexia",
-    name: "神经性厌食症 (Anorexia)",
-    desc: "以对体重体型的歪曲认知、极度限制进食为特征的进食障碍。",
-    traits: { low_mood: 0.5, anhedonia: 0.3, sleep_issue: 0.6, energy_loss: 0.7, mania: -0.6, panic: 0.4, compulsion: 0.6, trauma: 0.2, social_deficits: 0.1, social_fear: 0.3, body_image: 1.0, somatization: 0.3, hallucination: 0.05, impulse: 0.1, suicide: 0.35, irritability: 0.3, self_esteem: 0.6, paranoia: 0.1, appetite: 0.9 },
-  },
-  {
-    id: "sz",
-    name: "精神分裂症谱系 (Schizophrenia)",
-    desc: "以幻觉、妄想和思维言语紊乱等为主要表现的精神病性障碍。",
-    traits: { hallucination: 1.0, social_deficits: 0.7, social_fear: 0.4, focus_loss: 0.5, low_mood: 0.3, anhedonia: 0.3, sleep_issue: 0.5, compulsion: 0.3, impulse: 0.3, suicide: 0.2, somatization: 0.1, trauma: 0.1, mania: -0.3, panic: 0.4, body_image: -0.1, energy_loss: 0.3, irritability: 0.3, self_esteem: 0.2, paranoia: 0.9, appetite: 0.1 },
-  },
-  {
-    id: "somat",
-    name: "躯体症状障碍 (Somatic)",
-    desc: "以多种难以用医学解释的身体不适为主要表现的躯体症状障碍。",
-    traits: { somatization: 1.0, panic: 0.5, sleep_issue: 0.5, low_mood: 0.4, anhedonia: 0.3, energy_loss: 0.5, impulse: 0.1, suicide: 0.2, social_fear: 0.2, compulsion: 0.1, trauma: 0.1, mania: -0.5, body_image: 0.2, hallucination: 0.05, irritability: 0.3, self_esteem: 0.3, paranoia: 0.1, appetite: 0.3 },
-  },
-  {
-    id: "ied",
-    name: "间歇性暴怒障碍 (IED)",
-    desc: "以反复出现的冲动性攻击行为爆发为特征的障碍。",
-    traits: { impulse: 1.0, mania: 0.3, panic: 0.3, compulsion: 0.2, trauma: 0.2, sleep_issue: 0.3, suicide: 0.2, low_mood: 0.2, somatization: 0.15, hallucination: 0.05, anhedonia: 0.1, energy_loss: 0.2, irritability: 0.9, self_esteem: 0.1, paranoia: 0.3, appetite: 0.1 },
-  },
-  {
-    id: "panic_d",
-    name: "惊恐障碍 (Panic Disorder)",
-    desc: "以突发、强烈的惊恐发作及对再次发作的担忧为核心表现的焦虑障碍。",
-    traits: { panic: 1.0, somatization: 0.8, sleep_issue: 0.4, social_fear: 0.3, low_mood: 0.2, energy_loss: 0.4, mania: -0.5, irritability: 0.3, suicide: 0.15, impulse: 0.1, compulsion: 0.1, trauma: 0.1, appetite: 0.1 },
-  },
-  {
-    id: "insomnia",
-    name: "失眠障碍 (Insomnia)",
-    desc: "以入睡困难、维持睡眠困难或早醒并影响日间功能为主要表现的睡眠障碍。",
-    traits: { sleep_issue: 1.0, energy_loss: 0.8, focus_loss: 0.5, irritability: 0.4, low_mood: 0.3, panic: 0.3, anhedonia: 0.2, appetite: 0.2, mania: -0.3, suicide: 0.1, social_fear: 0.1 },
-  },
-  {
-    id: "bulimia",
-    name: "神经性贪食症 (Bulimia)",
-    desc: "以反复暴食和补偿性行为（催吐、导泻、过度运动等）为特征的进食障碍。",
-    traits: { body_image: 0.9, appetite: 0.8, impulse: 0.6, low_mood: 0.4, self_esteem: 0.4, energy_loss: 0.3, irritability: 0.3, anhedonia: 0.2, panic: 0.2, suicide: 0.2, mania: -0.3 },
-  },
-  {
-    id: "dysthymia",
-    name: "持续性抑郁障碍 (Dysthymia)",
-    desc: "以长期（通常两年以上）、程度相对较轻的持续抑郁心境为特征的心境障碍。",
-    traits: { low_mood: 0.8, anhedonia: 0.6, energy_loss: 0.7, self_esteem: 0.6, sleep_issue: 0.4, appetite: 0.3, irritability: 0.3, mania: -0.3, social_fear: 0.2, suicide: 0.2, panic: 0.1 },
-  },
-  {
-    id: "bpd",
-    name: "边缘型人格障碍 (BPD)",
-    desc: "以情绪不稳定、冲动行为与人际关系冲突为特征的持久行为模式。",
-    traits: { impulse: 0.8, irritability: 0.8, low_mood: 0.6, suicide: 0.6, trauma: 0.4, self_esteem: 0.5, mania: 0.3, paranoia: 0.3, panic: 0.3, sleep_issue: 0.3, anhedonia: 0.2 },
-  },
-];
+/* ===== 参考方向（疾病特征库）已移除 =====
+ *
+ * 原实现用 17 条诊断特征向量做判别式匹配，向用户输出「障碍名 + 特征吻合度 N%」。
+ * 该输出存在三处无法在现有数据上修复的问题（见 reports/ 的问题报告 P0-2 / P1-1 / P1-2）：
+ *   1) 它度量的是「作答与模板的接近度」而非症状强度，症状减轻时吻合度反而可能上升（非单调）；
+ *   2) 归一化分母取自模板全权重，且特征在 0.35 处硬截断，分数不连续、不具可比性；
+ *   3) 一次性输出 17 个方向、其中十余个标 severe，且用两周窗口匹配慢性 / 发育性病程。
+ * 在缺乏心理测量学校准的前提下这些数字不具备可重复性，故不再输出，
+ * 改为只呈现 20 个维度的相对特征强度（见下方 traits 与 summary）。
 
 /** 题型权重：严重度问信息最具体，主问为主导，复问仅作印证 */
 const KIND_WEIGHT: Record<string, number> = { main: 1.0, dup: 0.5, sev: 1.2, life: 0.8 };
-
-const SUSPECT_THRESHOLD = 40; // 达到该吻合度才作为“参考方向”展示
-const SEVERE_SCORE = 60; // 吻合度较高 → 标记“信号较强”
 
 /** 安全 / 关注信号：维度加权均值达到该值即视为该方向成立 */
 const SIGNAL_MEAN = 0.5;
@@ -230,78 +123,10 @@ function aggregateTraitMeans(answers: Record<number, number>): Record<string, nu
   return means;
 }
 
-/** 评分用特征分：微弱信号（|均值| < 0.35）视为无信息，不参与疾病匹配 */
-function getTraitScores(means: Record<string, number>): Record<string, number> {
-  const out: Record<string, number> = {};
-  for (const t of Object.keys(means)) {
-    if (Math.abs(means[t]!) >= 0.35) out[t] = means[t]!;
-  }
-  return out;
+/** 某维度的展示标签（缺失时回退到特征 id） */
+function traitLabel(trait: string): string {
+  return MULTIDIM_TRAIT_LABELS[trait] || trait;
 }
-
-/** 某参考方向的主要匹配依据：正向确认且方向一致、贡献最高的特征（最多 3 个） */
-function topReasons(cond: MultidimCondition, traitScores: Record<string, number>): string[] {
-  return Object.keys(traitScores)
-    .filter((t) => traitScores[t] !== 0)
-    .map((t) => {
-      const cv = cond.traits[t] || 0;
-      const tv = traitScores[t] || 0;
-      if (cv <= 0 || tv <= 0) return { t, score: 0 };
-      const sim = Math.max(1 - Math.abs(tv - cv) / 2, 0);
-      return { t, score: Math.abs(cv) * sim };
-    })
-    .filter((x) => x.score > 0.25)
-    .sort((a, b) => b.score - a.score)
-    .slice(0, 3)
-    .map((x) => MULTIDIM_TRAIT_LABELS[x.t])
-    .filter((x): x is string => Boolean(x));
-}
-
-/** 判别式匹配：方向一致且强度接近加分，方向相反显著扣分，未定义特征强信号轻微扣分 */
-function computeConditionScores(traitScores: Record<string, number>): number[] {
-  const allKeys = Object.keys(traitScores);
-  const activeKeys = allKeys.filter((t) => traitScores[t] !== 0);
-  const activeTraitKeys =
-    activeKeys.length > 0
-      ? activeKeys
-      : allKeys.length > 0
-        ? allKeys
-        : [...MULTIDIM_TRAIT_ORDER];
-
-  return conditions.map((cond) => {
-    const defs = Object.keys(cond.traits).filter((t) => cond.traits[t] !== 0);
-    const denom = defs.reduce((s, t) => s + Math.abs(cond.traits[t]!), 0);
-    if (denom === 0) return 0;
-
-    let hit = 0;
-    let counter = 0;
-    let noise = 0;
-
-    for (const t of activeTraitKeys) {
-      const cv = cond.traits[t] || 0;
-      const tv = traitScores[t] || 0;
-
-      if (cv === 0) {
-        const a = Math.abs(tv);
-        if (a > 0.5) noise += (a - 0.5) * 0.2;
-        continue;
-      }
-
-      const w = Math.abs(cv);
-      if (tv * cv > 0) {
-        hit += w * Math.max(1 - Math.abs(tv - cv) / 2, 0);
-      } else if (tv * cv < 0) {
-        counter += w * Math.min(Math.abs(tv - cv) / 2, 1);
-      }
-    }
-
-    let score = (hit / denom) * 100;
-    score -= (counter / denom) * 100 * 0.7;
-    score -= noise * 8;
-    return Math.max(0, Math.min(100, Math.round(score)));
-  });
-}
-
 /** 回答一致性：一致性复问与同特征主问的差异 ≤ 0.5 记为一致 */
 function computeCredibility(answers: Record<number, number>) {
   const mainIdByTrait: Record<string, number> = {};
@@ -449,22 +274,8 @@ export function scoreMultidim(
 ): ScoringResult {
   const modeName = MULTIDIM_MODES.find((m) => m.id === mode)?.name || "标准评估";
   const traitMeans = aggregateTraitMeans(answers);
-  const traitScores = getTraitScores(traitMeans);
-  const scores = computeConditionScores(traitScores);
-
-  const ranked = conditions
-    .map((cond, i) => ({ cond, score: scores[i] ?? 0 }))
-    .sort((a, b) => b.score - a.score);
-
-  const top = ranked[0]!;
-  const runnerUp = ranked[1]?.score ?? 0;
-  const gap = top.score - runnerUp;
-  const confidence =
-    gap >= 15
-      ? { label: "判别区分度 · 高", kind: "high" }
-      : gap >= 5
-        ? { label: "判别区分度 · 中", kind: "mid" }
-        : { label: "判别区分度 · 低", kind: "low" };
+  // 严重度与维度总览同源：都取自这组加权均值
+  const severity = computeSeverity(traitMeans);
 
   // —— 安全信号（danger 级）与关注信号（warn 级）——
   // 设计约束：
@@ -546,16 +357,22 @@ export function scoreMultidim(
     responseStyle,
   };
 
-  const isNormal = !invalidResponse && severeUnique.length === 0 && top.score < SUSPECT_THRESHOLD;
-  const shown = ranked.filter((x) => x.score >= SUSPECT_THRESHOLD).slice(0, 3);
+  // 「结果良好」的判据同样改为维度分布：没有任何维度达到关注线，也没有安全 / 关注信号。
+  // 原实现用判别式吻合度 < 40 判定，等于把「是否异常」也压在同一个不具可比性的相似度分数上。
+  const isNormal =
+    !invalidResponse &&
+    severeUnique.length === 0 &&
+    concernUnique.length === 0 &&
+    (severity?.elevated ?? 0) === 0;
 
   // 主要特征方向：正向确认且信号较强的前 4 项
-  const topTraits = Object.keys(traitScores)
-    .filter((t) => traitScores[t]! >= 0.35)
-    .sort((a, b) => traitScores[b]! - traitScores[a]!)
+  const topTraits = MULTIDIM_TRAIT_ORDER.flatMap((t) => {
+    const v = traitMeans[t];
+    return v !== undefined && v >= 0.35 ? [{ t, v }] : [];
+  })
+    .sort((a, b) => b.v - a.v)
     .slice(0, 4)
-    .map((t) => MULTIDIM_TRAIT_LABELS[t])
-    .filter((x): x is string => Boolean(x));
+    .map((x) => traitLabel(x.t));
 
   // 直线作答时，一致性 / 效度校验都不成立：一致率恒为 1、效度分恒为 0，
   // 若照常输出会把最典型的无效作答包装成「回答一致性 · 高 + 效度可信」。
@@ -578,8 +395,6 @@ export function scoreMultidim(
       alert: true,
     };
   }
-  const severity = computeSeverity(traitMeans);
-
   // 20 维特征总览（含未作答维度）
   const traits = MULTIDIM_TRAIT_ORDER.map((t) => {
     const value = traitMeans[t];
@@ -608,20 +423,9 @@ export function scoreMultidim(
   }
   const traitStatsText = statParts.length > 0 ? `程度分布：${statParts.join(" · ")}` : "";
 
-  // 参考方向条目（含匹配依据）
-  const matchList = shown.map((item, idx) => ({
-    rank: idx + 1,
-    id: item.cond.id,
-    name: item.cond.name,
-    desc: item.cond.desc,
-    score: item.score,
-    severe: item.score >= SEVERE_SCORE,
-    reasons: topReasons(item.cond, traitScores),
-  }));
-
   // —— 专业建议 ——
-  const posEntries = Object.keys(traitScores)
-    .map((t) => ({ t, v: traitScores[t]! }))
+  const posEntries = Object.keys(traitMeans)
+    .map((t) => ({ t, v: traitMeans[t]! }))
     .filter((x) => x.v > 0.3)
     .sort((a, b) => b.v - a.v);
   const posAvg = posEntries.length > 0 ? posEntries.reduce((s, x) => s + x.v, 0) / posEntries.length : 0;
@@ -655,7 +459,7 @@ export function scoreMultidim(
     .slice(0, 3)
     .map((x) => ({
       trait: x.t,
-      label: MULTIDIM_TRAIT_LABELS[x.t] || x.t,
+      label: traitLabel(x.t),
       text: ADVICE_MAP[x.t] || "",
       severe: severeSet.has(x.t),
     }))
@@ -686,23 +490,31 @@ export function scoreMultidim(
     "以上建议根据您的回答自动生成，仅供自我调节参考，不构成诊断或治疗方案；如需帮助，请咨询精神科或心理专业人员。";
 
   // 评估摘要
-  const posCount = Object.keys(traitScores).filter((t) => traitScores[t]! > 0.3).length;
+  const posCount = Object.keys(traitMeans).filter((t) => traitMeans[t]! > 0.3).length;
+  // 条目级安全信号与维度分不一致时（例如仅在感知异常主问上肯定、其余条目均否认），
+  // 总览不再显示「未见异常」与安全提示并列，而是明确以安全信号为准并指向说明。
+  const severityQuiet = !severity || severity.elevated === 0;
+  const signalOverridesLevel = severeUnique.length > 0 && severityQuiet;
   const sumLevel = invalidResponse
     ? "作答无效"
-    : isNormal
-      ? "正常"
-      : severity
-        ? severity.level
-        : "轻度";
+    : signalOverridesLevel
+      ? "需优先处理"
+      : isNormal
+        ? "正常"
+        : severity
+          ? severity.level
+          : "轻度";
   const sumLevelKind = invalidResponse
     ? "warn"
-    : isNormal
-      ? "ok"
-      : severity && (severity.level === "极重度" || severity.level === "重度")
-        ? "severe"
-        : severity && severity.level === "中度"
-          ? "warn"
-          : "ok";
+    : signalOverridesLevel
+      ? "severe"
+      : isNormal
+        ? "ok"
+        : severity && (severity.level === "极重度" || severity.level === "重度")
+          ? "severe"
+          : severity && severity.level === "中度"
+            ? "warn"
+            : "ok";
   let summaryNote: string;
   if (invalidResponse) {
     summaryNote = validity.reason;
@@ -726,7 +538,9 @@ export function scoreMultidim(
     severeKind: severeUnique.length > 0 ? "severe" : "ok",
     concernText: concernUnique.length > 0 ? concernUnique.join("、") : "未检出",
     concernKind: concernUnique.length > 0 ? "warn" : "ok",
-    matchText: matchList.length > 0 ? `${matchList[0]!.name}（特征吻合度 ${matchList[0]!.score}%）` : "未达提示阈值",
+    // 参考方向不再输出障碍名与吻合度百分比，改为提示需关注的维度数
+    elevated: severity?.elevated ?? 0,
+    traitTotal: MULTIDIM_TRAIT_ORDER.length,
     note: summaryNote,
   };
 
@@ -756,36 +570,26 @@ export function scoreMultidim(
     };
   }
 
+  // 结果「等级」只描述整体信号强度，不再挂具体障碍名与吻合度百分比：
+  // 该量表自述不具备心理测量学验证，输出带百分比的诊断名会把参考信息读成结论。
   const level = invalidResponse
     ? "作答无效：疑似直线作答，请重新作答"
     : isNormal
       ? "评估结果良好"
-      : `${top.cond.name}（特征吻合度 ${top.score}%）`;
-  const severityValue = invalidResponse
-    ? 0
-    : severity
-      ? severity.pct / 100
-      : isNormal
-        ? 0
-        : top.score / 100;
+      : `多维特征自评 · ${severity?.level ?? "轻度"}`;
+  const severityValue = invalidResponse ? 0 : (severity?.pct ?? 0) / 100;
 
   return {
-    totalScore: invalidResponse || isNormal ? 0 : top.score,
-    maxScore: 100,
+    // 本量表不产出可累加的总分（维度强度是相对值，参考方向已不再计分），
+    // 置 0 以避免被任何展示层当作「分数」读。
+    totalScore: 0,
+    maxScore: 0,
     level,
     suggestion,
     severity: severityValue,
     dimensionScores,
     multidimReport: {
       modeName,
-      conditions: ranked.map((item) => ({
-        id: item.cond.id,
-        name: item.cond.name,
-        desc: item.cond.desc,
-        score: item.score,
-        severe: item.score >= SEVERE_SCORE,
-      })),
-      matches: matchList,
       isNormal,
       traits,
       traitStatsText,
@@ -793,7 +597,6 @@ export function scoreMultidim(
       severity,
       credibility,
       lie,
-      confidence,
       severeSignals: severeUnique,
       severeSignalDetails: severeSignals,
       concernSignals: concernUnique,

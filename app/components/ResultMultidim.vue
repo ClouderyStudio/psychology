@@ -11,7 +11,7 @@
       <div class="md-hero-meta">
         <span class="md-meta-chip">🕒 {{ formattedTime }}</span>
         <span class="md-meta-chip">📝 {{ answeredCount }} 题</span>
-        <span class="md-meta-chip">{{ report.confidence.label }}</span>
+        <span class="md-meta-chip">🔎 需关注 {{ elevatedCount }} / {{ traitTotal }} 维</span>
         <span v-if="report.credibility" class="md-meta-chip">{{ report.credibility.level }}</span>
       </div>
     </header>
@@ -78,8 +78,8 @@
           <span class="md-summary-value" :class="`sv-${report.summary.severeKind}`">{{ report.summary.severeText }}</span>
         </div>
         <div class="md-summary-cell">
-          <span class="md-summary-label">参考匹配</span>
-          <span class="md-summary-value sv-plain">{{ report.summary.matchText }}</span>
+          <span class="md-summary-label">需关注维度</span>
+          <span class="md-summary-value sv-plain">{{ elevatedCount }} / {{ traitTotal }} 项</span>
         </div>
       </div>
       <p class="md-summary-note">{{ report.summary.note }}</p>
@@ -107,40 +107,28 @@
       <span v-for="t in report.topTraits" :key="t" class="md-chip">{{ t }}</span>
     </section>
 
-    <!-- 参考方向匹配 -->
+    <!-- 总体结论（不再输出障碍名与吻合度百分比） -->
     <section class="md-card">
-      <h4 class="md-card-title">参考方向匹配</h4>
+      <h4 class="md-card-title">总体结论</h4>
       <div v-if="report.isNormal" class="md-ok">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <circle cx="12" cy="12" r="10" /><path d="m8.5 12.5 2.5 2.5 5-5.5" />
         </svg>
         <div>
           <b>评估结果良好</b>
-          <p>未发现达到提示标准的需要关注的特征信号，请保持良好生活节律。</p>
+          <p>未发现达到关注标准的维度，请保持良好生活节律。</p>
         </div>
       </div>
       <template v-else>
         <p class="md-card-hint">
-          以下方向的特征吻合度达到提示阈值（≥40%），数值越高代表您的回答与该方向的特征画像越接近，仅供自我了解参考。
+          本报告只呈现 20 个维度上的相对特征强度，<b>不输出任何诊断名称与「吻合度」百分比</b>：
+          该量表没有文献支持，也未经过心理测量学验证，把与某个疾病模板的相似度写成一个百分比，
+          会让参考信息被读成结论。
         </p>
-        <div class="md-match-list">
-          <article v-for="m in report.matches" :key="m.id" class="md-match" :class="{ 'is-severe': m.severe }">
-            <span class="md-rank" :class="`r${m.rank}`">{{ m.rank }}</span>
-            <div class="md-match-main">
-              <div class="md-match-name">
-                {{ m.name }}
-                <span v-if="m.severe" class="md-tag md-tag--severe">信号较强</span>
-                <span v-else class="md-tag">相关特征方向</span>
-              </div>
-              <p class="md-match-desc">{{ m.desc }}</p>
-              <p v-if="m.reasons.length" class="md-match-reason">
-                <span class="md-reason-label">匹配依据</span>{{ m.reasons.join("、") }}
-              </p>
-            </div>
-            <span class="md-match-score">{{ m.score }}%</span>
-            <div class="md-bar"><div class="md-bar-fill" :style="{ width: `${m.score}%` }"></div></div>
-          </article>
-        </div>
+        <p class="md-card-hint">
+          请结合下方「20 项特征强度总览」判断哪些方面值得留意，并把它作为与专业人员沟通时的材料，
+          而不是自我诊断的依据。
+        </p>
       </template>
     </section>
 
@@ -214,9 +202,10 @@
 
     <p class="md-disclaimer">
       <b>重要提示：</b>本量表没有相关文献支持，也未经过实验或临床测试，不具备心理测量学验证，
-      请勿将其结果当作临床诊断或筛查结论。各维度及分级仅用于描述本次自评中的相对特征信号，
-      不等同于经过临床验证的诊断标准。本工具仅供娱乐与自我了解参考（科普教育用途），
-      不构成临床诊断，不能替代专业医疗。如困扰持续存在，请咨询精神科或心理专业人员。
+      请勿将其结果当作临床诊断或筛查结论。<b>本报告不输出任何疾病名称，也不输出「与某疾病吻合百分之多少」
+      这类数字</b>——各维度强度与分级只描述本次自评中的相对特征信号，不等同于经过临床验证的诊断标准。
+      本工具仅供娱乐与自我了解参考（科普教育用途），不构成临床诊断，不能替代专业医疗。
+      如困扰持续存在，请咨询精神科或心理专业人员。
     </p>
   </div>
 </template>
@@ -234,6 +223,10 @@ const formattedTime = computed(() => {
 
 // 作答有效性（旧版本记录没有该字段，按有效处理）
 const isInvalid = computed(() => props.report?.validity?.valid === false);
+
+// 需关注的维度数（旧版本记录没有这些字段，回退为 0 / 20）
+const elevatedCount = computed(() => props.report?.summary?.elevated ?? 0);
+const traitTotal = computed(() => props.report?.summary?.traitTotal ?? 20);
 
 // 安全 / 关注信号（旧版本记录没有这些字段，统一兜底为空数组）
 const severeSignals = computed<string[]>(() => props.report?.severeSignals || []);
@@ -616,137 +609,6 @@ const radar = computed(() => {
 .md-ok b { font-size: 0.9375rem; color: var(--md-mint); }
 .md-ok p { margin: 4px 0 0; font-size: 0.78125rem; color: var(--md-ink-soft); line-height: 1.6; }
 
-/* 参考方向匹配 */
-.md-match-list { display: flex; flex-direction: column; gap: 10px; }
-
-.md-match {
-  position: relative;
-  display: grid;
-  grid-template-columns: 34px 1fr auto;
-  grid-template-areas:
-    "rank main score"
-    "bar bar bar";
-  gap: 6px 12px;
-  align-items: center;
-  padding: 14px 16px 12px;
-  border-radius: 14px;
-  background: var(--md-surface);
-  border: 1px solid var(--md-line);
-  box-shadow: 0 4px 14px rgba(47, 100, 90, 0.06);
-  transition: transform 0.18s ease-out, box-shadow 0.18s ease-out;
-}
-
-.md-match:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 10px 24px rgba(47, 100, 90, 0.12);
-}
-
-.md-match.is-severe {
-  border-color: var(--danger-border);
-  background: var(--danger-light);
-}
-
-.md-rank {
-  grid-area: rank;
-  width: 34px;
-  height: 34px;
-  border-radius: 10px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 0.9375rem;
-  font-weight: var(--fw-bold);
-  color: #fff;
-  background: var(--md-grad);
-}
-
-.md-rank.r2 { background: linear-gradient(135deg, #57a9a0, #6fa9cc); }
-.md-rank.r3 { background: linear-gradient(135deg, #8fc0b8, #a3c6dd); }
-
-.md-match-main { grid-area: main; min-width: 0; }
-
-.md-match-name {
-  font-size: 0.90625rem;
-  font-weight: var(--fw-bold);
-  color: var(--md-ink);
-  display: flex;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: 6px;
-}
-
-.md-match.is-severe .md-match-name { color: var(--danger); }
-
-.md-tag {
-  font-size: 0.65625rem;
-  font-weight: var(--fw-semibold);
-  color: var(--md-ink-faint);
-  border: 1px solid var(--md-line);
-  border-radius: 6px;
-  padding: 1px 6px;
-}
-
-.md-tag--severe {
-  color: var(--danger);
-  border-color: var(--danger-border);
-  background: var(--danger-light);
-}
-
-.md-match-desc {
-  margin: 3px 0 0;
-  font-size: 0.78125rem;
-  color: var(--md-ink-faint);
-  line-height: 1.55;
-}
-
-.md-match-reason {
-  margin: 6px 0 0;
-  font-size: 0.78125rem;
-  color: var(--md-ink-soft);
-  line-height: 1.6;
-}
-
-.md-reason-label {
-  display: inline-block;
-  margin-right: 6px;
-  padding: 1px 8px;
-  border-radius: 6px;
-  font-size: 0.6875rem;
-  font-weight: var(--fw-semibold);
-  color: var(--md-sky);
-  background: var(--md-sky-soft);
-  border: 1px solid var(--md-sky);
-}
-
-.md-match-score {
-  grid-area: score;
-  font-size: 1.0625rem;
-  font-weight: var(--fw-bold);
-  color: var(--md-sky);
-  font-variant-numeric: tabular-nums;
-}
-
-.md-match.is-severe .md-match-score { color: var(--danger); }
-
-.md-bar {
-  grid-area: bar;
-  height: 6px;
-  border-radius: 999px;
-  background: var(--md-mint-soft);
-  overflow: hidden;
-  margin-top: 8px;
-}
-
-.md-bar-fill {
-  height: 100%;
-  border-radius: 999px;
-  background: var(--md-grad);
-  animation: mdGrow 0.7s ease-out both;
-}
-
-.md-match.is-severe .md-bar-fill { background: linear-gradient(135deg, #d2675e, #c0453d); }
-
-/* 特征总览 */
 .md-stats {
   margin: 0 0 10px;
   font-size: 0.75rem;
@@ -931,7 +793,7 @@ const radar = computed(() => {
 
 @media print {
   .md-hero { box-shadow: none; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-  .md-card, .md-match { break-inside: avoid; }
+  .md-card { break-inside: avoid; }
 }
 </style>
 

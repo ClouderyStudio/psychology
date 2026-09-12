@@ -842,13 +842,49 @@ describe("心理健康多维自评量表（MULTIDIM）", () => {
   it("标准模式整体「非常符合」→ 检出安全信号、效度存疑、严重度极重度，20 维均有数据", () => {
     const r = calculateScore({ testId: "multidim", answers: answersWavy("standard", "t2", 1) });
     const rep: any = r.multidimReport;
-    expect(r.totalScore).toBeGreaterThanOrEqual(40);
     expect(rep.severeSignals).toContain("自伤或轻生的念头");
     expect(rep.severeSignals).toContain("幻觉体验（听到或看到不存在的事物）");
     expect(rep.lie.level).toBe("回答一致性存疑");
     expect(rep.severity.level).toBe("极重度");
     expect(rep.traits.filter((t: any) => !t.noData)).toHaveLength(20);
-    expect(rep.matches.length).toBeGreaterThan(0);
+    expect(rep.severity.elevated).toBe(20);
+    expect(r.level).toContain("多维特征自评");
+  });
+
+  it("结果不再输出障碍名与吻合度百分比（P0-2 / P1-1 / P1-2）", () => {
+    const r = calculateScore({ testId: "multidim", answers: answersWavy("standard", "t6", 1) });
+    const rep: any = r.multidimReport;
+    // 判别式匹配的三类输出全部下线
+    expect(rep.matches).toBeUndefined();
+    expect(rep.conditions).toBeUndefined();
+    expect(rep.confidence).toBeUndefined();
+    expect(rep.summary.matchText).toBeUndefined();
+
+    // 整个响应里不得出现任何诊断名或「吻合度」字样
+    const payload = JSON.stringify(r);
+    for (const term of [
+      "抑郁障碍",
+      "焦虑障碍",
+      "边缘型",
+      "自闭症",
+      "精神分裂",
+      "强迫症",
+      "双相",
+      "PTSD",
+      "ADHD",
+      "吻合度",
+    ]) {
+      expect(payload).not.toContain(term);
+    }
+
+    // 总分位不再被当作分数读：本量表不产出可累加的总分
+    expect(r.totalScore).toBe(0);
+    expect(r.maxScore).toBe(0);
+
+    // 严重度仍可用，且语义为「困扰覆盖面」
+    expect(rep.severity.pct).toBe(100);
+    expect(rep.summary.elevated).toBe(20);
+    expect(rep.summary.traitTotal).toBe(20);
   });
 
   it("标准模式整体「完全不符合」→ 未见异常、结果良好", () => {
@@ -906,6 +942,10 @@ describe("心理健康多维自评量表（MULTIDIM）", () => {
     // 条目级触发时必须给出解释，而不是与「未见异常」并列
     expect(detail.detail).toContain("13");
     expect(detail.detail).toContain("条目级提示");
+    // 维度分与安全提示冲突时，总览以安全信号为准并指向说明，不再并列「未见异常」
+    expect(rep.summary.level).toBe("需优先处理");
+    const hallucination = rep.traits.find((t: any) => t.trait === "hallucination");
+    expect(hallucination.levelKind).toBe("none");
   });
 
   it("仅感知异常追问（第 71 题）肯定作答 → 只给关注方向，不升级为精神病性安全提示", () => {
