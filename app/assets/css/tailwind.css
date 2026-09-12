@@ -716,16 +716,16 @@ html[data-accent="retro"] .md-trait-level {
    elevation（投影 + 1px 环境光），形态令牌（圆角/亚克力）见本块之后的
    「Fluent 形态」段落。字体意图见下方 --font-stack-win11（微软雅黑）。 */
 [data-accent="win11"] {
-  --bg: #f3f3f3;
+  --bg: #ebedef;
   --card-bg: #ffffff;
   --text: #1b1b1b;
-  --text-secondary: #616161;
-  --text-muted: #767676;
-  --border: #e5e5e5;
+  --text-secondary: #505050;
+  --text-muted: #6a6a6a;
+  --border: #d3d6da;
   --primary: #0078d4;
-  --primary-light: #e5f1fb;
+  --primary-light: #d9eaf7;
   --primary-dark: #005a9e;
-  --primary-tag: #cfe4f7;
+  --primary-tag: #c4ddef;
   --personality: #107c10;
   --personality-light: #e4f1e4;
   --personality-dark: #0b5a0b;
@@ -965,10 +965,10 @@ html[data-accent="win11"] .card button:not([style*="card-bg"]) {
   border: 1px solid transparent;
 }
 html[data-accent="win11"] .card button:not([style*="card-bg"]):hover {
-  background-color: #1a86d9 !important;
+  background-color: #0b6fba !important;
 }
 html[data-accent="win11"] .card button:not([style*="card-bg"]):active {
-  background-color: #0067bd !important;
+  background-color: #005a9e !important;
 }
 html[data-accent="win11"] .card button[style*="card-bg"] {
   background-color: #ffffff !important;
@@ -1009,10 +1009,10 @@ html[data-accent="win11"] .min-h-screen button[style*="var(--primary-dark);"]:ho
 }
 html[data-accent="win11"] .min-h-screen button[style*="var(--primary);"]:hover,
 html[data-accent="win11"] .min-h-screen button[style*="var(--primary-dark);"]:hover {
-  background-color: #1a86d9 !important;
+  background-color: #0b6fba !important;
 }
 html[data-accent="win11"] .min-h-screen button[style*="var(--primary);"]:active {
-  background-color: #0067bd !important;
+  background-color: #005a9e !important;
 }
 html[data-accent="win11"][data-theme="dark"] .min-h-screen button[style*="var(--primary);"]:hover,
 html[data-accent="win11"][data-theme="dark"] .min-h-screen button[style*="var(--primary-dark);"]:hover {
@@ -1974,27 +1974,63 @@ html[data-accent="win11"][data-theme="dark"] nav .mobile-menu-toggle {
 
 /* ---------- Win11 首页量表操作按钮：保留分类色，不被 Accent 蓝统一覆盖 ---------- */
 html[data-accent="win11"] .card button.category-action-symptom {
-  background-color: var(--symptom-dark) !important;
-}
-html[data-accent="win11"] .card button.category-action-personality {
-  background-color: var(--personality-dark) !important;
-}
-html[data-accent="win11"] .card button.category-action-special {
-  background-color: var(--special-dark) !important;
-}
-html[data-accent="win11"] .card button.category-action-symptom:hover {
   background-color: var(--symptom) !important;
 }
-html[data-accent="win11"] .card button.category-action-personality:hover {
+html[data-accent="win11"] .card button.category-action-personality {
   background-color: var(--personality) !important;
 }
-html[data-accent="win11"] .card button.category-action-special:hover {
+html[data-accent="win11"] .card button.category-action-special {
   background-color: var(--special) !important;
+}
+html[data-accent="win11"] .card button.category-action-symptom:hover {
+  background-color: #0067b8 !important;
+}
+html[data-accent="win11"] .card button.category-action-personality:hover {
+  background-color: #0b6a0b !important;
+}
+html[data-accent="win11"] .card button.category-action-special:hover {
+  background-color: #b52b31 !important;
 }
 html[data-accent="win11"] .card button.category-action-symptom:active,
 html[data-accent="win11"] .card button.category-action-personality:active,
 html[data-accent="win11"] .card button.category-action-special:active {
   filter: brightness(0.88);
+}
+html[data-accent="win11"][data-theme="dark"] .card button.category-action-symptom:hover {
+  background-color: #2a75b8 !important;
+}
+html[data-accent="win11"][data-theme="dark"] .card button.category-action-personality:hover {
+  background-color: #57ad4d !important;
+}
+html[data-accent="win11"][data-theme="dark"] .card button.category-action-special:hover {
+  background-color: #e4777d !important;
+}
+
+/* ---------- 非 Win98 主题：分类按钮保持同一色相，悬停只降低亮度 ---------- */
+html:not([data-accent="win98"]) .card button.category-action-symptom,
+html:not([data-accent="win98"]) .card button.category-action-symptom:hover,
+html:not([data-accent="win98"]) .card button.category-action-symptom:active {
+  background-color: var(--symptom) !important;
+}
+html:not([data-accent="win98"]) .card button.category-action-personality,
+html:not([data-accent="win98"]) .card button.category-action-personality:hover,
+html:not([data-accent="win98"]) .card button.category-action-personality:active {
+  background-color: var(--personality) !important;
+}
+html:not([data-accent="win98"]) .card button.category-action-special,
+html:not([data-accent="win98"]) .card button.category-action-special:hover,
+html:not([data-accent="win98"]) .card button.category-action-special:active {
+  background-color: var(--special) !important;
+}
+html:not([data-accent="win98"]) .card button.category-action-symptom:hover,
+html:not([data-accent="win98"]) .card button.category-action-personality:hover,
+html:not([data-accent="win98"]) .card button.category-action-special:hover {
+  filter: brightness(0.88);
+}
+html:not([data-accent="win98"]) .card button.category-action-symptom:active,
+html:not([data-accent="win98"]) .card button.category-action-personality:active,
+html:not([data-accent="win98"]) .card button.category-action-special:active {
+  filter: brightness(0.76);
 }
 
 /* ===================================================================
