@@ -6,7 +6,7 @@
           <div class="text-2xl" style="color: var(--text-secondary);">加载中...</div>
         </div>
 
-        <div v-else-if="result" class="rounded-2xl overflow-hidden"
+        <div v-else-if="result" ref="exportRoot" class="rounded-2xl overflow-hidden"
           style="background-color: var(--card-bg); box-shadow: var(--shadow-xl);">
 
           <!-- 结果头部 -->
@@ -84,8 +84,8 @@
               <p class="whitespace-pre-line" style="color: var(--text-secondary);">{{ result.suggestion }}</p>
             </div>
 
-            <!-- 备注 -->
-            <div class="rounded-lg p-6 mb-6" :style="{ backgroundColor: 'var(--card-bg)', border: '1px solid var(--border)' }">
+            <!-- 备注（导出时不包含交互编辑区） -->
+            <div class="export-ignore rounded-lg p-6 mb-6" :style="{ backgroundColor: 'var(--card-bg)', border: '1px solid var(--border)' }">
               <h3 class="font-bold text-lg mb-3 flex items-center" style="color: var(--text);">
                 <span class="text-2xl mr-2">📝</span>
                 备注
@@ -148,8 +148,8 @@
               </template>
             </div>
 
-            <!-- 操作按钮 -->
-            <div class="flex flex-col sm:flex-row gap-4">
+            <!-- 操作按钮（导出时不包含） -->
+            <div class="export-ignore flex flex-col sm:flex-row gap-4 flex-wrap">
               <button @click="retakeTest" class="flex-1 py-3 rounded-lg font-semibold transition-all"
                 :style="{ backgroundColor: 'var(--primary)', color: 'white', boxShadow: 'var(--shadow-sm)' }"
                 @mouseenter="setButtonBg($event, 'var(--primary-dark)')"
@@ -160,6 +160,18 @@
                 style="background-color: var(--card-bg); color: var(--text-secondary); box-shadow: var(--shadow-sm);"
                 @mouseenter="setButtonBg($event, 'var(--bg)')" @mouseleave="setButtonBg($event, 'var(--card-bg)')">
                 📋 一键复制结果
+              </button>
+              <button @click="exportResult('png')" :disabled="!!exporting"
+                class="flex-1 py-3 rounded-lg font-semibold transition-all disabled:opacity-60 disabled:cursor-not-allowed"
+                style="background-color: var(--card-bg); color: var(--text-secondary); box-shadow: var(--shadow-sm);"
+                @mouseenter="setButtonBg($event, 'var(--bg)')" @mouseleave="setButtonBg($event, 'var(--card-bg)')">
+                {{ exporting === 'png' ? '生成中…' : '🖼️ 导出 PNG' }}
+              </button>
+              <button @click="exportResult('pdf')" :disabled="!!exporting"
+                class="flex-1 py-3 rounded-lg font-semibold transition-all disabled:opacity-60 disabled:cursor-not-allowed"
+                style="background-color: var(--card-bg); color: var(--text-secondary); box-shadow: var(--shadow-sm);"
+                @mouseenter="setButtonBg($event, 'var(--bg)')" @mouseleave="setButtonBg($event, 'var(--card-bg)')">
+                {{ exporting === 'pdf' ? '生成中…' : '📄 导出 PDF' }}
               </button>
               <button @click="goHome" class="flex-1 py-3 rounded-lg font-semibold transition-all"
                 style="background-color: var(--card-bg); color: var(--text-secondary); box-shadow: var(--shadow-sm);"
@@ -286,6 +298,17 @@ const copyResult = async () => {
     console.error('复制结果失败', e)
     $toast.error('复制失败，请手动选择文本复制', '提示')
   }
+}
+
+// 导出结果（PNG / PDF）：捕获结果卡片，过滤掉带 export-ignore 的交互元素
+const exportRoot = ref<HTMLElement | null>(null)
+const { exporting, exportPng, exportPdf } = useResultExport()
+
+const exportResult = async (kind: 'png' | 'pdf') => {
+  if (!result.value) return
+  const base = `测评结果-${result.value.testTitle || result.value.testId || ''}`
+  if (kind === 'png') await exportPng(exportRoot.value, base)
+  else await exportPdf(exportRoot.value, base)
 }
 
 // 高敏感量表（自杀 / 自伤类）使用正式模式，与测试页共用 FORMAL_TESTS
