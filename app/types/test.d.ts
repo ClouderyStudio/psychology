@@ -30,6 +30,14 @@ export interface ScaleIntro {
   audience: string;
   /** 重要提示（如缺乏文献/实证支持），在量表介绍中醒目展示 */
   notice?: string;
+  /**
+   * 覆盖边界：本量表测什么、明确不测什么。
+   * 用于避免「20 个维度 / 90 道题」被读成「查得全」——未覆盖的方向应明确写出，
+   * 并指向平台上已有的对应量表。
+   */
+  coverage?: string;
+  /** 与本量表互补的其它量表，供用户直接跳转 */
+  related?: { id: string; title: string; reason: string }[];
 }
 
 export interface Test {

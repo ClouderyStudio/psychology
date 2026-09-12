@@ -95,6 +95,23 @@
                   <div class="font-semibold mb-1" style="color: var(--primary);">👥 适配人群</div>
                   <p class="leading-relaxed" style="color: var(--text-secondary);">{{ test.intro?.audience }}</p>
                 </div>
+                <!-- 覆盖边界：明确写出本量表不测什么，避免被读成「查得全」 -->
+                <div v-if="test.intro?.coverage">
+                  <div class="font-semibold mb-1" style="color: var(--primary);">🧭 覆盖范围与边界</div>
+                  <p class="leading-relaxed whitespace-pre-line" style="color: var(--text-secondary);">{{ test.intro?.coverage }}</p>
+                </div>
+                <div v-if="test.intro?.related?.length">
+                  <div class="font-semibold mb-2" style="color: var(--primary);">🔗 相关量表</div>
+                  <div class="space-y-2">
+                    <button v-for="rel in test.intro.related" :key="rel.id" type="button"
+                      @click="goRelatedTest(rel.id)"
+                      class="w-full text-left p-3 rounded-lg transition-colors"
+                      style="background-color: var(--bg); border: 1px solid var(--border);">
+                      <div class="font-medium" style="color: var(--primary);">{{ rel.title }} →</div>
+                      <p class="text-xs mt-1 leading-relaxed" style="color: var(--text-secondary);">{{ rel.reason }}</p>
+                    </button>
+                  </div>
+                </div>
               </div>
             </div>
 
@@ -1179,6 +1196,12 @@ watch(currentPage, (newPage) => {
 })
 
 // 退出确认
+// 跳转到互补量表（如多维自评 → 解离量表）
+function goRelatedTest(id: string) {
+  if (!id) return
+  router.push(`/test/${id}`)
+}
+
 function goBack() {
   if (answeredCount.value > 0 && !isComplete.value) {
     $confirm({

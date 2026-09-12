@@ -213,6 +213,37 @@
       <p class="md-advice-note">{{ report.advice.note }}</p>
     </section>
 
+    <!-- 覆盖边界：雷达图看起来「全面」，但未覆盖的方向必须写明 -->
+    <section class="md-card">
+      <h4 class="md-card-title">这张报告没有覆盖什么</h4>
+      <p class="md-card-hint">
+        本量表只有 20 个方向。<b>「20 维均未见异常」不等于全面排查</b>——没有列在上面的困扰，
+        本量表不会给出任何信号。以下方向不在本量表的覆盖范围内：
+      </p>
+      <ul class="md-coverage">
+        <li>解离体验：出神、记忆空白、身份或现实感改变</li>
+        <li>进食障碍、物质使用、人格障碍的完整评估</li>
+        <li>儿童与青少年发育问题、双相病程的时间轴判断</li>
+      </ul>
+      <p class="md-card-hint">
+        如果你有上述方面的困扰，请使用平台上对应的专门量表，或直接咨询专业人员：
+      </p>
+      <div class="md-related">
+        <button type="button" class="md-related-btn" @click="goTest('mid60')">
+          <b>MID-60 解离体验量表 →</b>
+          <span>出神、记忆空白、身份或现实感改变等体验不会在本量表被检出。</span>
+        </button>
+        <button type="button" class="md-related-btn" @click="goTest('des2')">
+          <b>DES-II 解离体验量表 →</b>
+          <span>与 MID-60 互补的解离筛查工具，题目更短，适合先做一次快速自查。</span>
+        </button>
+        <button type="button" class="md-related-btn" @click="goTest('sdq20')">
+          <b>SDQ-20 躯体形式解离问卷 →</b>
+          <span>躯体形式的解离（麻木、瘫痪、知觉异常）与躯体化不同，本量表的躯体不适维度无法区分二者。</span>
+        </button>
+      </div>
+    </section>
+
     <p class="md-disclaimer">
       <b>重要提示：</b>本量表没有相关文献支持，也未经过实验或临床测试，不具备心理测量学验证，
       请勿将其结果当作临床诊断或筛查结论。<b>本报告不输出任何疾病名称，也不输出「与某疾病吻合百分之多少」
@@ -228,6 +259,13 @@ const props = defineProps<{
   report: any;
   result?: any;
 }>();
+
+const router = useRouter();
+
+// 跳转到互补量表（本量表未覆盖的方向，如解离体验）
+function goTest(id: string) {
+  if (id) router.push(`/test/${id}`);
+}
 
 const formattedTime = computed(() => {
   const ts = props.result?.timestamp;
@@ -822,6 +860,35 @@ const radar = computed(() => {
   line-height: 1.7;
   color: var(--md-ink-faint);
 }
+
+/* 覆盖边界与相关量表 */
+.md-coverage {
+  margin: 0 0 10px;
+  padding-left: 20px;
+  list-style: disc;
+  font-size: 0.8125rem;
+  line-height: 1.8;
+  color: var(--md-ink-soft);
+}
+
+.md-related { display: flex; flex-direction: column; gap: 8px; }
+
+.md-related-btn {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  text-align: left;
+  padding: 10px 12px;
+  border-radius: 10px;
+  background: var(--md-sky-soft);
+  border: 1px solid var(--md-sky);
+  cursor: pointer;
+  transition: transform 0.15s ease;
+}
+
+.md-related-btn:hover { transform: translateX(2px); }
+.md-related-btn b { font-size: 0.8125rem; color: var(--md-sky); font-weight: var(--fw-semibold); }
+.md-related-btn span { font-size: 0.75rem; line-height: 1.6; color: var(--md-ink-soft); }
 
 @keyframes mdGrow {
   from { transform: scaleX(0); transform-origin: left center; }
