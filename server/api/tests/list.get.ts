@@ -1,4 +1,5 @@
 import type { TestListItem } from "~/types/test";
+import { timeFrameOf } from "~~/server/utils/test-timeframe";
 
 export default defineEventHandler(() => {
   const testList: TestListItem[] = [
@@ -395,13 +396,18 @@ export default defineEventHandler(() => {
         "覆盖20个核心特征维度的综合自评工具，提供极简/快速/标准/深度四种模式，内置回答一致性与效度校验，支持乱序复测",
       duration: "约3-12分钟",
       questionsCount: 65,
-      tags: ["综合评估", "20维度", "多模式"],
-      category: "special",
+      tags: [],
+      category: "symptom",
     },
   ];
 
   return {
     success: true,
-    data: testList,
+    // 评估时间范围随列表下发：结果页要能说明"这份结果评的是哪个时间段"，
+    // 而各量表窗口并不一致（两周 / 一周 / 48 小时 / 一年），不能靠标题猜。
+    data: testList.map((t) => {
+      const timeFrame = timeFrameOf(t.id);
+      return timeFrame ? { ...t, timeFrame } : t;
+    }),
   };
 });

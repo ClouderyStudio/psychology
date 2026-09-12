@@ -4,29 +4,73 @@
     <header class="md-hero">
       <div class="md-hero-top">
         <span class="md-hero-kicker">MULTIDIMENSIONAL SELF-ASSESSMENT</span>
-        <span class="md-hero-badge">V2.2 · {{ report.modeName || '标准评估' }}</span>
+        <span class="md-hero-badge">V{{ report.reportVersion || '2.2' }} · {{ report.modeName || '标准评估' }}</span>
       </div>
       <h3 class="md-hero-title">心理健康多维自评量表</h3>
       <p class="md-hero-sub">{{ report.summary.level }} · 覆盖 20 个核心特征维度</p>
       <div class="md-hero-meta">
         <span class="md-meta-chip">🕒 {{ formattedTime }}</span>
         <span class="md-meta-chip">📝 {{ answeredCount }} 题</span>
-        <span class="md-meta-chip">{{ report.confidence.label }}</span>
+        <span class="md-meta-chip">🔎 需关注 {{ elevatedCount }} / {{ traitTotal }} 维</span>
+        <span v-if="isProxyReport" class="md-meta-chip">🧑‍🤝‍🧑 他人代答</span>
         <span v-if="report.credibility" class="md-meta-chip">{{ report.credibility.level }}</span>
       </div>
     </header>
 
+    <!-- 代答：数据来源与自评不同，必须放在最前面说明 -->
+    <div v-if="isProxyReport" class="md-alert md-alert--warn">
+      <b>{{ report.respondent.label }}：</b>{{ report.respondent.notice }}
+    </div>
+
+    <!-- 旧版本记录：结构可能缺字段，先提示再展示 -->
+    <div v-if="isLegacyRecord" class="md-alert md-alert--warn">
+      这条记录由旧版本生成，部分字段（作答有效性、时间窗口标注、安全信号说明）可能缺失；
+      如需完整报告，请重新测评一次。
+    </div>
+
     <!-- 安全提示（自伤 / 幻觉信号） -->
-    <section v-if="report.severeSignals.length" class="md-alert md-alert--danger">
+    <section v-if="severeSignals.length" class="md-alert md-alert--danger">
       <div class="md-alert-head">
         <span class="md-alert-seal">请优先处理</span>
         <b>本次回答包含需要重视的安全信号</b>
       </div>
       <p class="md-alert-body">
-        您回答中出现了 <b>{{ report.severeSignals.join("、") }}</b> 相关信号。请立即联系信任的亲友，
+        您回答中出现了 <b>{{ severeSignals.join("、") }}</b> 相关信号。请立即联系信任的亲友，
         或拨打全国统一心理援助热线 <a href="tel:12356">12356</a>（24 小时、免费）；若念头强烈或已有具体计划，
         请拨打 <a href="tel:120">120</a> 或前往就近医院急诊，并尽快安排精神科评估。
       </p>
+      <ul v-if="severeSignalDetails.length" class="md-alert-list">
+        <li v-for="s in severeSignalDetails" :key="s.trait + s.label">
+          <b>{{ s.label }}：</b>{{ s.detail }}
+        </li>
+      </ul>
+    </section>
+
+    <!-- 作答无效（直线作答）：不产出任何结论 -->
+    <section v-if="isInvalid" class="md-alert md-alert--warn">
+      <div class="md-alert-head">
+        <span class="md-alert-seal md-alert-seal--warn">作答无效</span>
+        <b>本次作答无法得出有效结论</b>
+      </div>
+      <p class="md-alert-body">{{ report.validity.reason }}</p>
+      <p v-if="report.validity.responseStyle" class="md-alert-body" style="margin-top: 6px;">
+        本次作答中有 {{ Math.round(report.validity.responseStyle.modeShare * 100) }}%
+        的题目集中在同一个选项上，所有维度会得到同样的结果，因此回答一致性与作答效度校验均不适用。
+      </p>
+    </section>
+
+    <!-- 关注提示（被害 / 关系观念、冲动等，与感知异常区分开） -->
+    <section v-if="concernSignals.length" class="md-alert md-alert--warn">
+      <div class="md-alert-head">
+        <span class="md-alert-seal md-alert-seal--warn">需要关注</span>
+        <b>本次回答包含需要关注的方向</b>
+      </div>
+      <ul v-if="concernSignalDetails.length" class="md-alert-list">
+        <li v-for="s in concernSignalDetails" :key="s.trait + s.label">
+          <b>{{ s.label }}：</b>{{ s.detail }}
+        </li>
+      </ul>
+      <p v-else class="md-alert-body">{{ concernSignals.join("、") }}</p>
     </section>
 
     <!-- 评估摘要 -->
@@ -46,15 +90,15 @@
           <span class="md-summary-value" :class="`sv-${report.summary.severeKind}`">{{ report.summary.severeText }}</span>
         </div>
         <div class="md-summary-cell">
-          <span class="md-summary-label">参考匹配</span>
-          <span class="md-summary-value sv-plain">{{ report.summary.matchText }}</span>
+          <span class="md-summary-label">需关注维度</span>
+          <span class="md-summary-value sv-plain">{{ elevatedCount }} / {{ traitTotal }} 项</span>
         </div>
       </div>
       <p class="md-summary-note">{{ report.summary.note }}</p>
     </section>
 
-    <!-- 回答一致性偏低提示 -->
-    <div v-if="report.credibility && report.credibility.rate < 0.5" class="md-alert md-alert--warn">
+    <!-- 回答一致性偏低提示（直线作答时由上方「作答无效」统一说明） -->
+    <div v-if="!isInvalid && report.credibility && report.credibility.rate < 0.5" class="md-alert md-alert--warn">
       回答一致性偏低：您对同一特征的两次表述回答差异较大（一致率
       {{ Math.round(report.credibility.rate * 100) }}%，{{ report.credibility.consistent }}/{{ report.credibility.total }} 对）。
       请尽量如实、稳定地作答，结果才更具参考价值。
@@ -70,56 +114,51 @@
     </section>
 
     <!-- 主要特征方向 -->
-    <section v-if="report.topTraits.length" class="md-chips">
+    <section v-if="topTraits.length" class="md-chips">
       <span class="md-chips-label">主要特征方向</span>
-      <span v-for="t in report.topTraits" :key="t" class="md-chip">{{ t }}</span>
+      <span v-for="t in topTraits" :key="t" class="md-chip">{{ t }}</span>
     </section>
 
-    <!-- 参考方向匹配 -->
+    <!-- 总体结论（不再输出障碍名与吻合度百分比） -->
     <section class="md-card">
-      <h4 class="md-card-title">参考方向匹配</h4>
+      <h4 class="md-card-title">总体结论</h4>
       <div v-if="report.isNormal" class="md-ok">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <circle cx="12" cy="12" r="10" /><path d="m8.5 12.5 2.5 2.5 5-5.5" />
         </svg>
         <div>
           <b>评估结果良好</b>
-          <p>未发现达到提示标准的需要关注的特征信号，请保持良好生活节律。</p>
+          <p>未发现达到关注标准的维度，请保持良好生活节律。</p>
         </div>
       </div>
       <template v-else>
         <p class="md-card-hint">
-          以下方向的特征吻合度达到提示阈值（≥40%），数值越高代表您的回答与该方向的特征画像越接近，仅供自我了解参考。
+          本报告只呈现 20 个维度上的相对特征强度，<b>不输出任何诊断名称与「吻合度」百分比</b>：
+          该量表没有文献支持，也未经过心理测量学验证，把与某个疾病模板的相似度写成一个百分比，
+          会让参考信息被读成结论。
         </p>
-        <div class="md-match-list">
-          <article v-for="m in report.matches" :key="m.id" class="md-match" :class="{ 'is-severe': m.severe }">
-            <span class="md-rank" :class="`r${m.rank}`">{{ m.rank }}</span>
-            <div class="md-match-main">
-              <div class="md-match-name">
-                {{ m.name }}
-                <span v-if="m.severe" class="md-tag md-tag--severe">信号较强</span>
-                <span v-else class="md-tag">相关特征方向</span>
-              </div>
-              <p class="md-match-desc">{{ m.desc }}</p>
-              <p v-if="m.reasons.length" class="md-match-reason">
-                <span class="md-reason-label">匹配依据</span>{{ m.reasons.join("、") }}
-              </p>
-            </div>
-            <span class="md-match-score">{{ m.score }}%</span>
-            <div class="md-bar"><div class="md-bar-fill" :style="{ width: `${m.score}%` }"></div></div>
-          </article>
-        </div>
+        <p class="md-card-hint">
+          请结合下方「20 项特征强度总览」判断哪些方面值得留意，并把它作为与专业人员沟通时的材料，
+          而不是自我诊断的依据。
+        </p>
       </template>
     </section>
 
     <!-- 特征强度总览 -->
     <section class="md-card">
       <h4 class="md-card-title">20 项特征强度总览</h4>
-      <p class="md-card-hint">条形长度代表该特征的相对信号强度，数值范围 -1.00 ~ +1.00。</p>
+      <p class="md-card-hint">
+        条形长度代表该特征的相对信号强度，数值范围 -1.00 ~ +1.00。
+        多数题目问的是最近两周；标有「作答范围」的题目问的是其他时间范围，其得分同样计入对应维度。
+      </p>
       <p v-if="report.traitStatsText" class="md-stats">{{ report.traitStatsText }}</p>
+      <p v-if="report.windowNotice" class="md-stats md-stats--warn">{{ report.windowNotice }}</p>
       <div class="md-traits">
         <div v-for="row in report.traits" :key="row.trait" class="md-trait">
-          <span class="md-trait-name">{{ row.label }}</span>
+          <span class="md-trait-name">
+            {{ row.label }}
+            <span v-if="row.windowMixed" class="md-window-badge" :title="`作答范围：${row.window}`">跨窗口</span>
+          </span>
           <div class="md-trait-bar">
             <div class="md-trait-fill" :class="`lv-${row.levelKind}`" :style="{ width: `${row.noData ? 0 : row.width}%` }"></div>
           </div>
@@ -180,11 +219,45 @@
       <p class="md-advice-note">{{ report.advice.note }}</p>
     </section>
 
+    <!-- 覆盖边界：雷达图看起来「全面」，但未覆盖的方向必须写明 -->
+    <section class="md-card">
+      <h4 class="md-card-title">这张报告没有覆盖什么</h4>
+      <p class="md-card-hint">
+        本量表只有 20 个方向。<b>「20 维均未见异常」不等于全面排查</b>——没有列在上面的困扰，
+        本量表不会给出任何信号。以下方向不在本量表的覆盖范围内：
+      </p>
+      <ul class="md-coverage">
+        <li>解离体验：出神、记忆空白、身份或现实感改变（「对自己陌生」「像隔了一层」「时间感断裂」）</li>
+        <li>情感麻木与主观「空」感（「兴趣减退」只覆盖其中一部分）</li>
+        <li>性身份 / 性别身份相关条目（临床上与情绪问题及自伤风险高度相关）</li>
+        <li>进食障碍、物质使用、人格障碍的完整评估</li>
+        <li>儿童与青少年发育问题、双相病程的时间轴判断</li>
+      </ul>
+      <p class="md-card-hint">
+        如果你有上述方面的困扰，请使用平台上对应的专门量表，或直接咨询专业人员：
+      </p>
+      <div class="md-related">
+        <button type="button" class="md-related-btn" @click="goTest('mid60')">
+          <b>MID-60 解离体验量表 →</b>
+          <span>出神、记忆空白、身份或现实感改变等体验不会在本量表被检出。</span>
+        </button>
+        <button type="button" class="md-related-btn" @click="goTest('des2')">
+          <b>DES-II 解离体验量表 →</b>
+          <span>与 MID-60 互补的解离筛查工具，题目更短，适合先做一次快速自查。</span>
+        </button>
+        <button type="button" class="md-related-btn" @click="goTest('sdq20')">
+          <b>SDQ-20 躯体形式解离问卷 →</b>
+          <span>躯体形式的解离（麻木、瘫痪、知觉异常）与躯体化不同，本量表的躯体不适维度无法区分二者。</span>
+        </button>
+      </div>
+    </section>
+
     <p class="md-disclaimer">
       <b>重要提示：</b>本量表没有相关文献支持，也未经过实验或临床测试，不具备心理测量学验证，
-      请勿将其结果当作临床诊断或筛查结论。各维度及分级仅用于描述本次自评中的相对特征信号，
-      不等同于经过临床验证的诊断标准。本工具仅供娱乐与自我了解参考（科普教育用途），
-      不构成临床诊断，不能替代专业医疗。如困扰持续存在，请咨询精神科或心理专业人员。
+      请勿将其结果当作临床诊断或筛查结论。<b>本报告不输出任何疾病名称，也不输出「与某疾病吻合百分之多少」
+      这类数字</b>——各维度强度与分级只描述本次自评中的相对特征信号，不等同于经过临床验证的诊断标准。
+      本工具仅供娱乐与自我了解参考（科普教育用途），不构成临床诊断，不能替代专业医疗。
+      如困扰持续存在，请咨询精神科或心理专业人员。
     </p>
   </div>
 </template>
@@ -195,10 +268,35 @@ const props = defineProps<{
   result?: any;
 }>();
 
+const router = useRouter();
+
+// 跳转到互补量表（本量表未覆盖的方向，如解离体验）
+function goTest(id: string) {
+  if (id) router.push(`/test/${id}`);
+}
+
 const formattedTime = computed(() => {
   const ts = props.result?.timestamp;
   return ts ? new Date(ts).toLocaleString("zh-CN") : "—";
 });
+
+// 作答有效性（旧版本记录没有该字段，按有效处理）
+const isInvalid = computed(() => props.report?.validity?.valid === false);
+
+// 旧版本记录（缺 reportVersion）与主要列表的兜底，避免结构变更后整页白屏
+const isProxyReport = computed(() => props.report?.respondent?.mode === "proxy");
+const isLegacyRecord = computed(() => !props.report?.reportVersion);
+const topTraits = computed<string[]>(() => props.report?.topTraits || []);
+
+// 需关注的维度数（旧版本记录没有这些字段，回退为 0 / 20）
+const elevatedCount = computed(() => props.report?.summary?.elevated ?? 0);
+const traitTotal = computed(() => props.report?.summary?.traitTotal ?? 20);
+
+// 安全 / 关注信号（旧版本记录没有这些字段，统一兜底为空数组）
+const severeSignals = computed<string[]>(() => props.report?.severeSignals || []);
+const concernSignals = computed<string[]>(() => props.report?.concernSignals || []);
+const severeSignalDetails = computed<any[]>(() => props.report?.severeSignalDetails || []);
+const concernSignalDetails = computed<any[]>(() => props.report?.concernSignalDetails || []);
 
 const answeredCount = computed(() => {
   const answers = props.result?.answers;
@@ -474,6 +572,36 @@ const radar = computed(() => {
 .md-alert-body { margin: 0; }
 .md-alert-body a { color: inherit; font-weight: var(--fw-bold); text-decoration: underline; }
 
+.md-alert-seal--warn {
+  background: var(--md-warn);
+  color: #fff;
+}
+
+.md-alert-list {
+  margin: 8px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.md-alert-list li {
+  position: relative;
+  padding: 2px 0 2px 14px;
+  font-size: 0.78125rem;
+  line-height: 1.65;
+}
+
+.md-alert-list li::before {
+  content: "";
+  position: absolute;
+  left: 2px;
+  top: 10px;
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: currentColor;
+  opacity: 0.65;
+}
+
 /* 效度 */
 .md-lie-row {
   display: flex;
@@ -545,137 +673,6 @@ const radar = computed(() => {
 .md-ok b { font-size: 0.9375rem; color: var(--md-mint); }
 .md-ok p { margin: 4px 0 0; font-size: 0.78125rem; color: var(--md-ink-soft); line-height: 1.6; }
 
-/* 参考方向匹配 */
-.md-match-list { display: flex; flex-direction: column; gap: 10px; }
-
-.md-match {
-  position: relative;
-  display: grid;
-  grid-template-columns: 34px 1fr auto;
-  grid-template-areas:
-    "rank main score"
-    "bar bar bar";
-  gap: 6px 12px;
-  align-items: center;
-  padding: 14px 16px 12px;
-  border-radius: 14px;
-  background: var(--md-surface);
-  border: 1px solid var(--md-line);
-  box-shadow: 0 4px 14px rgba(47, 100, 90, 0.06);
-  transition: transform 0.18s ease-out, box-shadow 0.18s ease-out;
-}
-
-.md-match:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 10px 24px rgba(47, 100, 90, 0.12);
-}
-
-.md-match.is-severe {
-  border-color: var(--danger-border);
-  background: var(--danger-light);
-}
-
-.md-rank {
-  grid-area: rank;
-  width: 34px;
-  height: 34px;
-  border-radius: 10px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 0.9375rem;
-  font-weight: var(--fw-bold);
-  color: #fff;
-  background: var(--md-grad);
-}
-
-.md-rank.r2 { background: linear-gradient(135deg, #57a9a0, #6fa9cc); }
-.md-rank.r3 { background: linear-gradient(135deg, #8fc0b8, #a3c6dd); }
-
-.md-match-main { grid-area: main; min-width: 0; }
-
-.md-match-name {
-  font-size: 0.90625rem;
-  font-weight: var(--fw-bold);
-  color: var(--md-ink);
-  display: flex;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: 6px;
-}
-
-.md-match.is-severe .md-match-name { color: var(--danger); }
-
-.md-tag {
-  font-size: 0.65625rem;
-  font-weight: var(--fw-semibold);
-  color: var(--md-ink-faint);
-  border: 1px solid var(--md-line);
-  border-radius: 6px;
-  padding: 1px 6px;
-}
-
-.md-tag--severe {
-  color: var(--danger);
-  border-color: var(--danger-border);
-  background: var(--danger-light);
-}
-
-.md-match-desc {
-  margin: 3px 0 0;
-  font-size: 0.78125rem;
-  color: var(--md-ink-faint);
-  line-height: 1.55;
-}
-
-.md-match-reason {
-  margin: 6px 0 0;
-  font-size: 0.78125rem;
-  color: var(--md-ink-soft);
-  line-height: 1.6;
-}
-
-.md-reason-label {
-  display: inline-block;
-  margin-right: 6px;
-  padding: 1px 8px;
-  border-radius: 6px;
-  font-size: 0.6875rem;
-  font-weight: var(--fw-semibold);
-  color: var(--md-sky);
-  background: var(--md-sky-soft);
-  border: 1px solid var(--md-sky);
-}
-
-.md-match-score {
-  grid-area: score;
-  font-size: 1.0625rem;
-  font-weight: var(--fw-bold);
-  color: var(--md-sky);
-  font-variant-numeric: tabular-nums;
-}
-
-.md-match.is-severe .md-match-score { color: var(--danger); }
-
-.md-bar {
-  grid-area: bar;
-  height: 6px;
-  border-radius: 999px;
-  background: var(--md-mint-soft);
-  overflow: hidden;
-  margin-top: 8px;
-}
-
-.md-bar-fill {
-  height: 100%;
-  border-radius: 999px;
-  background: var(--md-grad);
-  animation: mdGrow 0.7s ease-out both;
-}
-
-.md-match.is-severe .md-bar-fill { background: linear-gradient(135deg, #d2675e, #c0453d); }
-
-/* 特征总览 */
 .md-stats {
   margin: 0 0 10px;
   font-size: 0.75rem;
@@ -685,6 +682,26 @@ const radar = computed(() => {
   border-radius: 10px;
   padding: 7px 12px;
   line-height: 1.6;
+}
+
+.md-stats--warn {
+  color: var(--md-warn);
+  background: rgba(176, 122, 31, 0.08);
+  border-color: var(--md-warn);
+}
+
+/* 跨时间窗口合成的维度标记 */
+.md-window-badge {
+  display: inline-block;
+  margin-left: 6px;
+  padding: 1px 6px;
+  border-radius: 999px;
+  font-size: 0.625rem;
+  font-weight: var(--fw-normal);
+  color: var(--md-warn);
+  border: 1px solid var(--md-warn);
+  vertical-align: middle;
+  white-space: nowrap;
 }
 
 .md-traits { display: flex; flex-direction: column; }
@@ -853,6 +870,35 @@ const radar = computed(() => {
   color: var(--md-ink-faint);
 }
 
+/* 覆盖边界与相关量表 */
+.md-coverage {
+  margin: 0 0 10px;
+  padding-left: 20px;
+  list-style: disc;
+  font-size: 0.8125rem;
+  line-height: 1.8;
+  color: var(--md-ink-soft);
+}
+
+.md-related { display: flex; flex-direction: column; gap: 8px; }
+
+.md-related-btn {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  text-align: left;
+  padding: 10px 12px;
+  border-radius: 10px;
+  background: var(--md-sky-soft);
+  border: 1px solid var(--md-sky);
+  cursor: pointer;
+  transition: transform 0.15s ease;
+}
+
+.md-related-btn:hover { transform: translateX(2px); }
+.md-related-btn b { font-size: 0.8125rem; color: var(--md-sky); font-weight: var(--fw-semibold); }
+.md-related-btn span { font-size: 0.75rem; line-height: 1.6; color: var(--md-ink-soft); }
+
 @keyframes mdGrow {
   from { transform: scaleX(0); transform-origin: left center; }
   to { transform: scaleX(1); transform-origin: left center; }
@@ -860,7 +906,7 @@ const radar = computed(() => {
 
 @media print {
   .md-hero { box-shadow: none; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-  .md-card, .md-match { break-inside: avoid; }
+  .md-card { break-inside: avoid; }
 }
 </style>
 

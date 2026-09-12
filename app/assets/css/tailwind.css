@@ -716,16 +716,16 @@ html[data-accent="retro"] .md-trait-level {
    elevation（投影 + 1px 环境光），形态令牌（圆角/亚克力）见本块之后的
    「Fluent 形态」段落。字体意图见下方 --font-stack-win11（微软雅黑）。 */
 [data-accent="win11"] {
-  --bg: #f3f3f3;
+  --bg: #ebedef;
   --card-bg: #ffffff;
   --text: #1b1b1b;
-  --text-secondary: #616161;
-  --text-muted: #767676;
-  --border: #e5e5e5;
+  --text-secondary: #505050;
+  --text-muted: #6a6a6a;
+  --border: #d3d6da;
   --primary: #0078d4;
-  --primary-light: #e5f1fb;
+  --primary-light: #d9eaf7;
   --primary-dark: #005a9e;
-  --primary-tag: #cfe4f7;
+  --primary-tag: #c4ddef;
   --personality: #107c10;
   --personality-light: #e4f1e4;
   --personality-dark: #0b5a0b;
@@ -965,10 +965,10 @@ html[data-accent="win11"] .card button:not([style*="card-bg"]) {
   border: 1px solid transparent;
 }
 html[data-accent="win11"] .card button:not([style*="card-bg"]):hover {
-  background-color: #1a86d9 !important;
+  background-color: #0b6fba !important;
 }
 html[data-accent="win11"] .card button:not([style*="card-bg"]):active {
-  background-color: #0067bd !important;
+  background-color: #005a9e !important;
 }
 html[data-accent="win11"] .card button[style*="card-bg"] {
   background-color: #ffffff !important;
@@ -1009,10 +1009,10 @@ html[data-accent="win11"] .min-h-screen button[style*="var(--primary-dark);"]:ho
 }
 html[data-accent="win11"] .min-h-screen button[style*="var(--primary);"]:hover,
 html[data-accent="win11"] .min-h-screen button[style*="var(--primary-dark);"]:hover {
-  background-color: #1a86d9 !important;
+  background-color: #0b6fba !important;
 }
 html[data-accent="win11"] .min-h-screen button[style*="var(--primary);"]:active {
-  background-color: #0067bd !important;
+  background-color: #005a9e !important;
 }
 html[data-accent="win11"][data-theme="dark"] .min-h-screen button[style*="var(--primary);"]:hover,
 html[data-accent="win11"][data-theme="dark"] .min-h-screen button[style*="var(--primary-dark);"]:hover {
@@ -1312,6 +1312,161 @@ html[data-accent="win11"][data-theme="dark"] ::-webkit-scrollbar-thumb {
 }
 html[data-accent="win11"][data-theme="dark"] ::-webkit-scrollbar-thumb:hover {
   background-color: rgba(255, 255, 255, 0.42);
+}
+
+/* ===================== Win11 Fluent 弹窗 =====================
+   统一 Alert、内部密码框和 Toast 的 Fluent 面板语言：8px 面板、发丝边、
+   Acrylic 遮罩、轻量阴影，以及 Accent / Subtle 两级操作按钮。 */
+html[data-accent="win11"] .alert-container,
+html[data-accent="win11"] .internal-modal-overlay {
+  background-color: rgba(0, 0, 0, 0.32) !important;
+  -webkit-backdrop-filter: blur(12px) saturate(115%);
+  backdrop-filter: blur(12px) saturate(115%);
+}
+html[data-accent="win11"] .alert-card,
+html[data-accent="win11"] .internal-modal-card {
+  width: min(480px, calc(100vw - 32px));
+  min-width: 0;
+  max-width: 480px;
+  padding: 24px;
+  gap: 16px;
+  border: 1px solid rgba(0, 0, 0, 0.08) !important;
+  border-radius: 8px !important;
+  background-color: rgba(255, 255, 255, 0.94) !important;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.14), 0 0 2px rgba(0, 0, 0, 0.08) !important;
+}
+html[data-accent="win11"] .alert-btn,
+html[data-accent="win11"] .internal-modal-btn {
+  min-height: 32px;
+  padding: 6px 16px;
+  border: 1px solid transparent !important;
+  border-radius: 4px !important;
+  box-shadow: none !important;
+}
+html[data-accent="win11"] .alert-btn-confirm,
+html[data-accent="win11"] .internal-modal-btn-confirm {
+  background-color: var(--primary) !important;
+  color: #ffffff !important;
+}
+html[data-accent="win11"] .alert-btn-confirm:hover,
+html[data-accent="win11"] .internal-modal-btn-confirm:hover {
+  background-color: #0b6fba !important;
+}
+html[data-accent="win11"] .alert-btn-cancel,
+html[data-accent="win11"] .internal-modal-btn-cancel {
+  background-color: transparent !important;
+  color: var(--text-secondary) !important;
+}
+html[data-accent="win11"] .alert-btn-cancel:hover,
+html[data-accent="win11"] .internal-modal-btn-cancel:hover,
+html[data-accent="win11"] .alert-close:hover,
+html[data-accent="win11"] .internal-modal-close:hover {
+  background-color: rgba(0, 0, 0, 0.06) !important;
+}
+html[data-accent="win11"] .alert-close,
+html[data-accent="win11"] .internal-modal-close {
+  border-radius: 4px !important;
+}
+html[data-accent="win11"] .toast-item {
+  min-width: min(320px, calc(100vw - 24px));
+  border-radius: 8px !important;
+  background-color: rgba(255, 255, 255, 0.94) !important;
+  border: 1px solid rgba(0, 0, 0, 0.08) !important;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.16), 0 0 2px rgba(0, 0, 0, 0.1) !important;
+}
+html[data-accent="win11"][data-theme="dark"] .alert-card,
+html[data-accent="win11"][data-theme="dark"] .internal-modal-card,
+html[data-accent="win11"][data-theme="dark"] .toast-item {
+  background-color: rgba(43, 43, 43, 0.96) !important;
+  border-color: rgba(255, 255, 255, 0.1) !important;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.48), 0 0 2px rgba(0, 0, 0, 0.3) !important;
+}
+html[data-accent="win11"][data-theme="dark"] .alert-btn-cancel,
+html[data-accent="win11"][data-theme="dark"] .internal-modal-btn-cancel {
+  color: var(--text-secondary) !important;
+}
+html[data-accent="win11"][data-theme="dark"] .alert-btn-cancel:hover,
+html[data-accent="win11"][data-theme="dark"] .internal-modal-btn-cancel:hover,
+html[data-accent="win11"][data-theme="dark"] .alert-close:hover,
+html[data-accent="win11"][data-theme="dark"] .internal-modal-close:hover {
+  background-color: rgba(255, 255, 255, 0.08) !important;
+}
+
+/* ---- Win11 原生确认框结构：内容区 + 灰色操作区 ---- */
+html[data-accent="win11"] .alert-card,
+html[data-accent="win11"] .internal-modal-card {
+  position: relative;
+  display: block;
+  overflow: hidden;
+  padding: 0 !important;
+}
+html[data-accent="win11"] .alert-icon,
+html[data-accent="win11"] .internal-modal-icon {
+  display: none;
+}
+html[data-accent="win11"] .alert-content,
+html[data-accent="win11"] .internal-modal-body {
+  padding: 24px 28px 20px;
+}
+html[data-accent="win11"] .alert-title,
+html[data-accent="win11"] .internal-modal-title {
+  margin: 0 0 12px;
+  font-size: 1.375rem;
+  line-height: 1.2;
+  font-weight: 600;
+  letter-spacing: 0;
+}
+html[data-accent="win11"] .alert-message,
+html[data-accent="win11"] .internal-modal-message {
+  margin: 0;
+  font-size: 0.875rem;
+  line-height: 1.55;
+}
+html[data-accent="win11"] .alert-buttons,
+html[data-accent="win11"] .internal-modal-buttons {
+  display: flex;
+  gap: 12px;
+  justify-content: stretch;
+  padding: 12px 28px 16px;
+  margin: 12px 0 0 !important;
+  border-top: 1px solid rgba(0, 0, 0, 0.08);
+  background-color: rgba(246, 246, 246, 0.96);
+}
+html[data-accent="win11"] .alert-btn,
+html[data-accent="win11"] .internal-modal-btn {
+  flex: 1 1 0;
+  min-height: 38px;
+  padding: 7px 14px;
+  font-size: 0.875rem;
+}
+html[data-accent="win11"] .alert-btn-confirm,
+html[data-accent="win11"] .internal-modal-btn-confirm {
+  order: 1;
+}
+html[data-accent="win11"] .alert-btn-cancel,
+html[data-accent="win11"] .internal-modal-btn-cancel {
+  order: 2;
+  border: 1px solid #d1d1d1 !important;
+  background-color: #ffffff !important;
+  color: var(--text) !important;
+}
+html[data-accent="win11"] .alert-close,
+html[data-accent="win11"] .internal-modal-close {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  z-index: 1;
+}
+html[data-accent="win11"][data-theme="dark"] .alert-buttons,
+html[data-accent="win11"][data-theme="dark"] .internal-modal-buttons {
+  border-top-color: rgba(255, 255, 255, 0.1);
+  background-color: rgba(50, 50, 50, 0.96);
+}
+html[data-accent="win11"][data-theme="dark"] .alert-btn-cancel,
+html[data-accent="win11"][data-theme="dark"] .internal-modal-btn-cancel {
+  border-color: #505050 !important;
+  background-color: #3a3a3a !important;
+  color: var(--text) !important;
 }
 
 /* ===================== Windows 98 经典主题 =====================
@@ -1974,27 +2129,63 @@ html[data-accent="win11"][data-theme="dark"] nav .mobile-menu-toggle {
 
 /* ---------- Win11 首页量表操作按钮：保留分类色，不被 Accent 蓝统一覆盖 ---------- */
 html[data-accent="win11"] .card button.category-action-symptom {
-  background-color: var(--symptom-dark) !important;
-}
-html[data-accent="win11"] .card button.category-action-personality {
-  background-color: var(--personality-dark) !important;
-}
-html[data-accent="win11"] .card button.category-action-special {
-  background-color: var(--special-dark) !important;
-}
-html[data-accent="win11"] .card button.category-action-symptom:hover {
   background-color: var(--symptom) !important;
 }
-html[data-accent="win11"] .card button.category-action-personality:hover {
+html[data-accent="win11"] .card button.category-action-personality {
   background-color: var(--personality) !important;
 }
-html[data-accent="win11"] .card button.category-action-special:hover {
+html[data-accent="win11"] .card button.category-action-special {
   background-color: var(--special) !important;
+}
+html[data-accent="win11"] .card button.category-action-symptom:hover {
+  background-color: #0067b8 !important;
+}
+html[data-accent="win11"] .card button.category-action-personality:hover {
+  background-color: #0b6a0b !important;
+}
+html[data-accent="win11"] .card button.category-action-special:hover {
+  background-color: #b52b31 !important;
 }
 html[data-accent="win11"] .card button.category-action-symptom:active,
 html[data-accent="win11"] .card button.category-action-personality:active,
 html[data-accent="win11"] .card button.category-action-special:active {
   filter: brightness(0.88);
+}
+html[data-accent="win11"][data-theme="dark"] .card button.category-action-symptom:hover {
+  background-color: #2a75b8 !important;
+}
+html[data-accent="win11"][data-theme="dark"] .card button.category-action-personality:hover {
+  background-color: #57ad4d !important;
+}
+html[data-accent="win11"][data-theme="dark"] .card button.category-action-special:hover {
+  background-color: #e4777d !important;
+}
+
+/* ---------- 非 Win98 主题：分类按钮保持同一色相，悬停只降低亮度 ---------- */
+html:not([data-accent="win98"]) .card button.category-action-symptom,
+html:not([data-accent="win98"]) .card button.category-action-symptom:hover,
+html:not([data-accent="win98"]) .card button.category-action-symptom:active {
+  background-color: var(--symptom) !important;
+}
+html:not([data-accent="win98"]) .card button.category-action-personality,
+html:not([data-accent="win98"]) .card button.category-action-personality:hover,
+html:not([data-accent="win98"]) .card button.category-action-personality:active {
+  background-color: var(--personality) !important;
+}
+html:not([data-accent="win98"]) .card button.category-action-special,
+html:not([data-accent="win98"]) .card button.category-action-special:hover,
+html:not([data-accent="win98"]) .card button.category-action-special:active {
+  background-color: var(--special) !important;
+}
+html:not([data-accent="win98"]) .card button.category-action-symptom:hover,
+html:not([data-accent="win98"]) .card button.category-action-personality:hover,
+html:not([data-accent="win98"]) .card button.category-action-special:hover {
+  filter: brightness(0.88);
+}
+html:not([data-accent="win98"]) .card button.category-action-symptom:active,
+html:not([data-accent="win98"]) .card button.category-action-personality:active,
+html:not([data-accent="win98"]) .card button.category-action-special:active {
+  filter: brightness(0.76);
 }
 
 /* ===================================================================

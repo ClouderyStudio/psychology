@@ -36,11 +36,18 @@
     <!-- 三子量表 -->
     <section class="mb-6">
       <h4 class="font-semibold mb-3 flex items-center gap-2" style="color: var(--text);"><span>🧩</span>三个子量表</h4>
+      <p class="text-xs mb-3" style="color: var(--text-muted);">
+        三个因子覆盖全部 28 题，分组按条目内容逐条判定并在此公开。原版 DES-II 的因子分组是按原版题号定义的，与本表题号不对应，因此不能照搬；
+        有公开常模的只有总分，分量表分只能用于比较本次作答内部三者的相对高低。
+      </p>
       <div class="space-y-1.5">
         <div v-for="d in subs" :key="d.key" class="flex flex-col gap-1 p-3 rounded-lg sm:flex-row sm:items-center sm:justify-between" style="background-color: var(--bg);">
           <div class="min-w-0">
             <div class="font-medium text-sm" style="color: var(--text);">{{ d.name }}</div>
             <p class="text-xs mt-0.5" style="color: var(--text-muted);">{{ d.desc }}</p>
+            <p v-if="d.items.length" class="text-[0.6875rem] mt-0.5" style="color: var(--text-muted);">
+              含第 {{ d.items.join('、') }} 题（共 {{ d.items.length }} 题）
+            </p>
           </div>
           <div class="text-right text-sm whitespace-nowrap">
             <div class="font-semibold" style="color: var(--primary);">{{ d.score }}%</div>
@@ -98,8 +105,8 @@ const bands = BANDS;
 
 const order = ['amnesia', 'dpdr', 'absorption']
 const META: Record<string, { name: string; desc: string }> = {
-  amnesia: { name: "记忆缺失 (Amnesia)", desc: "对日常事件出现片段性遗忘或记忆空白，与解离性失忆相关；偏高更提示病理性解离。" },
-  dpdr: { name: "人格/现实解体 (DP/DR)", desc: "自我脱离、像在旁观自己，或外界不真实、像隔着一层；偏高更提示病理性解离。" },
+  amnesia: { name: "记忆缺失 (Amnesia)", desc: "对日常事件出现片段性遗忘或记忆空白：不记得走过的路、说过的话、做过的事。" },
+  dpdr: { name: "人格/现实解体 (DP/DR)", desc: "自我脱离、像在旁观自己，或外界不真实、像隔着一层。" },
   absorption: { name: "吸收沉浸 (Absorption)", desc: "在想象、音乐或活动中深度投入与心流；单独偏高常属正常的沉浸体验。" },
 }
 const subs = order.map((k) => ({
@@ -108,6 +115,7 @@ const subs = order.map((k) => ({
   desc: META[k]?.desc || "",
   score: ((dims[k]?.score ?? 0) as number).toFixed(1),
   level: (dims[k]?.level as string) || "",
+  items: (dims[k]?.items as number[]) || [],
 }));
 
 const amn = Number(dims.amnesia?.score) || 0;

@@ -25,16 +25,35 @@ import { scorePhobia } from "./scoring-rules/scorePhobia";
 import { scoreAgora } from "./scoring-rules/scoreAgora";
 import { scoreSepanx } from "./scoring-rules/scoreSepanx";
 import { scoreMultidim } from "./scoring-rules/scoreMultidim";
+/** 作答来源：本人自评 / 他人代答（知情者评估） */
+export type RespondentMode = "self" | "proxy";
+
+export function isRespondentMode(value: unknown): value is RespondentMode {
+  return value === "self" || value === "proxy";
+}
+
 interface ScoringInput {
   testId: string;
   answers: Record<number, number>;
   /** 多维自评量表等支持模式的量表：本次作答所用模式 */
   mode?: string;
+  /**
+   * 作答来源。代答（家属 / 陪伴者依据观察作答）在计分时必须与自评区分：
+   * 掩饰与一致性条目本就是为自评设计的，套用到代答上会给出没有依据的效度结论。
+   */
+  respondent?: RespondentMode;
 }
 
 export interface ScoringResult {
   totalScore: number;
   maxScore: number;
+  /**
+   * 可达最低分。含反向计分的量表（如 BIS-11）总分范围会被压窄，
+   * 最低可能分远高于 0，只报 maxScore 会让读者误判分数的相对位置。
+   */
+  minScore?: number;
+  /** 分数口径说明（仅在该量表的分母容易被误读时下发） */
+  scoreNote?: string;
   level: string;
   suggestion: string;
   severity: number;
@@ -99,6 +118,12 @@ function scoreRSES(answers: Record<number, number>): ScoringResult {
   }
 
   // RSES 双因子：自我胜任感(正向 1,2,4,6,7) / 自我接纳(反向 3,5,8,9,10，反向补值 5)
+  //
+  // 上限说明：两个因子各 5 题、每题 1-4 分，因此各自的实际范围是 5-20，
+  // 不是 16（原实现把上限写成了 16，导致极端作答下会出现"20/16"）。
+  // 另外这两个因子是按**题目措辞方向**划分的（正向表述 5 题 / 反向表述 5 题），
+  // 天然高度负相关：全选同一档时两者恒为 5 与 20 对调，差距大通常反映作答风格，
+  // 而不是"胜任感"与"接纳"两种独立的自我评价。判读以总分（10-40）为主。
   const competenceItems = [1, 2, 4, 6, 7];
   const likingItems = [3, 5, 8, 9, 10];
   let competenceSum = 0;
@@ -129,17 +154,21 @@ function scoreRSES(answers: Record<number, number>): ScoringResult {
     severity: totalScore / 40,
     dimensionScores: {
       type: 'rses',
+      note:
+        '这两个因子按题目措辞方向划分（正向表述 5 题 / 反向表述 5 题），各自范围 5-20，' +
+        '天然高度负相关——两者差距大通常反映作答风格，而不是两种不同的自我评价。' +
+        '判读请以总分（10-40）为主要参考。',
       competence: {
-        name: '自我胜任感',
+        name: '自我胜任感（正向表述题）',
         score: competenceSum,
-        max: 16,
+        max: 20,
         avg: competenceAvg,
         desc: competenceDesc,
       },
       liking: {
-        name: '自我接纳 / 喜欢',
+        name: '自我接纳 / 喜欢（反向表述题）',
         score: likingSum,
-        max: 16,
+        max: 20,
         avg: likingAvg,
         desc: likingDesc,
       },
@@ -148,7 +177,7 @@ function scoreRSES(answers: Record<number, number>): ScoringResult {
 }
 
 export function calculateScore(input: ScoringInput): ScoringResult {
-  const { testId, answers, mode } = input;
+  const { testId, answers, mode, respondent } = input;
 
   switch (testId) {
     case "phq9":
@@ -226,7 +255,7 @@ export function calculateScore(input: ScoringInput): ScoringResult {
     case "sepanx":
       return scoreSepanx(answers);
     case "multidim":
-      return scoreMultidim(answers, mode);
+      return scoreMultidim(answers, mode, respondent);
     default:
       return {
         totalScore: 0,
@@ -371,12 +400,18 @@ function scorePSS(answers: Record<number, number>): ScoringResult {
   }
 
   // PSS-10 两因子：不可控感/无助 vs 掌控感/自我效能（因子结构为文献公认）
+  //
+  // 方向说明：4、5、7、8 四题是正向表述（"对自己处理个人问题的能力感到有信心"
+  // 一类），只有在计算**总分**时才需要反向折算——总分越高代表压力越大。
+  // 但"掌控感 / 自我效能"这个子维度本身是越高越好的：答得越频繁，掌控感越强。
+  // 原实现在子维度上也做了 4 - raw 折算，等于把方向翻转了一次，导致全答"从不"
+  // 的人拿到满分 16/16 并被判"抗压能力强"（第三批报告 4）。
   const helplessItems = [1, 2, 3, 6, 9, 10];
   const efficacyItems = [4, 5, 7, 8];
   let helplessSum = 0;
   for (const i of helplessItems) helplessSum += getAnswerValue(answers, i, 0);
   let efficacySum = 0;
-  for (const i of efficacyItems) efficacySum += 4 - getAnswerValue(answers, i, 0);
+  for (const i of efficacyItems) efficacySum += getAnswerValue(answers, i, 0);
   const helplessAvg = helplessSum / helplessItems.length;
   const efficacyAvg = efficacySum / efficacyItems.length;
 
@@ -386,6 +421,7 @@ function scorePSS(answers: Record<number, number>): ScoringResult {
       : helplessAvg >= 1.5
         ? "尚能应对生活中的不确定性，偶有失控感。"
         : "对生活掌控感较强，较少因不可控事件感到压力。";
+  // 描述方向与数值方向保持一致：得分越高 = 越有掌控感
   const efficacyDesc =
     efficacyAvg >= 3
       ? "面对困难时较有信心，善于自我调节，抗压能力强。"

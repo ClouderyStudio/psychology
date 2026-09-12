@@ -562,10 +562,13 @@ const clearAllProgress = () => {
       const keys = Object.keys(sessionStorage)
       let clearedCount = 0
       keys.forEach(key => {
-        if (key.startsWith('test_') && key.endsWith('_answers')) {
-          sessionStorage.removeItem(key)
-          clearedCount++
-        }
+        if (!key.startsWith('test_')) return
+        // 进度相关键：作答、实际题量、以及多维量表的模式/种子
+        const isProgressKey =
+          key.endsWith('_answers') || key.endsWith('_total') ||
+          key.endsWith('_mode') || key.endsWith('_seed')
+        if (isProgressKey) sessionStorage.removeItem(key)
+        if (key.endsWith('_answers')) clearedCount++
       })
       // 立即清空本地列表
       unfinishedTestsList.value = []
@@ -594,12 +597,16 @@ const loadUnfinishedTests = async () => {
         if (saved) {
           const answers = JSON.parse(saved)
           const completed = Object.keys(answers).length
-          if (completed > 0 && completed <= test.questionsCount) {
+          // 分母优先用答题页写入的实际题量（多维量表随模式为 20/45/65/105；含选答的 number 题也会排除），
+          // 取不到时回退到列表里的固定题数
+          const storedTotal = Number(sessionStorage.getItem(`test_${test.id}_total`))
+          const total = Number.isFinite(storedTotal) && storedTotal > 0 ? storedTotal : test.questionsCount
+          if (completed > 0 && completed <= total) {
             unfinished.push({
               id: test.id,
               title: test.title,
               completed,
-              total: test.questionsCount
+              total
             })
           }
         }

@@ -122,9 +122,14 @@ import {
   buildMultidimQuestions,
   isMultidimMode,
   MULTIDIM_MODES,
+  MULTIDIM_WINDOW_LABEL,
   multidimOptions,
+  multidimWindowOf,
 } from "~~/server/utils/questions/multidim-questions";
 import { testIntros } from "~~/server/utils/test-intros";
+import { createQuestionToken } from "~~/server/utils/question-token";
+import { enforceRateLimit } from "~~/server/utils/rate-limit";
+import { timeFrameOf, contextHintOf } from "~~/server/utils/test-timeframe";
 
 // 按题目 id 升序排序（题库文件顺序可能与出题顺序不同）
 function sortQuestionsById<T extends { id: number }>(questions: T[]): T[] {
@@ -138,7 +143,18 @@ export default defineEventHandler(async (event) => {
   // 未指定模式时返回空题目（前端先展示模式选择）；种子用于乱序复测与提交校验复现。
   const query = getQuery(event);
   const multidimMode = isMultidimMode(query.mode) ? query.mode : null;
-  const multidimSeed = typeof query.seed === "string" ? query.seed : undefined;
+  // 种子由客户端提供、只用于选出题顺序。限制长度，避免超长字符串让哈希与出题成为放大面。
+  const rawSeed = typeof query.seed === "string" ? query.seed.trim() : "";
+  const multidimSeed = rawSeed.length > 0 && rawSeed.length <= 64 ? rawSeed : undefined;
+
+  // 每次请求都要按种子现算整套题库，加一层限流挡住脚本刷取
+  if (multidimMode) {
+    enforceRateLimit(event, {
+      scope: "multidim-questions",
+      limit: 60,
+      windowMs: 10 * 60 * 1000,
+    });
+  }
 
   const testDatabase: Record<string, Test & { modes?: typeof MULTIDIM_MODES }> = {
     phq9: {
@@ -746,7 +762,8 @@ export default defineEventHandler(async (event) => {
       id: "agora",
       title: "广场恐怖严重度",
       description: "广场恐怖成人严重度量表（DSM-5-TR，10 题）评估过去 7 天在人群、公共场所、使用交通工具、独自出行或离家等情境中的恐惧与回避。",
-      instructions: "请按这些情境在过去 7 天内的实际频率作答（从未 / 偶尔 / 一半时间 / 大部分时间 / 几乎所有时间）。",
+      instructions:
+        "这里的情境指：人群、公共场所、乘坐交通工具、独自出行或离家。请按这些情境在过去 7 天内的实际频率作答（从未 / 偶尔 / 一半时间 / 大部分时间 / 几乎所有时间）。",
       questions: agoraQuestions.map((q) => ({
         id: q.id,
         text: q.text,
@@ -778,14 +795,21 @@ export default defineEventHandler(async (event) => {
       description:
         "基于多维特征模型的心理健康自评量表，覆盖 20 个核心特征维度，并内置回答一致性与作答效度校验。选择评估模式后按模式出题。",
       instructions:
-        "请根据最近两周的真实感受作答，选择最符合的选项（非常符合 / 比较符合 / 不确定 / 不太符合 / 完全不符合）。本量表为自评参考与科普用途，不构成临床诊断，不能替代专业医疗。",
+        "请选择最符合的选项（非常符合 / 比较符合 / 不确定 / 不太符合 / 完全不符合）。多数题目问的是最近两周的情况；少数题目会在题号旁标注其他时间范围（如「曾经有过的一段时期」「长期 / 从小一直」），请按该题标注的范围作答。本量表为自评参考与科普用途，不构成临床诊断，不能替代专业医疗。",
       questions: multidimMode
-        ? buildMultidimQuestions(multidimMode, multidimSeed).map((q) => ({
-            id: q.id,
-            text: q.text,
-            type: "likert" as const,
-            options: multidimOptions,
-          }))
+        ? buildMultidimQuestions(multidimMode, multidimSeed).map((q) => {
+            // 标注题目的时间窗口：少数题目问的不是「最近两周」，
+            // 不标注会让作答者把长期特征与近期状态混在一起作答。
+            const win = q.kind === "lie" ? null : multidimWindowOf(q.id);
+            return {
+              id: q.id,
+              text: q.text,
+              type: "likert" as const,
+              options: multidimOptions,
+              window: win,
+              windowLabel: win ? MULTIDIM_WINDOW_LABEL[win] : null,
+            };
+          })
         : [],
       scoringRules: {
         type: "multidim",
@@ -804,8 +828,27 @@ export default defineEventHandler(async (event) => {
   }
 
   const intro = testIntros[id as string];
+  // 评估时间范围与作答前提统一取自 server/utils/test-timeframe.ts：
+  // 作答页需要固定展示"这次在评什么时间段"，结果页的量表列表也需要同一份数据，
+  // 各写一份迟早会漂移。
+  const timing = {
+    ...(timeFrameOf(String(id)) ? { timeFrame: timeFrameOf(String(id)) } : {}),
+    ...(contextHintOf(String(id)) ? { contextHint: contextHintOf(String(id)) } : {}),
+  };
+  const payload: any = intro ? { ...test, ...timing, intro } : { ...test, ...timing };
+
+  // 多维自评量表：签发出题凭证。提交时以凭证内的 mode / seed 为准，
+  // 避免客户端的「出题参数」与「评分参数」可以不是同一套。
+  if (multidimMode) {
+    payload.questionToken = createQuestionToken({
+      testId: String(id),
+      mode: multidimMode,
+      seed: multidimSeed,
+    });
+  }
+
   return {
     success: true,
-    data: intro ? { ...test, intro } : test,
+    data: payload,
   };
 });

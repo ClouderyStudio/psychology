@@ -1,10 +1,19 @@
 import { defineStore } from "pinia";
+import {
+  clearLastResult,
+  getLastResult,
+  migrateLegacyResultRecords,
+  saveResultRecord,
+  updateResultRecord,
+} from "../utils/result-store";
 
 interface AnswerState {
   answers: Record<number, number>;
   currentTestId: string | null;
   result: any | null;
-  lastResult: any | null; // 新增：最后一次测评结果
+  lastResult: any | null; // 最近一次测评结果
+  /** 当前 result 对应的本机存档键（历史记录里的某一条） */
+  currentResultKey: string | null;
 }
 
 export const useAnswerStore = defineStore("answer", {
@@ -13,6 +22,7 @@ export const useAnswerStore = defineStore("answer", {
     currentTestId: null,
     result: null,
     lastResult: null,
+    currentResultKey: null,
   }),
 
   actions: {
@@ -38,25 +48,32 @@ export const useAnswerStore = defineStore("answer", {
       this.loadFromSession();
     },
 
-    setResult(result: any) {
+    /**
+     * 保存一次新的测评结果：写入本机存档（localStorage，一次测评一条记录），
+     * 供首页卡片使用的「最近一次结果」同步更新。
+     * 返回本次记录键，失败时为 null。
+     */
+    setResult(result: any): string | null {
       this.result = result;
-      // 保存为最后一次结果
       this.lastResult = result;
-      this.saveLastResultToSession(result);
-
-      // 保存到当前测评的结果
-      if (typeof window !== "undefined" && result && result.testId) {
-        try {
-          sessionStorage.setItem(
-            `test_${result.testId}_result`,
-            JSON.stringify(result),
-          );
-        } catch (e) {
-          console.error("保存测评结果失败", e);
-        }
-      }
+      this.currentResultKey = result ? saveResultRecord(result) : null;
+      return this.currentResultKey;
     },
 
+    /**
+     * 打开一条已有记录（历史页「查看」）：只装载、不新建记录，
+     * 否则每次翻看历史都会多出一条重复记录。
+     */
+    loadResultRecord(result: any, key: string | null) {
+      this.result = result;
+      this.currentResultKey = key;
+    },
+
+    getCurrentResultKey() {
+      return this.currentResultKey;
+    },
+
+    /** 备注就地写回当前记录；没有记录键时（异常路径）退化为新建 */
     updateResultNote(note: string) {
       if (!this.result?.testId) return null;
 
@@ -65,7 +82,12 @@ export const useAnswerStore = defineStore("answer", {
         note: note.slice(0, 500),
         noteUpdatedAt: new Date().toISOString(),
       };
-      this.setResult(updatedResult);
+      this.result = updatedResult;
+      this.lastResult = updatedResult;
+      this.currentResultKey = updateResultRecord(
+        this.currentResultKey,
+        updatedResult,
+      );
       return updatedResult;
     },
 
@@ -74,30 +96,25 @@ export const useAnswerStore = defineStore("answer", {
     },
 
     getLastResult() {
-      // 优先从内存获取
-      if (this.lastResult) {
-        return this.lastResult;
-      }
-      // 尝试从 sessionStorage 加载
-      if (typeof window !== "undefined") {
-        try {
-          const saved = sessionStorage.getItem("last_test_result");
-          if (saved) {
-            this.lastResult = JSON.parse(saved);
-            return this.lastResult;
-          }
-        } catch (e) {
-          console.error("加载最后结果失败", e);
-        }
-      }
-      return null;
+      if (this.lastResult) return this.lastResult;
+      this.lastResult = getLastResult();
+      return this.lastResult;
     },
 
     clearLastResult() {
       this.lastResult = null;
-      if (typeof window !== "undefined") {
-        sessionStorage.removeItem("last_test_result");
-      }
+      this.currentResultKey = null;
+      clearLastResult();
+    },
+
+    /**
+     * 记录在存储层被改动（历史页删除 / 清空）后丢弃内存缓存，
+     * 避免首页卡片继续展示已删除的结果。
+     */
+    clearResultCache() {
+      this.result = null;
+      this.lastResult = null;
+      this.currentResultKey = null;
     },
 
     getAnswers() {
@@ -121,14 +138,9 @@ export const useAnswerStore = defineStore("answer", {
       }
     },
 
-    saveLastResultToSession(result: any) {
-      if (typeof window !== "undefined" && result) {
-        try {
-          sessionStorage.setItem("last_test_result", JSON.stringify(result));
-        } catch (e) {
-          console.error("保存最后结果失败", e);
-        }
-      }
+    /** 一次性把旧版本存在 sessionStorage 里的结果搬进本机存档 */
+    migrateLegacyResults() {
+      return migrateLegacyResultRecords();
     },
 
     loadFromSession() {

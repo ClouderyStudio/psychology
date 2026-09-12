@@ -6,13 +6,17 @@
           <div class="text-2xl" style="color: var(--text-secondary);">加载中...</div>
         </div>
 
-        <div v-else-if="result" class="rounded-2xl overflow-hidden"
+        <div v-else-if="result" ref="exportRoot" class="rounded-2xl overflow-hidden"
           style="background-color: var(--card-bg); box-shadow: var(--shadow-xl);">
 
           <!-- 结果头部 -->
           <div class="p-8 text-center" :style="{ backgroundColor: getHeaderColor() }">
             <h2 class="text-3xl font-bold mb-2 text-white">测评结果</h2>
             <p class="text-white/90">{{ result.testTitle }}</p>
+            <!-- 评估时间范围：各量表窗口并不一致，结果页要说明这份结果评的是哪个时间段 -->
+            <p v-if="resultTimeFrame" class="text-sm mt-1" style="color: rgba(255,255,255,0.85);">
+              评估时间范围 · {{ resultTimeFrame }}
+            </p>
             <p class="text-sm mt-2 text-white/70">测评时间：{{ formattedTime }}</p>
           </div>
 
@@ -57,6 +61,12 @@
               </div>
             </div>
 
+            <!-- 分数口径说明：含反向计分的量表（如 BIS-11）总分区间会被压窄，
+                 只用理论满分作分母会让读者误判分数的相对位置 -->
+            <p v-if="scoreNote" class="max-w-xl mx-auto text-xs mb-8 text-center leading-relaxed" style="color: var(--text-muted);">
+              {{ scoreNote }}
+            </p>
+
             <!-- 等级标签 -->
             <div v-if="!isMBTI && !isSeven && !isPsyAge && !isMultidim" class="text-center mb-6">
               <div v-if="!canScore" class="text-2xl font-semibold mb-2" style="color: var(--text);">你的测评结果是:</div>
@@ -84,8 +94,8 @@
               <p class="whitespace-pre-line" style="color: var(--text-secondary);">{{ result.suggestion }}</p>
             </div>
 
-            <!-- 备注 -->
-            <div class="rounded-lg p-6 mb-6" :style="{ backgroundColor: 'var(--card-bg)', border: '1px solid var(--border)' }">
+            <!-- 备注（导出时不包含交互编辑区） -->
+            <div class="export-ignore rounded-lg p-6 mb-6" :style="{ backgroundColor: 'var(--card-bg)', border: '1px solid var(--border)' }">
               <h3 class="font-bold text-lg mb-3 flex items-center" style="color: var(--text);">
                 <span class="text-2xl mr-2">📝</span>
                 备注
@@ -148,8 +158,8 @@
               </template>
             </div>
 
-            <!-- 操作按钮 -->
-            <div class="flex flex-col sm:flex-row gap-4">
+            <!-- 操作按钮（导出时不包含） -->
+            <div class="export-ignore flex flex-col sm:flex-row gap-4 flex-wrap">
               <button @click="retakeTest" class="flex-1 py-3 rounded-lg font-semibold transition-all"
                 :style="{ backgroundColor: 'var(--primary)', color: 'white', boxShadow: 'var(--shadow-sm)' }"
                 @mouseenter="setButtonBg($event, 'var(--primary-dark)')"
@@ -160,6 +170,18 @@
                 style="background-color: var(--card-bg); color: var(--text-secondary); box-shadow: var(--shadow-sm);"
                 @mouseenter="setButtonBg($event, 'var(--bg)')" @mouseleave="setButtonBg($event, 'var(--card-bg)')">
                 📋 一键复制结果
+              </button>
+              <button @click="exportResult('png')" :disabled="!!exporting"
+                class="flex-1 py-3 rounded-lg font-semibold transition-all disabled:opacity-60 disabled:cursor-not-allowed"
+                style="background-color: var(--card-bg); color: var(--text-secondary); box-shadow: var(--shadow-sm);"
+                @mouseenter="setButtonBg($event, 'var(--bg)')" @mouseleave="setButtonBg($event, 'var(--card-bg)')">
+                {{ exporting === 'png' ? '生成中…' : '🖼️ 导出 PNG' }}
+              </button>
+              <button @click="exportResult('pdf')" :disabled="!!exporting"
+                class="flex-1 py-3 rounded-lg font-semibold transition-all disabled:opacity-60 disabled:cursor-not-allowed"
+                style="background-color: var(--card-bg); color: var(--text-secondary); box-shadow: var(--shadow-sm);"
+                @mouseenter="setButtonBg($event, 'var(--bg)')" @mouseleave="setButtonBg($event, 'var(--card-bg)')">
+                {{ exporting === 'pdf' ? '生成中…' : '📄 导出 PDF' }}
               </button>
               <button @click="goHome" class="flex-1 py-3 rounded-lg font-semibold transition-all"
                 style="background-color: var(--card-bg); color: var(--text-secondary); box-shadow: var(--shadow-sm);"
@@ -184,7 +206,9 @@
 
 <script setup lang="ts">
 import { useAnswerStore } from '~/stores/answer'
+import { getResultRecord } from '~/utils/result-store'
 
+const route = useRoute()
 const router = useRouter()
 const answerStore = useAnswerStore()
 const { $toast } = useNuxtApp()
@@ -203,8 +227,8 @@ const saveNote = () => {
   $toast.success(noteDraft.value ? '备注已保存' : '备注已清除', '完成')
 }
 
-// 无总分（或总分无实际意义）的量表，以类型等级作为主要内容
-const typeOnlyTests = ['mbti', 'seven', 'psy-age', 'multidim']
+// 无总分（或总分无实际意义）的量表，以类型等级作为主要内容；
+// 清单统一来自 app/utils/test-display.ts（自动导入）
 
 // 将结果整理为便于分享 / 供 AI 评估的 Markdown 文本
 const buildResultSummary = (r: any): string => {
@@ -213,16 +237,19 @@ const buildResultSummary = (r: any): string => {
   lines.push(`# 测评结果 · ${r.testTitle || r.testId}`)
   lines.push('')
   lines.push(`- 量表：${r.testTitle || r.testId}${r.testId ? `（${r.testId}）` : ''}`)
+  if (resultTimeFrame.value) lines.push(`- 评估时间范围：${resultTimeFrame.value}`)
   lines.push(`- 测评时间：${time}`)
 
-  if (typeOnlyTests.includes(r.testId)) {
+  const typeOnly = isTypeOnlyTest(r.testId)
+  if (typeOnly) {
     lines.push(`- 结果类型：${r.level || '--'}`)
     if (r.totalScore) lines.push(`- 参考分数：${r.totalScore}`)
   } else {
     lines.push(`- 总分：${r.totalScore ?? 0} / ${r.maxScore ?? '--'}`)
     if (r.level) lines.push(`- 等级：${r.level}`)
   }
-  if (r.severity !== undefined && r.severity !== null) {
+  // 类型型量表的 severity 与「总分」同源，对读者没有意义，不再输出
+  if (!typeOnly && r.severity !== undefined && r.severity !== null) {
     lines.push(`- 严重程度：${Math.round(r.severity * 100)}%`)
   }
 
@@ -288,57 +315,92 @@ const copyResult = async () => {
   }
 }
 
+// 导出结果（PNG / PDF）：捕获结果卡片，过滤掉带 export-ignore 的交互元素
+const exportRoot = ref<HTMLElement | null>(null)
+const { exporting, exportPng, exportPdf } = useResultExport()
+
+const exportResult = async (kind: 'png' | 'pdf') => {
+  if (!result.value) return
+  const base = `测评结果-${result.value.testTitle || result.value.testId || ''}`
+  if (kind === 'png') await exportPng(exportRoot.value, base)
+  else await exportPdf(exportRoot.value, base)
+}
+
 // 高敏感量表（自杀 / 自伤类）使用正式模式，与测试页共用 FORMAL_TESTS
 const FORMAL_TESTS = ['sioss']
 const isFormalTest = computed(() => FORMAL_TESTS.includes(result.value?.testId))
 
 // 判断应该计分
 const canScore = ref(false)
+// 评估时间范围：由 /api/tests/list 下发（各量表窗口不一致，结果里也要能说明）
+const resultTimeFrame = ref('')
+
+// 人格性格类量表通常无总分，不展示分数环；BIS/BPAQ 虽属人格特质类但有总分。
+// 多维自评量表由专用报告组件呈现，同样不使用通用分数环。
+const syncCanScore = async () => {
+  try {
+    const testId = result.value?.testId
+    if (!testId) {
+      canScore.value = false
+      return
+    }
+    await nextTick()
+    const testList = ((await $fetch<any>('/api/tests/list'))?.data) || []
+    const found = testList.find((el: any) => el.id === testId)
+    resultTimeFrame.value = found?.timeFrame || ''
+    const scoredPersonality = ['bis', 'bpaq'].includes(testId)
+    canScore.value = found
+      ? (found.category === 'symptom' || found.category === 'special' || scoredPersonality) &&
+        !isTypeOnlyTest(testId)
+      : false
+  } catch (e) {
+    canScore.value = false
+  }
+}
 
 // 加载结果的方法
 const loadResult = async () => {
   isLoading.value = true
 
+  // 旧版本把结果存在 sessionStorage（每个量表一条、会被覆盖），
+  // 首次进入时搬进本机存档，避免升级后历史直接消失
+  answerStore.migrateLegacyResults()
+
+  // 历史页「查看」会带上记录键：只装载，不新建记录
+  const key = typeof route.query.key === 'string' ? route.query.key : ''
+  if (key) {
+    const record = getResultRecord(key)
+    if (record) {
+      answerStore.loadResultRecord(record, key)
+      result.value = record
+      noteDraft.value = record.note || ''
+      await syncCanScore()
+      isLoading.value = false
+      return
+    }
+    $toast.error('该条历史记录已不存在', '提示')
+  }
+
   let resultData = answerStore.getResult()
 
-  if (!resultData && typeof window !== 'undefined') {
-    try {
-      const saved = sessionStorage.getItem('last_test_result')
-      if (saved) {
-        resultData = JSON.parse(saved)
-        if (resultData) {
-          answerStore.setResult(resultData)
-        }
-      }
-    } catch (e) {
-      console.error('从 sessionStorage 加载结果失败:', e)
-    }
+  if (!resultData) {
+    resultData = answerStore.getLastResult()
   }
 
   result.value = resultData
   // 同步备注草稿（刚完成测评或从历史页打开时带出已有备注）
   noteDraft.value = resultData?.note || ''
 
-  try {
-    const testId = result.value?.testId
-    if (!testId) return
-    await nextTick()
-    const testList = ((await $fetch<any>('/api/tests/list'))?.data) || []
-    const found = testList.find((el: any) => el.id === testId)
-    // 人格性格类量表通常无总分，不展示分数环；BIS/BPAQ 虽属人格特质类但有总分
-    const scoredPersonality = ['bis', 'bpaq'].includes(testId)
-    // 多维自评量表由专用报告组件呈现，不使用通用分数环
-    canScore.value = found
-      ? (found.category === 'symptom' || found.category === 'special' || scoredPersonality) && testId !== 'multidim'
-      : false
-  } catch (e) {
-    canScore.value = false
-  }
-
+  await syncCanScore()
   isLoading.value = false
 }
 
-await loadResult()
+// 结果在本机存档（localStorage）里，只有浏览器读得到。
+// 这里原先写的是顶层 await loadResult()：服务端渲染时同样会执行，
+// 那时 getResultRecord 读不到记录会返回 null，代码随即走到下面的
+// $toast.error(...) —— 而 $toast 由 app/plugins/toast.client.ts 提供，
+// 服务端没有这个实例，于是整页 500（Cannot read properties of undefined
+// (reading 'error')）。改为在 onMounted 里执行，服务端只输出 <ClientOnly> 的空壳。
 
 // 判断是否为 SCL90
 const isSCL90 = computed(() => result.value?.testId === 'scl90')
@@ -409,6 +471,9 @@ const displayScore = computed(() => {
   }
   return result.value?.totalScore || 0
 })
+
+// 分数口径说明（仅在下发时展示，例如 BIS-11 的可达区间说明）
+const scoreNote = computed(() => result.value?.scoreNote || '')
 
 // 计算属性
 const circumference = 2 * Math.PI * 88
@@ -483,13 +548,14 @@ const setButtonBg = (event: Event, color: string) => {
   }
 }
 
-// 如果没有结果，重定向到首页
+// 装载结果、并在没有结果时重定向到首页。
+// 两步必须都在浏览器里、且按顺序执行：服务端渲染阶段既没有 localStorage，
+// 也没有 $toast（client-only 插件），放顶层执行会让 /result 直接 500。
 onMounted(async () => {
+  await loadResult()
   if (!result.value) {
     router.push('/')
   }
-
-
 })
 
 function retakeTest() {

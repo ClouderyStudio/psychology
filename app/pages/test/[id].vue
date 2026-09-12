@@ -95,6 +95,23 @@
                   <div class="font-semibold mb-1" style="color: var(--primary);">👥 适配人群</div>
                   <p class="leading-relaxed" style="color: var(--text-secondary);">{{ test.intro?.audience }}</p>
                 </div>
+                <!-- 覆盖边界：明确写出本量表不测什么，避免被读成「查得全」 -->
+                <div v-if="test.intro?.coverage">
+                  <div class="font-semibold mb-1" style="color: var(--primary);">🧭 覆盖范围与边界</div>
+                  <p class="leading-relaxed whitespace-pre-line" style="color: var(--text-secondary);">{{ test.intro?.coverage }}</p>
+                </div>
+                <div v-if="test.intro?.related?.length">
+                  <div class="font-semibold mb-2" style="color: var(--primary);">🔗 相关量表</div>
+                  <div class="space-y-2">
+                    <button v-for="rel in test.intro.related" :key="rel.id" type="button"
+                      @click="goRelatedTest(rel.id)"
+                      class="w-full text-left p-3 rounded-lg transition-colors"
+                      style="background-color: var(--bg); border: 1px solid var(--border);">
+                      <div class="font-medium" style="color: var(--primary);">{{ rel.title }} →</div>
+                      <p class="text-xs mt-1 leading-relaxed" style="color: var(--text-secondary);">{{ rel.reason }}</p>
+                    </button>
+                  </div>
+                </div>
               </div>
             </div>
 
@@ -153,7 +170,31 @@
                       style="background-color: var(--card-bg); color: var(--text-secondary); border: 1px solid var(--border);">切换模式</button>
                   </span>
                 </div>
-                <label class="flex items-start p-4 rounded-lg cursor-pointer transition-all" style="background-color: var(--bg);">
+                <!-- 作答方式：代答会改变结果的含义，先选清楚再开始 -->
+                <div class="mt-3 p-4 rounded-lg" style="background-color: var(--bg);">
+                  <div class="font-semibold" style="color: var(--text);">🧑‍🤝‍🧑 谁来作答</div>
+                  <p class="text-sm mt-1 mb-3" style="color: var(--text-secondary);">
+                    代答会降低结果可靠性：可被观察到的行为（睡眠、发脾气）容易被高估，
+                    只有本人才知道的内在体验（情绪低落、空虚、自伤念头）容易被低估。
+                  </p>
+                  <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                    <label v-for="opt in respondentOptions" :key="opt.value"
+                      class="flex items-start p-3 rounded-lg cursor-pointer transition-all"
+                      :style="{
+                        backgroundColor: respondent === opt.value ? 'var(--primary-light)' : 'var(--card-bg)',
+                        border: respondent === opt.value ? '1px solid var(--primary)' : '1px solid var(--border)'
+                      }">
+                      <input type="radio" :value="opt.value" v-model="respondent" class="w-4 h-4 mr-3 mt-0.5"
+                        :style="{ accentColor: 'var(--primary)' }">
+                      <div>
+                        <div class="font-medium text-sm" style="color: var(--text);">{{ opt.label }}</div>
+                        <p class="text-xs mt-1" style="color: var(--text-secondary);">{{ opt.desc }}</p>
+                      </div>
+                    </label>
+                  </div>
+                </div>
+
+                <label class="flex items-start p-4 rounded-lg cursor-pointer transition-all mt-3" style="background-color: var(--bg);">
                   <input type="checkbox" v-model="shuffleOrder" class="w-4 h-4 mr-3 mt-0.5" :style="{ accentColor: 'var(--primary)' }">
                   <div>
                     <div class="font-semibold" style="color: var(--text);">🔀 打乱题目顺序</div>
@@ -464,6 +505,19 @@
             </p>
           </div>
 
+          <!-- 作答范围常驻（第三批报告 6）：各量表窗口并不一致（PHQ-9 两周 / SDS 一周 /
+               YMRS 48 小时 / SDQ-20 一年），而窗口只写在头部说明里，翻页后会滚出视野。
+               量表说明本身不再重复展示——头部已经有了；这里只补它没说的两件事：
+               这次评的是哪个时间段，以及题面里「这些情境」具体指什么。 -->
+          <div v-if="test.timeFrame || test.contextHint" class="px-6 py-3 border-t"
+            style="border-color: var(--primary-light); background-color: var(--bg);">
+            <span v-if="test.timeFrame" class="text-xs px-2 py-0.5 rounded-full font-semibold whitespace-nowrap"
+              style="background-color: var(--primary-light); color: var(--primary);">
+              作答范围 · {{ test.timeFrame }}
+            </span>
+            <p v-if="test.contextHint" class="text-xs mt-2" style="color: var(--text-secondary);">{{ test.contextHint }}</p>
+          </div>
+
           <!-- SIOSS 正式模式：答题中持续提示 -->
           <div v-if="isFormalTest" class="formal-top-warning" style="border-radius: 0;">
             <div class="formal-top-warning-icon">⚠️</div>
@@ -484,6 +538,11 @@
                 <span v-if="isFormalTest && SIOSS_DANGER_ITEMS.has(question.id)"
                   class="formal-question-danger-tag">
                   危险信号条目
+                </span>
+                <span v-if="question.window && question.window !== '2w'"
+                  class="inline-block ml-2 align-middle text-xs px-2 py-0.5 rounded-full whitespace-nowrap"
+                  :style="{ backgroundColor: 'var(--primary-light)', color: 'var(--primary)' }">
+                  作答范围 · {{ question.windowLabel }}
                 </span>
               </p>
 
@@ -638,25 +697,44 @@ function setPerPageMode(mode: PerPageMode) {
 
 // 获取题库数据
 // 多维自评量表题目随 ?mode&seed 变化：URL 用响应式 getter，切换模式/换题时自动重新拉取。
-const multidimQuery = computed(() => {
+// URL 未带 mode 时（如从首页卡片 / NavBar「继续测评」进入），回退读取上次保存的模式与种子，
+// 以便恢复同一套题目与作答进度（提交校验也依赖同一套题目）。
+const storedMode = ref('')
+const storedSeed = ref('')
+if (typeof window !== 'undefined' && testId === 'multidim') {
+  storedMode.value = sessionStorage.getItem(`test_${testId}_mode`) || ''
+  storedSeed.value = sessionStorage.getItem(`test_${testId}_seed`) || ''
+}
+
+const effectiveMode = computed(() => {
   if (testId !== 'multidim') return ''
   const m = route.query.mode
-  if (typeof m !== 'string' || !m) return ''
+  return (typeof m === 'string' && m) || storedMode.value
+})
+const effectiveSeed = computed(() => {
+  if (testId !== 'multidim') return ''
   const s = route.query.seed
-  return `?mode=${encodeURIComponent(m)}${typeof s === 'string' && s ? `&seed=${encodeURIComponent(s)}` : ''}`
+  return (typeof s === 'string' && s) || storedSeed.value
+})
+const multidimQuery = computed(() => {
+  if (testId !== 'multidim' || !effectiveMode.value) return ''
+  const seed = effectiveSeed.value
+  return `?mode=${encodeURIComponent(effectiveMode.value)}${seed ? `&seed=${encodeURIComponent(seed)}` : ''}`
 })
 const { data: response, error } = await useFetch(() => `/api/tests/${testId}${multidimQuery.value}`)
-const test = computed(() => {
-  const data = response.value?.data
+const test = computed<any>(() => {
+  const data: any = (response.value as any)?.data
   return Array.isArray(data) ? null : data
 })
+
+// 服务端签发的出题凭证：提交时回传，服务端以凭证内的 mode / seed 为准，
+// 保证「生成题目的参数」与「评分时的参数」一致
+const questionToken = computed(() => (test.value as any)?.questionToken || '')
 
 // ===== 多维自评量表：模式选择 + 乱序复测 =====
 const isMultidim = computed(() => testId === 'multidim')
 const multidimModes = computed<any[]>(() => ((test.value as any)?.modes as any[]) || [])
-const selectedMode = computed(() =>
-  typeof route.query.mode === 'string' && route.query.mode ? route.query.mode : null,
-)
+const selectedMode = computed(() => effectiveMode.value || null)
 const currentModeName = computed(
   () => multidimModes.value.find((m) => m.id === selectedMode.value)?.name || selectedMode.value || '',
 )
@@ -664,7 +742,13 @@ const currentModeName = computed(
 // 切换模式 / 换一套题前，清空当前作答与题序，避免旧题号混入新题集
 function resetForNewQuestionSet() {
   answers.value = {}
+  if (typeof window !== 'undefined') {
+    // 显式移除旧作答：clearAnswers() 会把 currentTestId 置空，导致 saveToSession 不再写入
+    sessionStorage.removeItem(`test_${testId}_answers`)
+  }
   answerStore.clearAnswers()
+  // 重新绑定当前测评，保证换模式后续的作答仍能持续写入进度
+  answerStore.setCurrentTest(testId)
   clearOrder()
   started.value = false
   currentPage.value = 1
@@ -683,9 +767,16 @@ function rerollQuestions() {
   router.replace({ query: { mode: selectedMode.value, seed: String(Date.now()) } })
 }
 
-// 返回模式选择
+// 返回模式选择（同时清除已保存的模式/种子/总数，避免又被自动恢复）
 function changeMode() {
   resetForNewQuestionSet()
+  storedMode.value = ''
+  storedSeed.value = ''
+  if (typeof window !== 'undefined') {
+    sessionStorage.removeItem(`test_${testId}_mode`)
+    sessionStorage.removeItem(`test_${testId}_seed`)
+    sessionStorage.removeItem(`test_${testId}_total`)
+  }
   router.replace({ query: {} })
 }
 
@@ -702,8 +793,19 @@ const started = ref(false)        // 是否已进入答题（每次进入都先�
 const shuffleOrder = ref(false)   // 开始页勾选：是否打乱题目顺序
 const isSubmitting = ref(false)   // 提交中锁：防止重复提交
 
-// 多维自评量表默认开启题目乱序（配合服务端按种子随机抽题，实现乱序复测）
-if (testId === 'multidim') shuffleOrder.value = true
+// 幂等键：一次测评一个 id（进入答题时生成），重复提交只结算一次
+const submissionId = `${testId}-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 10)}`
+
+// 作答来源：默认本人自评。他人代答时服务端会把效度与一致性校验标为不适用，
+// 并在报告里显式标注数据来源
+const respondent = ref<'self' | 'proxy'>('self')
+const respondentOptions = [
+  { value: 'self' as const, label: '本人自评', desc: '由当事人自己按最近的真实感受作答，结果按自评口径解读。' },
+  { value: 'proxy' as const, label: '他人代答', desc: '由家属、朋友或长期陪伴者依据观察作答；报告会标注代答，效度与一致性校验不适用。' },
+]
+
+// 多维自评量表不默认乱序：服务端已按「严重议题优先」排好序（自伤 / 幻觉条目排在前面），
+// 默认乱序会把该安全排序完全打掉。需要乱序复测时由用户在开始页勾选。
 
 // SIOSS 等高敏感量表：勾选"已阅读声明"才可进入
 const formalAcknowledged = ref(false)
@@ -756,7 +858,7 @@ watch(
     const savedOrder = loadOrder()
     if (savedOrder && savedOrder.length === t.questions.length) {
       const byId = new Map<number, any>()
-      t.questions.forEach((q) => byId.set(q.id, q))
+      t.questions.forEach((q: any) => byId.set(q.id, q))
       allQuestions.value = pinNumberLast(savedOrder.map((id) => byId.get(id)).filter(Boolean) as any[])
     } else {
       allQuestions.value = t.questions.slice()
@@ -833,6 +935,28 @@ function ensureRange(id: number, min?: number, max?: number) {
 const requiredQuestions = computed(() => allQuestions.value.filter(q => !isNumberQuestion(q)))
 const requiredIds = computed(() => requiredQuestions.value.map(q => q.id))
 const requiredCount = computed(() => requiredIds.value.length)
+
+// 记录进度元数据：实际必答题目数（分母），供首页卡片 / NavBar「未完成测评」使用。
+// 各量表题量固定，但多维量表随模式变化（20/45/65/105），且 number 题为选答，
+// 因此不能直接用列表里的 questionsCount 当分母。
+watch(requiredCount, (total) => {
+  if (typeof window === 'undefined' || total <= 0) return
+  sessionStorage.setItem(`test_${testId}_total`, String(total))
+}, { immediate: true })
+
+// 多维量表另存当前模式与种子：从首页卡片 / NavBar 继续时据此恢复同一套题目，
+// 既保证进度能续答，也保证提交校验用的题目集合一致。
+watch([selectedMode, effectiveSeed], ([mode, seed]) => {
+  if (typeof window === 'undefined' || testId !== 'multidim') return
+  if (mode) {
+    storedMode.value = mode
+    sessionStorage.setItem(`test_${testId}_mode`, mode)
+  }
+  if (seed) {
+    storedSeed.value = seed
+    sessionStorage.setItem(`test_${testId}_seed`, seed)
+  }
+}, { immediate: true })
 
 // 计算已答题数（仅计必答题）
 const answeredCount = computed(() => requiredIds.value.filter(id => answers.value[id] !== undefined).length)
@@ -914,6 +1038,19 @@ const clearAllAnswers = () => {
 }
 
 // 初始化时加载已保存的答案
+// 从上次作答恢复：定位到最后一题的页码
+// （多维量表从「继续测评」进入时 URL 无 mode，题目要等客户端回退取回后再定位）
+const pendingResumePosition = ref(false)
+function positionToLastAnswered(saved: Record<number, number>) {
+  const answeredIds = Object.keys(saved || {}).map(Number)
+  if (answeredIds.length === 0) return
+  const lastAnsweredId = answeredIds.reduce((max, id) => (id > max ? id : max), 0)
+  const questionIndex = allQuestions.value.findIndex((q) => q.id === lastAnsweredId)
+  if (questionIndex !== -1) {
+    currentPage.value = Math.floor(questionIndex / questionsPerPage.value) + 1
+  }
+}
+
 onMounted(async () => {
   // 恢复上次选择的答题方式（须在任何页码计算之前确定每页题数）
   try {
@@ -937,7 +1074,11 @@ onMounted(async () => {
 
   if (savedAnswers && Object.keys(savedAnswers).length > 0 && canRestore) {
     const completedCount = Object.keys(savedAnswers).length
-    const totalCount = totalQuestions.value
+    // 分母用保存的实际题量：多维量表随模式为 20/45/65/105，且题目可能尚未取回
+    const storedTotal = Number(sessionStorage.getItem(`test_${testId}_total`))
+    const totalCount = totalQuestions.value > 0
+      ? totalQuestions.value
+      : (Number.isFinite(storedTotal) && storedTotal > 0 ? storedTotal : 0)
 
     answers.value = { ...savedAnswers }
 
@@ -945,18 +1086,16 @@ onMounted(async () => {
     started.value = true
 
     if (totalQuestions.value > 0) {
-      const answeredIds = Object.keys(savedAnswers).map(Number)
-      const lastAnsweredId = answeredIds.reduce((max, id) => (id > max ? id : max), 0)
-      const questionIndex = allQuestions.value.findIndex(q => q.id === lastAnsweredId)
-      if (questionIndex !== -1) {
-        currentPage.value = Math.floor(questionIndex / questionsPerPage.value) + 1
-      }
+      positionToLastAnswered(savedAnswers)
+    } else {
+      // 题集尚未就绪，等 allQuestions 填充后再定位
+      pendingResumePosition.value = true
     }
 
     if (completedCount === totalCount && totalCount > 0) {
       $toast.info(`您已完成所有 ${completedCount} 题，请提交测评`, '温馨提示')
     } else {
-      $toast.info(`检测到您上次答题进度：已完成 ${completedCount}/${totalCount} 题`, '继续答题')
+      $toast.info(`检测到您上次答题进度：已完成 ${completedCount}/${totalCount || '?'} 题`, '继续答题')
     }
   } else {
     answers.value = {}
@@ -970,6 +1109,13 @@ onMounted(async () => {
       cancelText: '关闭',
     })
   }
+})
+
+// 题集回退取回后，补上"定位到上次题号"（见 onMounted 中的 pendingResumePosition）
+watch([totalQuestions, allQuestions], () => {
+  if (!pendingResumePosition.value || totalQuestions.value <= 0) return
+  positionToLastAnswered(answerStore.getAnswers() || {})
+  pendingResumePosition.value = false
 })
 
 // 监听答案变化，整体同步 store 与 sessionStorage 并刷新进度
@@ -1095,6 +1241,12 @@ watch(currentPage, (newPage) => {
 })
 
 // 退出确认
+// 跳转到互补量表（如多维自评 → 解离量表）
+function goRelatedTest(id: string) {
+  if (!id) return
+  router.push(`/test/${id}`)
+}
+
 function goBack() {
   if (answeredCount.value > 0 && !isComplete.value) {
     $confirm({
@@ -1152,11 +1304,15 @@ async function doSubmit() {
       testId,
       answers: answers.value,
     }
-    // 多维自评量表：带回评估模式与种子，服务端据此复现同一套题目再做校验
+    // 多维自评量表：带回评估模式、种子与出题凭证，服务端据此复现同一套题目再做校验
     if (isMultidim.value) {
       submitBody.mode = selectedMode.value
-      submitBody.seed = typeof route.query.seed === 'string' ? route.query.seed : undefined
+      submitBody.seed = effectiveSeed.value || undefined
+      if (questionToken.value) submitBody.questionToken = questionToken.value
     }
+    // 幂等键：同一次测评重复提交（双击、超时重试）只结算一次
+    submitBody.submissionId = submissionId
+    submitBody.respondent = respondent.value
 
     const result = await $fetch('/api/submit', {
       method: 'POST',
@@ -1166,16 +1322,24 @@ async function doSubmit() {
     if (result?.success) {
       if (typeof window !== 'undefined') {
         sessionStorage.removeItem(`test_${testId}_answers`)
+        // 清除进度元数据：提交后重新进入应重新选择模式，而不是续答旧题集
+        sessionStorage.removeItem(`test_${testId}_total`)
+        sessionStorage.removeItem(`test_${testId}_mode`)
+        sessionStorage.removeItem(`test_${testId}_seed`)
         window.dispatchEvent(new CustomEvent('refreshProgress'))
         window.dispatchEvent(new CustomEvent('newResult'))  // 触发新结果事件
       }
+      storedMode.value = ''
+      storedSeed.value = ''
 
       answerStore.clearAnswers()
 
-      answerStore.setResult(result.data)
+      // 结果写入本机存档（一次测评一条记录），带上记录键跳转，
+      // 刷新结果页时仍定位到本次记录，而不是笼统的「最近一次结果」
+      const recordKey = answerStore.setResult(result.data)
 
       $toast.success('测评提交成功！', '完成')
-      await router.push('/result')
+      await router.push(recordKey ? { path: '/result', query: { key: recordKey } } : '/result')
     }
   } catch (error: any) {
     console.error('提交失败', error)

@@ -1,7 +1,20 @@
 import { describe, it, expect } from "vitest";
-import { calculateScore } from "../server/utils/score";
+import { calculateScore, isRespondentMode } from "../server/utils/score";
+import { MID60_SUBSCALES } from "../server/utils/scoring-rules/scoreMID60";
+import { mid60Questions } from "../server/utils/questions/mid60-questions";
+import { DES2_SUBSCALES } from "../server/utils/scoring-rules/scoreDES2";
+import { des2Questions } from "../server/utils/questions/des2-questions";
 import { bisQuestions } from "../server/utils/questions/bis-questions";
-import { buildMultidimQuestions } from "../server/utils/questions/multidim-questions";
+import {
+  MULTIDIM_BASE_MAINS,
+  MULTIDIM_QUESTION_WINDOWS,
+  MULTIDIM_TRAIT_ORDER,
+  MULTIDIM_WINDOW_LABEL,
+  buildMultidimQuestions,
+  multidimQuestionById,
+  multidimQuestions,
+  multidimWindowOf,
+} from "../server/utils/questions/multidim-questions";
 
 /** 生成 count 道题、每题 value 的作答 */
 function full(count: number, value: number): Record<number, number> {
@@ -238,12 +251,128 @@ describe("评分边界与维度补充", () => {
     expect(r.dimensionScores?.liking?.avg).toBe(1);
   });
 
+  // 第三批报告 5：子维度分数曾超过自己声明的上限（20 vs 声明 max 16）
+  it("RSES：子维度分数永远不超过声明的上限（各 5 题 × 4 分 = 20）", () => {
+    expect(calculateScore({ testId: "rses", answers: full(10, 1) }).dimensionScores?.competence?.max).toBe(20);
+    expect(calculateScore({ testId: "rses", answers: full(10, 1) }).dimensionScores?.liking?.max).toBe(20);
+
+    // 穷举所有"全选同一档"的极端作答，以及若干混合模式
+    const patterns: Record<number, number>[] = [1, 2, 3, 4].map((v) => full(10, v));
+    const pos = [1, 2, 4, 6, 7];
+    const neg = [3, 5, 8, 9, 10];
+    for (const v of [1, 2, 3, 4]) {
+      for (const w of [1, 2, 3, 4]) {
+        const a: Record<number, number> = {};
+        pos.forEach((i) => (a[i] = v));
+        neg.forEach((i) => (a[i] = w));
+        patterns.push(a);
+      }
+    }
+    for (const answers of patterns) {
+      const d = calculateScore({ testId: "rses", answers }).dimensionScores || {};
+      for (const k of ["competence", "liking"]) {
+        expect(d[k].score).toBeGreaterThanOrEqual(5);
+        expect(d[k].score).toBeLessThanOrEqual(d[k].max);
+      }
+      // 两因子之和恒等于总分：5 题正向原始分 + 5 题反向折算分
+      expect(d.competence.score + d.liking.score).toBe(
+        calculateScore({ testId: "rses", answers }).totalScore,
+      );
+    }
+  });
+
+  it("RSES：两个因子按措辞方向划分，全选同一档时数值恒为 5 与 20 对调", () => {
+    const low = calculateScore({ testId: "rses", answers: full(10, 1) }).dimensionScores;
+    expect(low?.competence?.score).toBe(5);
+    expect(low?.liking?.score).toBe(20);
+
+    const high = calculateScore({ testId: "rses", answers: full(10, 4) }).dimensionScores;
+    expect(high?.competence?.score).toBe(20);
+    expect(high?.liking?.score).toBe(5);
+
+    // 两种极端作答总分相同（反向题等幅抵消），这正是"不能只用总分判读"的原因，
+    // 因此结果里必须带上措辞方向的说明
+    expect(calculateScore({ testId: "rses", answers: full(10, 1) }).totalScore).toBe(25);
+    expect(calculateScore({ testId: "rses", answers: full(10, 4) }).totalScore).toBe(25);
+    expect(String(high?.note)).toContain("措辞方向");
+    expect(high?.competence?.name).toContain("正向表述题");
+    expect(high?.liking?.name).toContain("反向表述题");
+  });
+
   // —— PSS 两因子：无助感 / 自我效能 ——
-  it("PSS：全 4 → 无助感维度 24、掌控感维度 0", () => {
+  it("PSS：全 4 → 无助感 24、掌控感 16（方向与条目语义一致）", () => {
     const r = calculateScore({ testId: "pss", answers: full(10, 4) });
     expect(r.totalScore).toBe(24);
     expect(r.dimensionScores?.helplessness?.score).toBe(24);
-    expect(r.dimensionScores?.selfEfficacy?.score).toBe(0);
+    expect(r.dimensionScores?.selfEfficacy?.score).toBe(16);
+    expect(r.dimensionScores?.selfEfficacy?.avg).toBe(4);
+  });
+
+  // 第三批报告 4：掌控感子维度曾把「正向题反向折算」用到自己身上，
+  // 方向翻转一次，导致最没有掌控感的人拿到满分
+  it("PSS：全 0（从不）→ 掌控感 0/16 且描述为偏弱，不再误报抗压能力强", () => {
+    const r = calculateScore({ testId: "pss", answers: full(10, 0) });
+    const eff = r.dimensionScores?.selfEfficacy;
+    expect(eff?.score).toBe(0);
+    expect(eff?.max).toBe(16);
+    expect(eff?.avg).toBe(0);
+    expect(eff?.desc).toContain("掌控感偏弱");
+    expect(eff?.desc).not.toContain("抗压能力强");
+    // 无助感同为 0，总分 16 属"压力水平较低"——两个子维度方向不再打架
+    expect(r.dimensionScores?.helplessness?.score).toBe(0);
+  });
+
+  it("PSS：正向题作答越高 → 掌控感越高、总分越低（两处方向相反是对的）", () => {
+    const NEG = [1, 2, 3, 6, 9, 10]; // 负向表述：不可控感 / 无助
+    const POS = [4, 5, 7, 8]; // 正向表述：掌控感 / 自我效能
+    const build = (neg: number, pos: number) => {
+      const a: Record<number, number> = {};
+      for (const i of NEG) a[i] = neg;
+      for (const i of POS) a[i] = pos;
+      return a;
+    };
+
+    // 负向题固定为"从不"，只动正向题：这是唯一能单独观察方向的对照
+    const low = calculateScore({ testId: "pss", answers: build(0, 0) });
+    const high = calculateScore({ testId: "pss", answers: build(0, 4) });
+    expect(low.dimensionScores?.selfEfficacy?.score).toBe(0);
+    expect(high.dimensionScores?.selfEfficacy?.score).toBe(16);
+    // 子维度越高越有掌控感；总分因反向折算反而下降
+    expect(high.dimensionScores?.selfEfficacy?.score).toBeGreaterThan(
+      low.dimensionScores?.selfEfficacy?.score,
+    );
+    expect(low.totalScore).toBe(16);
+    expect(high.totalScore).toBe(0);
+
+    // 逐题验证：只把第 4/5/7/8 题调高，掌控感 +2、总分 -2
+    for (const id of POS) {
+      const a = build(2, 2);
+      const before = calculateScore({ testId: "pss", answers: a });
+      a[id] = 4;
+      const after = calculateScore({ testId: "pss", answers: a });
+      expect(after.dimensionScores?.selfEfficacy?.score).toBe(
+        (before.dimensionScores?.selfEfficacy?.score as number) + 2,
+      );
+      expect(after.totalScore).toBe(before.totalScore - 2);
+    }
+    // 无助感条目则相反：调高 → 总分升、掌控感不变
+    const b = build(2, 2);
+    b[3] = 4;
+    const afterHelpless = calculateScore({ testId: "pss", answers: b });
+    expect(afterHelpless.dimensionScores?.helplessness?.score).toBe(14);
+    expect(afterHelpless.dimensionScores?.selfEfficacy?.score).toBe(8);
+    expect(afterHelpless.totalScore).toBe(22);
+  });
+
+  it("PSS：两个子维度的上限与题数一致（无助感 6 题 24、掌控感 4 题 16）", () => {
+    const r = calculateScore({ testId: "pss", answers: full(10, 4) });
+    expect(r.dimensionScores?.helplessness?.max).toBe(24);
+    expect(r.dimensionScores?.selfEfficacy?.max).toBe(16);
+    for (const k of ["helplessness", "selfEfficacy"]) {
+      const d = r.dimensionScores?.[k];
+      expect(d.score).toBeLessThanOrEqual(d.max);
+      expect(d.score).toBeGreaterThanOrEqual(0);
+    }
   });
 
   // —— SDS 精神运动维度（反向折算）——
@@ -467,35 +596,84 @@ describe("SIOSS / BIS-11 / BPAQ / YMRS / ISI 计分（2026-09 新增）", () => 
     expect(r.level).toBe("结果参考价值有限（掩饰倾向明显）");
   });
 
-  // —— BIS-11 Barratt 冲动性量表：30 题 1-5，反向题 6-score，满分 150 ——
-  it("BIS-11：全选 1 → 反向题折算为 5，总分 74、中等冲动", () => {
+  // —— BIS-11 Barratt 冲动性量表：30 题 1-5，11 题反向计分 ——
+  // 反向题把总分范围压窄：全选 1 → 19 正向×1 + 11 反向×5 = 74，全选 5 → 106。
+  // 分档切点必须按可达区间 74–106 设置，否则「低冲动倾向」永远不可达（第三批报告 1）。
+  it("BIS-11：全选最低档 → 总分 74，落在最低一档（旧实现误判为中等冲动）", () => {
     const r = calculateScore({ testId: "bis", answers: full(30, 1) });
     expect(r.totalScore).toBe(74); // 19 正向×1 + 11 反向×(6-1)
-    expect(r.maxScore).toBe(150);
-    expect(r.level).toBe("中等冲动倾向");
+    expect(r.level).toBe("低冲动倾向");
+    expect(r.severity).toBe(0);
     expect(r.dimensionScores?.attention?.score).toBe(22);
     expect(r.dimensionScores?.motor?.score).toBe(26);
     expect(r.dimensionScores?.nonplanning?.score).toBe(26);
   });
 
-  it("BIS-11：全选 2 → 总分 82 → 较高冲动；全选 3 → 总分 90 → 高冲动", () => {
-    const up = calculateScore({ testId: "bis", answers: full(30, 2) });
-    expect(up.totalScore).toBe(82);
-    expect(up.level).toBe("较高冲动倾向");
-    const high = calculateScore({ testId: "bis", answers: full(30, 3) });
-    expect(high.totalScore).toBe(90);
-    expect(high.level).toBe("高冲动倾向");
+  it("BIS-11：全选最高档 → 总分 106，落在最高一档", () => {
+    const r = calculateScore({ testId: "bis", answers: full(30, 5) });
+    expect(r.totalScore).toBe(106);
+    expect(r.level).toBe("高冲动倾向");
+    expect(r.severity).toBe(1);
   });
 
-  it("BIS-11：反向题答 5、其余答 1 → 每题均折算 1 分，总分 30（地板）", () => {
-    const a: Record<number, number> = {};
-    for (const q of bisQuestions) a[q.id] = q.reverse ? 5 : 1;
-    const r = calculateScore({ testId: "bis", answers: a });
-    expect(r.totalScore).toBe(30);
-    expect(r.level).toBe("低冲动倾向");
-    expect(r.dimensionScores?.attention?.score).toBe(10);
-    expect(r.dimensionScores?.motor?.score).toBe(10);
-    expect(r.dimensionScores?.nonplanning?.score).toBe(10);
+  it("BIS-11：低/中低/中高/高四档全部可达", () => {
+    const mid = calculateScore({ testId: "bis", answers: full(30, 3) });
+    expect(mid.totalScore).toBe(90); // 均值 3 → 正反向折算后仍为 3
+    expect(mid.level).toBe("中等偏高冲动倾向");
+    expect(mid.severity).toBe(0.5);
+
+    expect(calculateScore({ testId: "bis", answers: full(30, 2) }).level).toBe(
+      "中等偏低冲动倾向",
+    );
+    expect(calculateScore({ testId: "bis", answers: full(30, 4) }).level).toBe("高冲动倾向");
+
+    // 四档标签互不相同，且不出现「理论满分 150 却达不到」的档位落空
+    const levels = new Set(
+      [1, 2, 3, 4, 5].map(
+        (v) => calculateScore({ testId: "bis", answers: full(30, v) }).level,
+      ),
+    );
+    expect(levels.size).toBeGreaterThanOrEqual(3);
+  });
+
+  it("BIS-11：分数口径写明可达区间，分母不再用理论满分 150", () => {
+    const r = calculateScore({ testId: "bis", answers: full(30, 3) });
+    expect(r.minScore).toBe(74);
+    expect(r.maxScore).toBe(106);
+    expect(r.scoreNote).toContain("74");
+    expect(r.scoreNote).toContain("106");
+    expect(r.scoreNote).toContain("150"); // 理论满分只作说明
+    expect(r.suggestion).toContain("可达区间 74–106");
+    // 各维度同时给出可达上下限
+    expect(r.dimensionScores?.attention?.min).toBe(22);
+    expect(r.dimensionScores?.attention?.max).toBe(38);
+  });
+
+  it("BIS-11：反向题全部按语义方向计分（题号锁定，防止误改）", () => {
+    // 反向题清单经逐条语义核对：答「总是」代表更不冲动的条目才反向
+    const reverseIds = bisQuestions.filter((q) => q.reverse).map((q) => q.id);
+    expect(reverseIds.sort((a, b) => a - b)).toEqual([
+      1, 10, 11, 13, 14, 15, 16, 20, 21, 22, 24,
+    ]);
+    // 逐题验证：把某题从最低档改到最高档，总分必须按该题方向升降
+    const base = calculateScore({ testId: "bis", answers: full(30, 1) }).totalScore;
+    for (const q of bisQuestions) {
+      const a = full(30, 1);
+      a[q.id] = 5;
+      const delta = calculateScore({ testId: "bis", answers: a }).totalScore - base;
+      expect(delta).toBe(q.reverse ? -4 : 4);
+    }
+  });
+
+  it("BIS-11：语义上明确指向「低冲动」的条目确为反向计分", () => {
+    // 第三批报告用「我能认真思考并完成一项任务」举例，认为它未被反向计分。
+    // 该条在本表中是 id 11，逐题探针显示它确实反向（总分 -4），报告看到的是
+    // 显示序号与题目 id 不一致造成的错位；此用例锁定语义方向。
+    for (const id of [11, 14, 20, 15, 16, 22, 1, 10, 21]) {
+      const a = full(30, 1);
+      a[id] = 5;
+      expect(calculateScore({ testId: "bis", answers: a }).totalScore).toBeLessThan(74);
+    }
   });
 
   // —— BPAQ Buss-Perry 攻击性量表：29 题 1-5 全正向，满分 145 ——
@@ -569,16 +747,89 @@ describe("SIOSS / BIS-11 / BPAQ / YMRS / ISI 计分（2026-09 新增）", () => 
 });
 
 describe("MID-60 多维解离量表", () => {
-  it("全 0 → 总分0，无解离体验", () => {
+  it("全 0 → 总分0，解离体验极低", () => {
     const r = calculateScore({ testId: "mid60", answers: full(60, 0) });
     expect(r.totalScore).toBe(0);
-    expect(r.level).toBe("无解离体验");
+    expect(r.level).toBe("解离体验极低");
   });
 
-  it("全 10 → 总分100，提示严重解离", () => {
+  it("全 10 → 总分100，解离体验极重", () => {
     const r = calculateScore({ testId: "mid60", answers: full(60, 10) });
     expect(r.totalScore).toBe(100);
-    expect(r.level).toBe("严重的解离和创伤后症状");
+    expect(r.level).toBe("极重度解离体验");
+  });
+
+  /* ===== 第三批报告 2：维度归属与障碍名标签 ===== */
+
+  it("每个子量表都接得到自己的题目，没有恒为 0 的维度", () => {
+    // 原实现的「近期遗忘」只装了 42/45/48/58 四条"对自身行为的遗忘"，
+    // 一条"忘记最近发生的事"都没有，导致该维度在遗忘条目答 4-5 分时仍为 0
+    for (const s of MID60_SUBSCALES) {
+      expect(s.items.length).toBeGreaterThan(0);
+      const a = full(60, 0);
+      for (const id of s.items) a[id] = 10;
+      const r = calculateScore({ testId: "mid60", answers: a });
+      expect(r.dimensionScores?.[s.key]?.score).toBe(100);
+    }
+  });
+
+  it("逐题探针：每道题只抬高所属维度，且归属与题目内容一致", () => {
+    const expectMap: Record<number, string> = {
+      1: "amnesia", 6: "trance", 7: "amnesia", 8: "amnesia", 11: "dpdr",
+      17: "dpdr", 20: "amnesia", 21: "fns", 47: "memory-distress", 50: "amnesia",
+    };
+    for (const [idStr, key] of Object.entries(expectMap)) {
+      const id = Number(idStr);
+      const a = full(60, 0);
+      a[id] = 10;
+      const r = calculateScore({ testId: "mid60", answers: a });
+      const moved = MID60_SUBSCALES.filter((s) => r.dimensionScores?.[s.key]?.score > 0).map(
+        (s) => s.key,
+      );
+      expect(moved).toEqual([key]);
+      // 同一道题在题库里的 dimension 字段必须与计分侧一致
+      expect(mid60Questions.find((q) => q.id === id)?.dimension).toBe(key);
+    }
+  });
+
+  it("忘记最近发生的事时「近期遗忘」不再输出 0", () => {
+    const a = full(60, 0);
+    a[1] = 5;
+    a[8] = 4;
+    a[20] = 5;
+    const r = calculateScore({ testId: "mid60", answers: a });
+    expect(r.dimensionScores?.amnesia?.score).toBeGreaterThan(0);
+    expect(r.dimensionScores?.amnesia?.above).toBe(true);
+    // 记忆困扰只保留"因记忆问题而痛苦/受损"的条目
+    expect(r.dimensionScores?.["memory-distress"]?.score).toBe(0);
+  });
+
+  it("题库与计分侧的子量表成员必须完全一致，且覆盖全部 60 题", () => {
+    const covered = MID60_SUBSCALES.flatMap((s) => s.items);
+    expect(covered).toHaveLength(60);
+    expect(new Set(covered).size).toBe(60);
+    expect(covered.slice().sort((x, y) => x - y)).toEqual(
+      Array.from({ length: 60 }, (_, i) => i + 1),
+    );
+  });
+
+  it("总评标签只描述症状强度，不输出障碍名（第三批报告 2）", () => {
+    const r = calculateScore({ testId: "mid60", answers: full(60, 7) });
+    // level 是全站展示的等级标签，不得出现诊断名
+    for (const term of ["DID", "OSDD", "PTSD", "解离性身份障碍", "障碍"]) {
+      expect(r.level).not.toContain(term);
+    }
+    // 障碍名只允许出现在明确标注为"文献对照"的说明里
+    expect(r.suggestion).toContain("文献对照（不是诊断结论）");
+    expect(r.suggestion).toContain("不是诊断");
+    // 分档对照表随结果下发，区间与文献说明成对出现
+    const ref = r.dimensionScores?.bandReference;
+    expect(Array.isArray(ref)).toBe(true);
+    expect(ref).toHaveLength(7);
+    for (const b of ref) {
+      expect(typeof b.range).toBe("string");
+      expect(typeof b.literature).toBe("string");
+    }
   });
 
   it("自伤题（22）≥5 → 触发安全提示", () => {
@@ -613,12 +864,71 @@ describe("DES-II 解离经验量表", () => {
     expect(mid.level).toBe("中度");
   });
 
-  it("Amnesia 六题置满 → 记忆缺失子量表=100", () => {
-    const a = full(28, 0);
-    [3,4,5,8,25,26].forEach((i) => (a[i] = 100));
-    const r = calculateScore({ testId: "des2", answers: a });
-    expect(r.dimensionScores?.amnesia?.score).toBe(100);
-    expect(r.totalScore).toBeGreaterThan(0);
+  /* ===== 第三批报告 3：子量表分组 ===== */
+
+  it("三个因子覆盖全部 28 题，每个条目都有归属", () => {
+    const covered = DES2_SUBSCALES.flatMap((s) => s.items);
+    expect(covered).toHaveLength(28);
+    expect(new Set(covered).size).toBe(28);
+    expect(covered.slice().sort((x, y) => x - y)).toEqual(
+      Array.from({ length: 28 }, (_, i) => i + 1),
+    );
+    // 题库的 dimension 字段与计分侧必须一致
+    for (const q of des2Questions) {
+      expect(DES2_SUBSCALES.find((s) => s.key === q.dimension)!.items).toContain(q.id);
+    }
+  });
+
+  it("每个因子都能接满自己的题目（逐因子置 100 不影响其他因子）", () => {
+    for (const s of DES2_SUBSCALES) {
+      const a = full(28, 0);
+      for (const id of s.items) a[id] = 100;
+      const r = calculateScore({ testId: "des2", answers: a });
+      expect(r.dimensionScores?.[s.key]?.score).toBe(100);
+      for (const other of DES2_SUBSCALES) {
+        if (other.key === s.key) continue;
+        expect(r.dimensionScores?.[other.key]?.score).toBe(0);
+      }
+    }
+  });
+
+  it("分组表随结果下发，且按题目内容而非原版题号（第三批报告 3）", () => {
+    // 报告里点到的两条错位：「照镜子认不出自己」曾被算作记忆缺失，
+    // 「深度专注/沉浸式想象」曾被算作人格解体
+    const byId = (id: number) => des2Questions.find((q) => q.id === id)?.dimension;
+    expect(byId(8)).toBe("dpdr"); // 照镜子觉得镜中的自己像陌生人
+    expect(byId(11)).toBe("absorption"); // 深度专注于内在活动或手头的事
+    expect(byId(27)).toBe("absorption"); // 聆听音乐时脑中浮现画面
+    expect(byId(13)).toBe("amnesia"); // 发现随身物品被移动却不记得放置
+    expect(byId(10)).toBe("amnesia"); // 突然意识到在某个地点，不记得如何到达
+    expect(byId(19)).toBe("dpdr"); // 熟悉的地方突然感觉格外陌生
+
+    const r = calculateScore({ testId: "des2", answers: full(28, 50) });
+    for (const s of DES2_SUBSCALES) {
+      const d = r.dimensionScores?.[s.key];
+      expect(d.items).toEqual(s.items);
+      expect(d.itemCount).toBe(s.items.length);
+      expect(Number(d.score).toFixed(1)).toBe("50.0");
+    }
+    // 子量表等级不再套用总分的"解离倾向"措辞
+    expect(r.dimensionScores?.amnesia?.level).not.toContain("解离倾向");
+    expect(r.level).toBe("显著解离倾向");
+    expect(r.suggestion).toContain("不能与文献中的分量表数值直接比较");
+    expect(r.suggestion).toContain("覆盖全部 28 题");
+  });
+
+  it("子量表沿用总分区间但区间归属正确", () => {
+    const cases: Array<[number, string]> = [
+      [5, "低（0–11，沿用总分区间）"],
+      [15, "轻度（12–19，沿用总分区间）"],
+      [25, "中度（20–29，沿用总分区间）"],
+      [40, "高（30–45，沿用总分区间）"],
+      [60, "显著（≥46，沿用总分区间）"],
+    ];
+    for (const [v, expected] of cases) {
+      const r = calculateScore({ testId: "des2", answers: full(28, v) });
+      expect(r.dimensionScores?.amnesia?.level).toBe(expected);
+    }
   });
 });
 
@@ -787,11 +1097,51 @@ describe("心理健康多维自评量表（MULTIDIM）", () => {
     return answers;
   }
 
+  /**
+   * 非直线作答：按题号规律让作答值轻微起伏，避免被判为直线作答，
+   * 用于验证计分口径本身（效度题固定取 base）。
+   */
+  function answersWavy(
+    mode: "light" | "fast" | "standard" | "deep",
+    seed: string,
+    base: number,
+    step = base < 0 ? 0.5 : -0.5,
+  ) {
+    const answers: Record<number, number> = {};
+    buildMultidimQuestions(mode, seed).forEach((q, i) => {
+      if (q.kind === "lie") {
+        answers[q.id] = base;
+        return;
+      }
+      const v = i % 5 === 0 ? base + step : base;
+      answers[q.id] = Math.max(-1, Math.min(1, v));
+    });
+    return answers;
+  }
+
   it("四种模式题量分别为 20 / 45 / 65 / 105", () => {
     expect(buildMultidimQuestions("light", "s").length).toBe(20);
     expect(buildMultidimQuestions("fast", "s").length).toBe(45);
     expect(buildMultidimQuestions("standard", "s").length).toBe(65);
     expect(buildMultidimQuestions("deep", "s").length).toBe(105);
+  });
+
+  it("严重议题优先出题：自伤 / 幻觉主问固定排在最前面", () => {
+    const severe = ["suicide", "hallucination", "somatization", "impulse", "paranoia"];
+    for (const mode of ["light", "fast", "standard", "deep"] as const) {
+      for (const seed of ["s1", "s2", "seed-A", "1789217692677"]) {
+        const seq = buildMultidimQuestions(mode, seed);
+        const head = seq.slice(0, severe.length).map((q) => q.trait);
+        // 原实现「先排序再整体洗牌」被洗牌抵消，这里锁死分层顺序
+        expect([...head].sort()).toEqual([...severe].sort());
+        // 自伤主问必须在第 5 题以内被问到
+        const suicideMain = seq.findIndex((q) => q.trait === "suicide" && q.kind === "main");
+        expect(suicideMain).toBeGreaterThanOrEqual(0);
+        expect(suicideMain).toBeLessThan(severe.length);
+        // 效度题不占用主问区
+        expect(seq.slice(0, MULTIDIM_BASE_MAINS).every((q) => q.kind !== "lie")).toBe(true);
+      }
+    }
   });
 
   it("同一种子出题一致，不同种子题目集合不同（乱序复测）", () => {
@@ -802,8 +1152,8 @@ describe("心理健康多维自评量表（MULTIDIM）", () => {
     expect(a).not.toEqual(c);
   });
 
-  it("标准模式全部「不确定」→ 结果良好、效度可信", () => {
-    const r = calculateScore({ testId: "multidim", answers: answersFor("standard", "t1", 0) });
+  it("标准模式整体「不确定」→ 结果良好、效度可信", () => {
+    const r = calculateScore({ testId: "multidim", answers: answersWavy("standard", "t1", 0) });
     const rep: any = r.multidimReport;
     expect(rep.isNormal).toBe(true);
     expect(r.level).toBe("评估结果良好");
@@ -812,20 +1162,115 @@ describe("心理健康多维自评量表（MULTIDIM）", () => {
     expect(rep.credibility.level).toBe("回答一致性 · 高");
   });
 
-  it("标准模式全部「非常符合」→ 检出安全信号、效度存疑、严重度极重度，20 维均有数据", () => {
-    const r = calculateScore({ testId: "multidim", answers: answersFor("standard", "t2", 1) });
+  it("标准模式整体「非常符合」→ 检出安全信号、效度存疑、严重度极重度，20 维均有数据", () => {
+    const r = calculateScore({ testId: "multidim", answers: answersWavy("standard", "t2", 1) });
     const rep: any = r.multidimReport;
-    expect(r.totalScore).toBeGreaterThanOrEqual(40);
     expect(rep.severeSignals).toContain("自伤或轻生的念头");
     expect(rep.severeSignals).toContain("幻觉体验（听到或看到不存在的事物）");
     expect(rep.lie.level).toBe("回答一致性存疑");
     expect(rep.severity.level).toBe("极重度");
     expect(rep.traits.filter((t: any) => !t.noData)).toHaveLength(20);
-    expect(rep.matches.length).toBeGreaterThan(0);
+    expect(rep.severity.elevated).toBe(20);
+    expect(r.level).toContain("多维特征自评");
   });
 
-  it("标准模式全部「完全不符合」→ 未见异常、结果良好", () => {
-    const r = calculateScore({ testId: "multidim", answers: answersFor("standard", "t3", -1) });
+  /* ===== 补充报告 D4：知情者代答 ===== */
+
+  it("代答时效度与一致性校验标为不适用，并标注数据来源", () => {
+    const answers = answersWavy("standard", "t7", 1);
+    const proxy: any = calculateScore({
+      testId: "multidim",
+      answers,
+      mode: "standard",
+      respondent: "proxy",
+    }).multidimReport;
+
+    expect(proxy.respondent.mode).toBe("proxy");
+    expect(proxy.respondent.label).toContain("代答");
+    // 代答说明必须点出「高估可观察行为、低估内在体验」这一系统性偏差
+    expect(proxy.respondent.notice).toContain("低估");
+    expect(proxy.respondent.notice).toContain("高估");
+
+    // 掩饰题与主问-复问一致率都是为自评设计的，代答不适用
+    expect(proxy.lie.level).toBe("不适用（知情者代答）");
+    expect(proxy.lie.alert).toBe(false);
+    expect(proxy.credibility.level).toBe("回答一致性 · 不适用（知情者代答）");
+    expect(proxy.credibility.rate).toBe(0);
+
+    // 维度分与安全信号不受作答来源影响，仍按同一套口径计算
+    expect(proxy.severity.elevated).toBe(20);
+    expect(proxy.severeSignals.length).toBeGreaterThan(0);
+  });
+
+  it("自评（默认）不受代答分支影响", () => {
+    const answers = answersWavy("standard", "t7", 1);
+    const self: any = calculateScore({ testId: "multidim", answers, mode: "standard" })
+      .multidimReport;
+    expect(self.respondent.mode).toBe("self");
+    expect(self.respondent.label).toBe("本人自评");
+    expect(self.respondent.notice).toBe("");
+    expect(self.credibility.level).toBe("回答一致性 · 高");
+    expect(self.lie.level).toBe("回答一致性存疑");
+  });
+
+  it("代答 + 直线作答仍判无效（作答行为问题优先于来源标注）", () => {
+    const rep: any = calculateScore({
+      testId: "multidim",
+      answers: answersAll({}),
+      mode: "standard",
+      respondent: "proxy",
+    }).multidimReport;
+    expect(rep.validity.valid).toBe(false);
+    expect(rep.summary.level).toBe("作答无效");
+    expect(rep.lie.alert).toBe(true);
+  });
+
+  it("respondent 取值校验：只有 self / proxy 被接受", () => {
+    expect(isRespondentMode("self")).toBe(true);
+    expect(isRespondentMode("proxy")).toBe(true);
+    for (const bad of ["SELF", "proxy ", "", null, undefined, 0, {}, "other"]) {
+      expect(isRespondentMode(bad)).toBe(false);
+    }
+  });
+
+  it("结果不再输出障碍名与吻合度百分比（P0-2 / P1-1 / P1-2）", () => {
+    const r = calculateScore({ testId: "multidim", answers: answersWavy("standard", "t6", 1) });
+    const rep: any = r.multidimReport;
+    // 判别式匹配的三类输出全部下线
+    expect(rep.matches).toBeUndefined();
+    expect(rep.conditions).toBeUndefined();
+    expect(rep.confidence).toBeUndefined();
+    expect(rep.summary.matchText).toBeUndefined();
+
+    // 整个响应里不得出现任何诊断名或「吻合度」字样
+    const payload = JSON.stringify(r);
+    for (const term of [
+      "抑郁障碍",
+      "焦虑障碍",
+      "边缘型",
+      "自闭症",
+      "精神分裂",
+      "强迫症",
+      "双相",
+      "PTSD",
+      "ADHD",
+      "吻合度",
+    ]) {
+      expect(payload).not.toContain(term);
+    }
+
+    // 总分位不再被当作分数读：本量表不产出可累加的总分
+    expect(r.totalScore).toBe(0);
+    expect(r.maxScore).toBe(0);
+
+    // 严重度仍可用，且语义为「困扰覆盖面」
+    expect(rep.severity.pct).toBe(100);
+    expect(rep.summary.elevated).toBe(20);
+    expect(rep.summary.traitTotal).toBe(20);
+  });
+
+  it("标准模式整体「完全不符合」→ 未见异常、结果良好", () => {
+    const r = calculateScore({ testId: "multidim", answers: answersWavy("standard", "t3", -1) });
     const rep: any = r.multidimReport;
     expect(rep.isNormal).toBe(true);
     expect(rep.severity.level).toBe("未见异常");
@@ -833,10 +1278,281 @@ describe("心理健康多维自评量表（MULTIDIM）", () => {
   });
 
   it("极简模式（20 题，无复问/效度题）→ 效度与一致性为空，20 维仍有数据", () => {
-    const r = calculateScore({ testId: "multidim", answers: answersFor("light", "t4", 1) });
+    const r = calculateScore({ testId: "multidim", answers: answersWavy("light", "t4", 1) });
     const rep: any = r.multidimReport;
     expect(rep.lie).toBeNull();
     expect(rep.credibility).toBeNull();
     expect(rep.traits.filter((t: any) => !t.noData)).toHaveLength(20);
+  });
+
+  /* ===== 问题报告 P0-1 / P1-3 的回归用例 ===== */
+
+  /** 全题库按同一作答值填充，再覆写个别题号；不依赖抽题种子 */
+  function answersAll(overrides: Record<number, number>, base = -1) {
+    const answers: Record<number, number> = {};
+    for (const q of multidimQuestions) answers[q.id] = base;
+    return Object.assign(answers, overrides);
+  }
+
+  it("第 86 题（被害 / 关系观念）归属 paranoia，不再计入幻觉维度", () => {
+    expect(multidimQuestionById[86].trait).toBe("paranoia");
+    // 幻觉维度只保留真正描述感知异常的条目
+    const hallucinationIds = multidimQuestions
+      .filter((q) => q.trait === "hallucination")
+      .map((q) => q.id);
+    expect(hallucinationIds).not.toContain(86);
+    expect(hallucinationIds).toContain(13);
+  });
+
+  it("仅第 86 题肯定作答 → 不再触发幻觉安全提示（被害观念不冒充精神病性体验）", () => {
+    const r = calculateScore({ testId: "multidim", answers: answersAll({ 86: 1 }) });
+    const rep: any = r.multidimReport;
+    expect(rep.severeSignals).not.toContain("幻觉体验（听到或看到不存在的事物）");
+    expect(rep.severeSignals).toHaveLength(0);
+    expect(rep.severeSignalDetails).toHaveLength(0);
+    // 幻觉维度维持「未见异常」，与安全提示不再互相矛盾
+    const hallucination = rep.traits.find((t: any) => t.trait === "hallucination");
+    expect(hallucination.levelKind).toBe("none");
+  });
+
+  it("仅感知异常主问（第 13 题）肯定作答 → 触发幻觉提示，并解释与维度分的差异", () => {
+    const r = calculateScore({ testId: "multidim", answers: answersAll({ 13: 1 }) });
+    const rep: any = r.multidimReport;
+    expect(rep.severeSignals).toContain("幻觉体验（听到或看到不存在的事物）");
+    const detail = rep.severeSignalDetails.find((s: any) => s.trait === "hallucination");
+    expect(detail.itemIds).toContain(13);
+    // 条目级触发时必须给出解释，而不是与「未见异常」并列
+    expect(detail.detail).toContain("13");
+    expect(detail.detail).toContain("条目级提示");
+    // 维度分与安全提示冲突时，总览以安全信号为准并指向说明，不再并列「未见异常」
+    expect(rep.summary.level).toBe("需优先处理");
+    const hallucination = rep.traits.find((t: any) => t.trait === "hallucination");
+    expect(hallucination.levelKind).toBe("none");
+  });
+
+  it("仅感知异常追问（第 71 题）肯定作答 → 只给关注方向，不升级为精神病性安全提示", () => {
+    const r = calculateScore({ testId: "multidim", answers: answersAll({ 71: 1 }) });
+    const rep: any = r.multidimReport;
+    expect(rep.severeSignals).toHaveLength(0);
+    expect(rep.concernSignals).toContain("对感知异常的担忧（主诉条目未肯定）");
+  });
+
+  it("被害观念与冲动攻击只进关注信号，与幻觉安全提示分离", () => {
+    const paranoiaIds = multidimQuestions.filter((q) => q.trait === "paranoia").map((q) => q.id);
+    const impulseIds = multidimQuestions.filter((q) => q.trait === "impulse").map((q) => q.id);
+    const positives: Record<number, number> = {};
+    for (const id of [...paranoiaIds, ...impulseIds]) positives[id] = 1;
+    const r = calculateScore({ testId: "multidim", answers: answersAll(positives) });
+    const rep: any = r.multidimReport;
+    expect(rep.severeSignals).toHaveLength(0);
+    expect(rep.concernSignals).toContain("强烈的被害 / 关系观念");
+    expect(rep.concernSignals).toContain("难以控制的冲动或攻击行为");
+  });
+
+  it("自伤 / 轻生按条目触发（安全优先），单题肯定即可触发", () => {
+    const r = calculateScore({ testId: "multidim", answers: answersAll({ 105: 1 }) });
+    const rep: any = r.multidimReport;
+    expect(rep.severeSignals).toContain("自伤或轻生的念头");
+    const detail = rep.severeSignalDetails.find((s: any) => s.trait === "suicide");
+    expect(detail.itemIds).toEqual([105]);
+    expect(detail.detail).toContain("安全筛查条目按单题处理");
+  });
+
+  it("效度字段语义：score / items / hits / rate，阈值按题量归一化", () => {
+    const r = calculateScore({ testId: "multidim", answers: answersWavy("standard", "t5", 1) });
+    const rep: any = r.multidimReport;
+    expect(rep.lie.items).toBe(5);
+    expect(rep.lie.score).toBeCloseTo(5, 5);
+    expect(rep.lie.hits).toBe(5);
+    expect(rep.lie.rate).toBeCloseTo(1, 5);
+    expect(rep.lie.level).toBe("回答一致性存疑");
+    // 语义颠倒的旧字段名不再出现
+    expect(rep.lie.total).toBeUndefined();
+    expect(rep.lie.count).toBeUndefined();
+  });
+
+  it("效度题不再包含与理想化无关的「读心」条目", () => {
+    const lieTexts = multidimQuestions.filter((q) => q.kind === "lie").map((q) => q.text);
+    expect(lieTexts).toHaveLength(5);
+    expect(lieTexts.some((t) => t.includes("猜到别人接下来"))).toBe(false);
+  });
+
+  /* ===== 问题报告 P0-3 / P0-4 的回归用例 ===== */
+
+  it("直线作答（全选同一选项）→ 判定为作答无效，不再输出「评估结果良好」", () => {
+    for (const value of [1, 0.5, 0, -0.5, -1]) {
+      const r = calculateScore({
+        testId: "multidim",
+        answers: answersFor("standard", "flat", value),
+      });
+      const rep: any = r.multidimReport;
+      expect(rep.validity.valid).toBe(false);
+      expect(rep.validity.responseStyle.flat).toBe(true);
+      expect(rep.isNormal).toBe(false);
+      expect(rep.summary.level).toBe("作答无效");
+      expect(rep.advice.overallKind).toBe("invalid");
+      expect(r.level).toContain("作答无效");
+      expect(r.totalScore).toBe(0);
+      expect(r.severity).toBe(0);
+    }
+  });
+
+  it("直线作答下效度与一致性校验一并失效，不再给无效作答背书", () => {
+    const r = calculateScore({ testId: "multidim", answers: answersFor("standard", "flat2", -1) });
+    const rep: any = r.multidimReport;
+    // 旧实现：全选「完全不符合」→ 回答一致性·高 + 效度可信 + 评估结果良好
+    expect(rep.credibility.level).toContain("不适用");
+    expect(rep.credibility.rate).toBe(0);
+    expect(rep.lie.level).toBe("不适用（直线作答）");
+    expect(rep.lie.alert).toBe(true);
+  });
+
+  it("非直线但整体否认的作答仍判为有效", () => {
+    const r = calculateScore({ testId: "multidim", answers: answersWavy("standard", "ok", -1) });
+    const rep: any = r.multidimReport;
+    expect(rep.validity.valid).toBe(true);
+    expect(rep.validity.responseStyle.flat).toBe(false);
+    expect(rep.isNormal).toBe(true);
+  });
+
+  it("总评由维度分布决定：单条题目不再能拉动总评等级", () => {
+    // 全库否认，仅第 86 题肯定 → 20 维全部未见异常，总评也必须是未见异常
+    const quiet = calculateScore({ testId: "multidim", answers: answersAll({ 86: 1 }) });
+    const quietRep: any = quiet.multidimReport;
+    expect(quietRep.severity.level).toBe("未见异常");
+    expect(quiet.level).toBe("评估结果良好");
+
+    // 反向：其余题目全部最重，只把第 86 题答成「不太符合」→ 总评不得回落为正常
+    const heavy = calculateScore({ testId: "multidim", answers: answersAll({ 86: -0.5 }, 1) });
+    const heavyRep: any = heavy.multidimReport;
+    expect(["重度", "极重度"]).toContain(heavyRep.severity.level);
+  });
+
+  it("严重度百分比语义为「困扰覆盖面」，不再是把均值拉伸到 50-100", () => {
+    const rep: any = calculateScore({
+      testId: "multidim",
+      answers: answersWavy("standard", "cov", 0, -0.5),
+    }).multidimReport;
+    expect(rep.severity.marked).toBe(0);
+    expect(rep.severity.elevated).toBe(0);
+    expect(rep.severity.pct).toBe(0); // 旧实现恒为 50
+    expect(rep.severity.level).toBe("正常");
+  });
+
+  it("整体作答加重时严重度等级与覆盖面单调不降", () => {
+    const rank: Record<string, number> = {
+      未见异常: 0,
+      正常: 1,
+      轻度: 2,
+      中度: 3,
+      重度: 4,
+      极重度: 5,
+    };
+    /** 前 positiveDims 个维度整体肯定、其余整体否认；每维度末题各降一档避免被判为直线作答 */
+    const build = (positiveDims: number) => {
+      const answers: Record<number, number> = {};
+      const byTrait = new Map<string, number[]>();
+      for (const q of multidimQuestions) {
+        if (q.kind === "lie") {
+          answers[q.id] = -1;
+          continue;
+        }
+        const list = byTrait.get(q.trait) ?? [];
+        list.push(q.id);
+        byTrait.set(q.trait, list);
+      }
+      MULTIDIM_TRAIT_ORDER.forEach((trait, idx) => {
+        const ids = byTrait.get(trait) ?? [];
+        const on = idx < positiveDims;
+        ids.forEach((id, i) => {
+          const last = i === ids.length - 1;
+          answers[id] = on ? (last ? 0.5 : 1) : last ? -0.5 : -1;
+        });
+      });
+      return answers;
+    };
+
+    const rows = [1, 6, 12, 19].map((n) => {
+      const rep: any = calculateScore({ testId: "multidim", answers: build(n) }).multidimReport;
+      expect(rep.validity.valid).toBe(true);
+      return { n, level: rank[rep.severity.level]!, pct: rep.severity.pct };
+    });
+    for (let i = 1; i < rows.length; i++) {
+      expect(rows[i]!.level).toBeGreaterThanOrEqual(rows[i - 1]!.level);
+      expect(rows[i]!.pct).toBeGreaterThanOrEqual(rows[i - 1]!.pct);
+    }
+    expect(rows[rows.length - 1]!.level).toBeGreaterThan(rows[0]!.level);
+  });
+
+  /* ===== 问题报告 P1-1 的回归用例：时间窗口 ===== */
+
+  it("每道题都有明确的时间窗口，且覆盖表只收录真实存在的题号", () => {
+    const ids = new Set(multidimQuestions.map((q) => q.id));
+    for (const q of multidimQuestions) {
+      expect(["2w", "episode", "lifelong"]).toContain(multidimWindowOf(q.id));
+    }
+    for (const key of Object.keys(MULTIDIM_QUESTION_WINDOWS)) {
+      expect(ids.has(Number(key))).toBe(true);
+    }
+    // 三种窗口都有中文标签，供作答页直接展示
+    for (const w of ["2w", "episode", "lifelong"] as const) {
+      expect(MULTIDIM_WINDOW_LABEL[w].length).toBeGreaterThan(0);
+    }
+  });
+
+  it("题干写明「从小」「一直」的归入长期窗口，「有没有过」的归入既往窗口", () => {
+    // 长期 / 发育性条目
+    for (const id of [9, 22, 37, 66, 67, 94, 122]) {
+      expect(multidimWindowOf(id)).toBe("lifelong");
+    }
+    // 既往发作 / 曾经经历
+    for (const id of [3, 6, 18, 46, 86, 88, 131]) {
+      expect(multidimWindowOf(id)).toBe("episode");
+    }
+    // 明确写「最近两周」的仍为默认窗口
+    for (const id of [15, 16, 30]) {
+      expect(multidimWindowOf(id)).toBe("2w");
+    }
+    // 默认窗口占比过半，说明该表只做例外标注
+    const nonDefault = Object.keys(MULTIDIM_QUESTION_WINDOWS).length;
+    expect(nonDefault).toBeLessThan(multidimQuestions.length / 2);
+  });
+
+  it("结果按维度标注时间窗口，跨窗口合成的维度会被点名", () => {
+    const rep: any = calculateScore({
+      testId: "multidim",
+      answers: answersAll({}),
+    }).multidimReport;
+
+    const focusLoss = rep.traits.find((t: any) => t.trait === "focus_loss");
+    expect(focusLoss.windowMixed).toBe(true);
+    expect(focusLoss.windows).toContain("lifelong");
+    expect(focusLoss.windows).toContain("2w");
+
+    const sleepIssue = rep.traits.find((t: any) => t.trait === "sleep_issue");
+    expect(sleepIssue.windowMixed).toBe(true);
+
+    // 全部条目都是最近两周的维度不应被标记
+    const compulsion = rep.traits.find((t: any) => t.trait === "compulsion");
+    expect(compulsion.windowMixed).toBe(false);
+    expect(compulsion.windows).toEqual(["2w"]);
+
+    expect(rep.windowNotice).toContain("跨窗口");
+    expect(rep.mixedWindowTraits.length).toBeGreaterThan(0);
+    expect(rep.mixedWindowTraits.map((x: any) => x.trait)).toContain("focus_loss");
+  });
+
+  it("strongTraits 取信号最强的 4 项，而非题目顺序靠前的 4 项", () => {
+    const selfEsteemIds = multidimQuestions
+      .filter((q) => q.trait === "self_esteem")
+      .map((q) => q.id);
+    const overrides: Record<number, number> = {};
+    for (const id of selfEsteemIds) overrides[id] = 1;
+    const rep: any = calculateScore({
+      testId: "multidim",
+      answers: answersAll({ ...overrides, 1: 0.5, 2: 0.5, 3: -1, 4: 0.5, 5: 0.5 }),
+      }).multidimReport;
+    expect(rep.severity.strongTraits).toContain("自我价值感");
+    expect(rep.severity.strongTraits[0]).toBe("自我价值感");
   });
 });

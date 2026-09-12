@@ -186,7 +186,9 @@ export const multidimQuestions: MultidimQuestion[] = [
   { id: 83, trait: "social_fear", kind: "life", text: "发消息或打电话之前，你是不是总要反复斟酌措辞，怕说错了被人笑话？" },
   { id: 84, trait: "body_image", kind: "life", text: "你是不是经常称体重，体重数字稍微一浮动，就能影响你一整天的心情？" },
   { id: 85, trait: "somatization", kind: "life", text: "压力大或者心情不好的时候，你的胃、头或者心脏是不是最先“闹脾气”？" },
-  { id: 86, trait: "hallucination", kind: "life", text: "有没有过你认定有人在监视、议论或者针对你，但其实拿不出任何证据？" },
+  // 归属修正：该题描述的是被害 / 关系观念，不含任何感知异常成分，
+  // 原先误归 hallucination，会导致「幻觉体验」维度与安全提示同时出现相反结论。
+  { id: 86, trait: "paranoia", kind: "life", text: "有没有过你认定有人在监视、议论或者针对你，但其实拿不出任何证据？" },
   { id: 87, trait: "impulse", kind: "life", text: "等红灯、排队或者被人插队时，你是不是常常压不住火，想立刻发作？" },
   { id: 88, trait: "suicide", kind: "life", text: "你有没有过伤害自己的行为，比如割伤自己、撞头，用这种方式来缓解痛苦？" },
   { id: 89, trait: "low_mood", kind: "life", text: "别人安慰你的时候，你是不是常觉得他们根本不理解你，心情还是好不起来？" },
@@ -245,8 +247,77 @@ export const multidimQuestions: MultidimQuestion[] = [
   { id: 142, trait: "lie", kind: "lie", text: "不管发生什么事，我都能完全管住自己的情绪，从来不会发脾气。" },
   { id: 143, trait: "lie", kind: "lie", text: "我几乎从来不觉得累，也几乎不需要什么休息。" },
   { id: 144, trait: "lie", kind: "lie", text: "我答应别人的事一定能做到，从来不会食言。" },
-  { id: 145, trait: "lie", kind: "lie", text: "我经常能准确猜到别人接下来会说什么、做什么。" },
+  // 原第 145 题为「我经常能准确猜到别人接下来会说什么、做什么」——该题考察的是社会认知 / 共情自评，
+  // 与掩饰、理想化无关，且与 social_deficits 维度反向耦合（社交敏锐者如实作答反被记为掩饰），故替换为
+  // 同族的罕见条目。
+  { id: 145, trait: "lie", kind: "lie", text: "我从来没有对任何人产生过反感、不满或者嫉妒。" },
 ];
+
+/* ===== 题目时间窗口 =====
+ *
+ * 全量表统一说明为「最近两周」，但题库中有相当一部分题目明确指向别的时间范围：
+ * 「从小学起就有」「有没有过那么一段时间」「曾经经历过」。若不作标注，作答者会把
+ * 长期特征、既往发作与近两周状态混在同一份作答里计分——这正是问题报告中
+ * 「用两周窗口匹配慢性 / 发育性病程」的成因，也会让同一维度下的题目互相打架。
+ */
+
+export type MultidimWindow = "2w" | "episode" | "lifelong";
+
+export const MULTIDIM_WINDOW_LABEL: Record<MultidimWindow, string> = {
+  "2w": "最近两周",
+  episode: "曾经有过的一段时期",
+  lifelong: "长期 / 从小一直",
+};
+
+/**
+ * 与默认窗口（最近两周）不同的题号。
+ * 判定依据只看题干自身的表述，不引入任何临床推断：
+ *   - 出现「从小」「一直」「习惯性地」→ lifelong
+ *   - 出现「有没有过（那么一段时间）」「曾经」「那几天」「错过过」→ episode
+ */
+export const MULTIDIM_QUESTION_WINDOWS: Record<number, MultidimWindow> = {
+  // —— 既往发作 / 曾经有过（发作性疾病与创伤经历） ——
+  3: "episode", // 情绪高涨：有没有过那么一段时间
+  6: "episode", // 创伤：有没有经历过特别可怕的事
+  13: "episode", // 幻觉：有没有听到过
+  14: "episode", // 冲动：有没有一时冲动跟人吵过架
+  18: "episode", // 情绪高涨：有没有连续好几天几乎不用睡觉
+  27: "episode",
+  29: "episode", // 自伤念头：特别低落的时候有没有闪过
+  32: "episode",
+  46: "episode",
+  47: "episode", // 惊恐：有没有突然心跳加速
+  56: "episode",
+  58: "episode",
+  61: "episode",
+  68: "episode", // 社交恐惧：是不是错过过机会
+  72: "episode",
+  76: "episode",
+  86: "episode", // 被害观念：有没有过你认定有人在监视
+  88: "episode", // 自伤行为：有没有过伤害自己的行为
+  91: "episode",
+  102: "episode", // 躯体化：有没有过查不出原因的经历
+  116: "episode",
+  131: "episode", // 多疑：有没有过因为认定别人针对你而对峙
+  // —— 长期 / 从小一直（发育性与特质性条目） ——
+  9: "lifelong", // 社交互动困难主问
+  22: "lifelong", // 睡眠：一直不太好
+  37: "lifelong", // 注意力：从小就有
+  52: "lifelong",
+  66: "lifelong", // 注意力：从小就有
+  67: "lifelong", // 社交互动困难：从小就这样
+  82: "lifelong",
+  94: "lifelong", // 创伤：一直处于草木皆兵的警觉状态
+  96: "lifelong",
+  97: "lifelong",
+  98: "lifelong",
+  122: "lifelong", // 自我价值感：习惯性地把自己往坏处想
+};
+
+/** 题目所属时间窗口；未在覆盖表中列出的题目一律按「最近两周」处理 */
+export function multidimWindowOf(id: number): MultidimWindow {
+  return MULTIDIM_QUESTION_WINDOWS[id] ?? "2w";
+}
 
 /** 题号 → 题目元数据，供评分规则按特征/题型聚合 */
 export const multidimQuestionById = Object.fromEntries(
@@ -333,12 +404,14 @@ export function buildMultidimQuestions(
   seed?: string,
 ): MultidimQuestion[] {
   const rnd = mulberry32(hashSeed(seed));
-  const mains = shuffled(
-    multidimQuestions
-      .filter((q) => q.kind === "main")
-      .sort((a, b) => (SEVERE_WEIGHT[b.trait] || 1) - (SEVERE_WEIGHT[a.trait] || 1)),
-    rnd,
-  );
+  // 严重议题优先被问到：按权重分层，层内再打乱。
+  // 原实现是「先 sort 再整体 shuffled」——均匀洗牌会把排序完全抵消，
+  // 严重条目（自伤 / 幻觉）从未真正提前，安全排序形同虚设。
+  const mainPool = multidimQuestions.filter((q) => q.kind === "main");
+  const tierOf = (trait: string) => SEVERE_WEIGHT[trait] || 1;
+  const mains = [...new Set(mainPool.map((q) => tierOf(q.trait)))]
+    .sort((a, b) => b - a)
+    .flatMap((w) => shuffled(mainPool.filter((q) => tierOf(q.trait) === w), rnd));
 
   // 极简自测：全部 20 个核心主问，每维度一题
   if (mode === "light") return mains.slice(0, 20);

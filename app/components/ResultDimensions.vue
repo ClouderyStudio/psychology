@@ -204,7 +204,7 @@ const config = computed(() => {
     title = 'BIS-11 · 三维冲动剖面'
     icon = '⚡'
     color = 'var(--personality)'
-    hint = '注意力冲动 / 运动冲动 / 无计划冲动，各维度 10-50 分（每题均分 1-5）。'
+    hint = '注意力冲动 / 运动冲动 / 无计划冲动，每维 10 题。含反向计分题，各维度实际可达区间不同（已逐项标注），条形长度按该区间内的相对位置绘制。'
     const bisNames: Record<string, string> = {
       attention: '注意力冲动',
       motor: '运动冲动',
@@ -213,13 +213,16 @@ const config = computed(() => {
     ;['attention', 'motor', 'nonplanning'].forEach((k) => {
       const d = (s[k] || {}) as any
       const sc = Number(d.score) || 0
-      const avg = sc / 10
+      const lo = Number(d.min) || 0
+      const hi = Number(d.max) || 50
+      const pos = hi > lo ? (sc - lo) / (hi - lo) : 0
       items.push({
         key: k,
         name: bisNames[k] || k,
-        value: clamp(sc / 50 * 100),
-        display: String(sc) + '/50',
-        level: avg >= 4 ? '较高' : avg >= 3 ? '中等' : '较低',
+        value: clamp(pos * 100),
+        display: String(sc) + ' / ' + hi,
+        level: pos >= 0.75 ? '偏高' : pos >= 0.5 ? '中等偏高' : pos >= 0.25 ? '中等偏低' : '偏低',
+        desc: '该维度可达区间 ' + lo + '–' + hi + '（含反向计分题）',
       })
     })
   } else if (props.testId === 'bpaq') {
@@ -249,16 +252,21 @@ const config = computed(() => {
     title = '压力维度 · 不可控感 / 掌控感'
     icon = '🧘'
     color = 'var(--symptom)'
-    hint = '每项 0-4 均值：不可控感越高越易累积压力，掌控感越高则抗压越强。'
+    hint = '每项 0-4 均值。两个维度方向相反：不可控感越高越易累积压力，掌控感越高则抗压越强，不能横向比大小。'
     ;['helplessness', 'selfEfficacy'].forEach((k) => {
       const d = (s[k] || {}) as any
       const avg = Number(d.avg) || 0
+      // 标签跟随各自的方向：不可控感越高越糟，掌控感越高越好
+      const level =
+        k === 'selfEfficacy'
+          ? avg >= 2.5 ? '较强' : avg >= 1.5 ? '中等' : '偏弱'
+          : avg >= 2.5 ? '偏高' : avg >= 1.5 ? '中等' : '偏低'
       items.push({
         key: k,
         name: (d.name as string) || k,
         value: clamp(avg / 4 * 100),
         display: String(Math.round(avg * 10) / 10) + '/4',
-        level: avg >= 2.5 ? '偏高' : avg >= 1.5 ? '中等' : '偏低',
+        level,
         desc: (d.desc as string) || '',
       })
     })
@@ -300,7 +308,8 @@ const config = computed(() => {
     title = '自尊 · 双因子剖面'
     icon = '✨'
     color = 'var(--special)'
-    hint = '自我胜任感与自我接纳（喜欢）两个因子，各 1-4 均值。'
+    hint = '两个因子各 5 题、均为 1-4 均值（合计 5-20 分）。它们按题目措辞方向划分，天然负相关，差距大通常反映作答风格而非两种自我评价。'
+    if (s.note) subtitle = String(s.note)
     ;['competence', 'liking'].forEach((k) => {
       const d = (s[k] || {}) as any
       const avg = Number(d.avg) || 0
@@ -334,7 +343,7 @@ const config = computed(() => {
     title = 'DES-II · 解离子量表'
     icon = '🌀'
     color = 'var(--symptom)'
-    hint = '三子量表（各 6 题均值，0-100）；记忆缺失与人格/现实解体偏高更提示病理性解离，吸收沉浸单独偏高常属正常沉浸。'
+    hint = '三子量表（各自题目均值 0-100，覆盖全部 28 题）；记忆缺失与人格/现实解体偏高更提示病理性解离，吸收沉浸单独偏高常属正常沉浸。分量表没有独立常模，只宜作本次作答内部的相对比较。'
     const des2Order = ['amnesia', 'dpdr', 'absorption']
     des2Order.forEach((k) => {
       const d = (s[k] || {}) as any
