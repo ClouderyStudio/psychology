@@ -1255,10 +1255,12 @@ async function doSubmit() {
 
       answerStore.clearAnswers()
 
-      answerStore.setResult(result.data)
+      // 结果写入本机存档（一次测评一条记录），带上记录键跳转，
+      // 刷新结果页时仍定位到本次记录，而不是笼统的「最近一次结果」
+      const recordKey = answerStore.setResult(result.data)
 
       $toast.success('测评提交成功！', '完成')
-      await router.push('/result')
+      await router.push(recordKey ? { path: '/result', query: { key: recordKey } } : '/result')
     }
   } catch (error: any) {
     console.error('提交失败', error)

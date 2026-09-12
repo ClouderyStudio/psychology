@@ -530,12 +530,9 @@ function clearAllProgress() {
 // 获取最后一次结果
 const lastResult = ref<any>(null)
 
-// 加载最后一次结果
+// 加载最后一次结果（结果被删除时同步隐藏卡片）
 const loadLastResult = () => {
-  const result = answerStore.getLastResult()
-  if (result) {
-    lastResult.value = result
-  }
+  lastResult.value = answerStore.getLastResult()
 }
 
 // 格式化时间
@@ -555,16 +552,17 @@ const lastResultDisplayScore = computed(() => {
   return formatResultScore(result)
 })
 
-// 查看最后一次结果
+// 查看最后一次结果：带上记录键，避免装载到上一次从历史页翻看的旧记录
 const viewLastResult = () => {
-  router.push('/result')
+  const key = lastResult.value?.resultKey
+  router.push(key ? { path: '/result', query: { key } } : '/result')
 }
 
-// 清除最后一次结果
+// 只移除首页卡片，本机存档里的测评记录仍然保留（可在「测试历史」中查看）
 const clearLastResult = () => {
   answerStore.clearLastResult()
   lastResult.value = null
-  $toast.info('已清除历史记录', '提示')
+  $toast.info('已从首页移除，历史记录仍在「测试历史」中', '提示')
 }
 
 // 监听存储事件，更新最后一次结果

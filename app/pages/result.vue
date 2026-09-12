@@ -196,7 +196,9 @@
 
 <script setup lang="ts">
 import { useAnswerStore } from '~/stores/answer'
+import { getResultRecord } from '~/utils/result-store'
 
+const route = useRoute()
 const router = useRouter()
 const answerStore = useAnswerStore()
 const { $toast } = useNuxtApp()
@@ -320,46 +322,62 @@ const isFormalTest = computed(() => FORMAL_TESTS.includes(result.value?.testId))
 // 判断应该计分
 const canScore = ref(false)
 
+// 人格性格类量表通常无总分，不展示分数环；BIS/BPAQ 虽属人格特质类但有总分。
+// 多维自评量表由专用报告组件呈现，同样不使用通用分数环。
+const syncCanScore = async () => {
+  try {
+    const testId = result.value?.testId
+    if (!testId) {
+      canScore.value = false
+      return
+    }
+    await nextTick()
+    const testList = ((await $fetch<any>('/api/tests/list'))?.data) || []
+    const found = testList.find((el: any) => el.id === testId)
+    const scoredPersonality = ['bis', 'bpaq'].includes(testId)
+    canScore.value = found
+      ? (found.category === 'symptom' || found.category === 'special' || scoredPersonality) &&
+        !isTypeOnlyTest(testId)
+      : false
+  } catch (e) {
+    canScore.value = false
+  }
+}
+
 // 加载结果的方法
 const loadResult = async () => {
   isLoading.value = true
 
+  // 旧版本把结果存在 sessionStorage（每个量表一条、会被覆盖），
+  // 首次进入时搬进本机存档，避免升级后历史直接消失
+  answerStore.migrateLegacyResults()
+
+  // 历史页「查看」会带上记录键：只装载，不新建记录
+  const key = typeof route.query.key === 'string' ? route.query.key : ''
+  if (key) {
+    const record = getResultRecord(key)
+    if (record) {
+      answerStore.loadResultRecord(record, key)
+      result.value = record
+      noteDraft.value = record.note || ''
+      await syncCanScore()
+      isLoading.value = false
+      return
+    }
+    $toast.error('该条历史记录已不存在', '提示')
+  }
+
   let resultData = answerStore.getResult()
 
-  if (!resultData && typeof window !== 'undefined') {
-    try {
-      const saved = sessionStorage.getItem('last_test_result')
-      if (saved) {
-        resultData = JSON.parse(saved)
-        if (resultData) {
-          answerStore.setResult(resultData)
-        }
-      }
-    } catch (e) {
-      console.error('从 sessionStorage 加载结果失败:', e)
-    }
+  if (!resultData) {
+    resultData = answerStore.getLastResult()
   }
 
   result.value = resultData
   // 同步备注草稿（刚完成测评或从历史页打开时带出已有备注）
   noteDraft.value = resultData?.note || ''
 
-  try {
-    const testId = result.value?.testId
-    if (!testId) return
-    await nextTick()
-    const testList = ((await $fetch<any>('/api/tests/list'))?.data) || []
-    const found = testList.find((el: any) => el.id === testId)
-    // 人格性格类量表通常无总分，不展示分数环；BIS/BPAQ 虽属人格特质类但有总分
-    const scoredPersonality = ['bis', 'bpaq'].includes(testId)
-    // 多维自评量表由专用报告组件呈现，不使用通用分数环
-    canScore.value = found
-      ? (found.category === 'symptom' || found.category === 'special' || scoredPersonality) && testId !== 'multidim'
-      : false
-  } catch (e) {
-    canScore.value = false
-  }
-
+  await syncCanScore()
   isLoading.value = false
 }
 
