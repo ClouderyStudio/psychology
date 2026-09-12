@@ -232,7 +232,8 @@
             <!-- 按钮区域 -->
             <div class="flex gap-2 pt-2 min-h-[44px]">
               <button @click="startTest(test.id, false)"
-                class="flex-1 py-2.5 rounded-lg font-semibold transition-all text-sm"
+                class="category-action flex-1 py-2.5 rounded-lg font-semibold transition-all text-sm"
+                :class="'category-action-' + test.category"
                 :style="{ backgroundColor: getButtonColor(test.category), color: 'white' }"
                 @mouseenter="elStyle($event, { backgroundColor: getButtonHoverColor(test.category) })"
                 @mouseleave="elStyle($event, { backgroundColor: getButtonColor(test.category) })">
@@ -626,7 +627,7 @@ if (error.value) {
   border: none;
   color: var(--text-secondary);
   box-shadow: none;
-  font-weight: 500;
+  font-weight: var(--fw-medium);
 }
 
 /* 主标题：最高文本层级（暗色下随变量呈近白色） */
@@ -641,7 +642,7 @@ if (error.value) {
 
 /* 正文核心数字：加粗 + 主文本色，便于扫视量化信息 */
 .external-num {
-  font-weight: 700;
+  font-weight: var(--fw-bold);
   color: var(--text);
 }
 

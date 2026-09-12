@@ -193,9 +193,9 @@ const refText = (r: any) => {
 .pa-hero-desc h3, .pa-hero-main { }
 .pa-eyebrow { color: var(--primary); font-size: 0.75rem; letter-spacing: 0.05em; text-transform: uppercase; margin-bottom: 0.5rem; }
 .pa-hero-main { display: flex; align-items: baseline; gap: 0.6rem; flex-wrap: wrap; }
-.pa-num { font-size: 3.25rem; font-weight: 800; line-height: 1; color: var(--text); }
+.pa-num { font-size: 3.25rem; font-weight: var(--fw-heavy); line-height: 1; color: var(--text); }
 .pa-unit { font-size: 1.4rem; margin-left: 4px; color: var(--text); }
-.pa-badge { background-color: var(--primary-light); color: var(--primary); font-size: 0.8rem; font-weight: 600; padding: 0.35rem 0.75rem; border-radius: 999px; }
+.pa-badge { background-color: var(--primary-light); color: var(--primary); font-size: 0.8rem; font-weight: var(--fw-semibold); padding: 0.35rem 0.75rem; border-radius: 999px; }
 .pa-desc { margin: 0.6rem 0 0.4rem; font-size: 1.05rem; color: var(--text); }
 .pa-soft { color: var(--text-secondary); font-size: 0.85rem; line-height: 1.7; }
 .pa-hero-stats { display: grid; grid-template-columns: 1fr; gap: 0.6rem; }
@@ -206,7 +206,7 @@ const refText = (r: any) => {
 /* 区块 */
 .pa-section { background-color: var(--bg); border-radius: 0.75rem; padding: 1.25rem; }
 .pa-section-head { margin-bottom: 0.75rem; }
-.pa-section-head h3 { font-weight: 700; color: var(--text); font-size: 1.05rem; }
+.pa-section-head h3 { font-weight: var(--fw-bold); color: var(--text); font-size: 1.05rem; }
 .pa-section-head p { color: var(--text-muted); font-size: 0.8rem; margin-top: 0.25rem; line-height: 1.6; }
 .pa-callout { color: var(--text); line-height: 1.7; font-size: 0.9rem; }
 .pa-callout p { margin-top: 0.4rem; }
@@ -222,7 +222,7 @@ const refText = (r: any) => {
   linear-gradient(0deg, transparent 49.6%, var(--primary-light) 49.6%, var(--primary-light) 50.4%, transparent 50.4%); }
 .pa-quad-point { position: absolute; width: 14px; height: 14px; border-radius: 50%; background-color: var(--primary);
   border: 3px solid var(--bg); box-shadow: 0 0 0 2px var(--primary); transform: translate(-50%, -50%); z-index: 2; }
-.pa-q { position: absolute; font-size: 0.85rem; font-weight: 600; color: var(--text-muted); }
+.pa-q { position: absolute; font-size: 0.85rem; font-weight: var(--fw-semibold); color: var(--text-muted); }
 .pa-quad-l { left: 12px; top: 12px; }
 .pa-quad-r { right: 12px; top: 12px; }
 .pa-quad-bl { left: 12px; bottom: 12px; }
@@ -230,14 +230,14 @@ const refText = (r: any) => {
 .pa-axis-x { position: absolute; left: 50%; bottom: 8px; transform: translateX(-50%); font-size: 0.75rem; color: var(--text-secondary); }
 .pa-axis-y { position: absolute; left: 10px; top: 50%; transform: translateY(-50%) rotate(-90deg); transform-origin: left center; font-size: 0.75rem; color: var(--text-secondary); }
 .pa-archetype { margin-top: 1rem; padding: 1rem; border: 1px solid var(--primary-light); border-radius: 0.75rem; }
-.pa-archetype-title { display: inline; font-size: 1rem; font-weight: 700; color: var(--primary); }
+.pa-archetype-title { display: inline; font-size: 1rem; font-weight: var(--fw-bold); color: var(--primary); }
 .pa-archetype-short { font-size: 0.8rem; color: var(--text-secondary); margin-left: 0.5rem; }
 .pa-archetype-text { font-size: 0.9rem; line-height: 1.8; margin-top: 0.6rem; color: var(--text); }
 /* 逐维 */
 .pa-dims { display: flex; flex-direction: column; gap: 1.1rem; }
 .pa-dim { position: relative; }
 .pa-dim-head { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 0.4rem; }
-.pa-dim-name { font-weight: 600; font-size: 0.95rem; color: var(--text); }
+.pa-dim-name { font-weight: var(--fw-semibold); font-size: 0.95rem; color: var(--text); }
 .pa-dim-meta { font-size: 0.8rem; color: var(--text-secondary); }
 .pa-bar-marker { position: absolute; top: 1.75rem; bottom: 0; width: 2px; background-color: var(--text); opacity: 0.85; transform: translateX(-1px); }
 .pa-bar-about { font-size: 0.8rem; color: var(--text-muted); margin: 0.5rem 0 0.35rem; }
@@ -245,12 +245,12 @@ const refText = (r: any) => {
 .pa-fill-young { background-color: var(--special); }
 .pa-fill-balanced { background-color: var(--primary); }
 .pa-fill-old { background-color: var(--symptom-dark); }
-.pa-band-young, .pa-band-old, .pa-band-balanced { font-style: normal; font-weight: 600; }
+.pa-band-young, .pa-band-old, .pa-band-balanced { font-style: normal; font-weight: var(--fw-semibold); }
 .pa-band-young { background-color: var(--special-light); color: var(--special-dark); }
 .pa-band-balanced { background-color: var(--primary-light); color: var(--primary); }
 .pa-band-old { background-color: var(--symptom-light); color: var(--symptom-dark); }
 .pa-band-young, .pa-band-balanced, .pa-band-old { padding: 0.1rem 0.5rem; border-radius: 999px; font-size: 0.75rem; }
-.pa-band-key { color: var(--primary); font-weight: 700; }
+.pa-band-key { color: var(--primary); font-weight: var(--fw-bold); }
 /* 如何阅读 */
 .pa-how { list-style: none; padding: 0; margin: 0; }
 .pa-how li { font-size: 0.9rem; line-height: 1.8; color: var(--text); padding: 0.5rem 0.75rem; border-left: 3px solid var(--primary-light); background-color: var(--card-bg); border-radius: 0 0.5rem 0.5rem 0; margin-bottom: 0.5rem; }

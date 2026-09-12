@@ -10,6 +10,18 @@ function full(count: number, value: number): Record<number, number> {
   return answers;
 }
 
+/** 生成 count 道题、总分恰为 total 的作答（每题 0~3，从第一题起贪心填满） */
+function withTotal(count: number, total: number): Record<number, number> {
+  const answers: Record<number, number> = {};
+  let rest = total;
+  for (let i = 1; i <= count; i++) {
+    const v = Math.min(3, Math.max(0, rest));
+    answers[i] = v;
+    rest -= v;
+  }
+  return answers;
+}
+
 describe("calculateScore 基础评分", () => {
   it("PHQ-9：全选最高分 → 重度抑郁", () => {
     const r = calculateScore({ testId: "phq9", answers: full(9, 3) });
@@ -27,6 +39,28 @@ describe("calculateScore 基础评分", () => {
     const r = calculateScore({ testId: "gad7", answers: full(7, 3) });
     expect(r.totalScore).toBe(21);
     expect(r.level).toBe("重度焦虑");
+  });
+
+  // 回归：这四档曾整体错位一档（0~4 分被标成「轻度焦虑」，而同一条结果的建议却写「正常范围」）
+  it("GAD-7：四档分级边界与标准分级一致", () => {
+    const levelAt = (score: number) =>
+      calculateScore({ testId: "gad7", answers: withTotal(7, score) }).level;
+
+    expect(levelAt(0)).toBe("无显著焦虑症状");
+    expect(levelAt(4)).toBe("无显著焦虑症状");
+    expect(levelAt(5)).toBe("轻度焦虑");
+    expect(levelAt(9)).toBe("轻度焦虑");
+    expect(levelAt(10)).toBe("中度焦虑");
+    expect(levelAt(14)).toBe("中度焦虑");
+    expect(levelAt(15)).toBe("重度焦虑");
+    expect(levelAt(21)).toBe("重度焦虑");
+  });
+
+  it("GAD-7：最低档标签与建议不得自相矛盾", () => {
+    const r = calculateScore({ testId: "gad7", answers: withTotal(7, 0) });
+    expect(r.level).toBe("无显著焦虑症状");
+    expect(r.suggestion).toContain("正常范围");
+    expect(r.level).not.toContain("轻度");
   });
 
   it("PSS-10：反向题应按反向计分", () => {

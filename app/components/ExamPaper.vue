@@ -37,7 +37,7 @@
               {{ section.title }}
             </h2>
 
-            <div v-for="(question, qIndex) in section.questions" :key="qIndex" class="p-4 rounded-lg"
+            <div v-for="(question, qIndex) in section.questions" :key="qIndex" class="exam-q p-4 rounded-lg"
               style="background-color: var(--bg)">
               <p class="text-sm leading-relaxed" style="color: var(--text)">
                 <span class="font-semibold">{{ qIndex + 1 }}.</span> {{ question.text }}
@@ -439,7 +439,7 @@ useHead({
   padding: 2px 10px;
   border-radius: 999px;
   font-size: 0.75rem;
-  font-weight: 600;
+  font-weight: var(--fw-semibold);
   white-space: nowrap;
 }
 </style>

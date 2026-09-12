@@ -248,7 +248,7 @@ const isPreferenceSelected = (item: any, side: 'left' | 'right') => {
 .mbti-hero, .mbti-section { border: 1px solid var(--border); border-radius: 12px; background: var(--card-bg); }
 .mbti-hero { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 24px; align-items: end; padding: 28px; background: linear-gradient(135deg, rgba(123,107,142,0.12), rgba(94,140,111,0.08)), var(--card-bg); }
 .mbti-eyebrow { margin-bottom: 10px; color: var(--text-muted); font-size: 0.8125rem; }
-.mbti-type { color: var(--text); font-size: clamp(56px, 12vw, 104px); font-weight: 800; line-height: 0.92; letter-spacing: 0; }
+.mbti-type { color: var(--text); font-size: clamp(56px, 12vw, 104px); font-weight: var(--fw-heavy); line-height: 0.92; letter-spacing: 0; }
 .mbti-type-name { margin-top: 14px; color: var(--text-secondary); font-size: 1rem; }
 .mbti-hero-stats { display: grid; grid-template-columns: repeat(3, minmax(82px, 1fr)); gap: 10px; }
 .mbti-hero-stats div, .mbti-mini-stat, .mbti-identity-box, .mbti-score-panel, .mbti-role-box, .mbti-inner-row, .mbti-preference-item { border: 1px solid var(--border); border-radius: 10px; background: var(--card-bg); }
@@ -257,15 +257,15 @@ const isPreferenceSelected = (item: any, side: 'left' | 'right') => {
 .mbti-hero-stats strong { display: block; margin-top: 4px; color: var(--text); font-size: 1.25rem; }
 .mbti-section { padding: 22px; }
 .mbti-section-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; margin-bottom: 18px; }
-.mbti-section-head h3, .mbti-inline-title { margin: 0; color: var(--text); font-size: 1.125rem; font-weight: 700; }
+.mbti-section-head h3, .mbti-inline-title { margin: 0; color: var(--text); font-size: 1.125rem; font-weight: var(--fw-bold); }
 .mbti-section-head p, .mbti-soft-text, .mbti-note { color: var(--text-secondary); font-size: 0.875rem; }
 .mbti-type-strip { display: grid; grid-template-columns: repeat(9, minmax(0, 1fr)); gap: 8px; }
-.mbti-type-pill { min-height: 44px; border: 1px solid var(--border); border-radius: 10px; display: flex; align-items: center; justify-content: center; color: var(--text-secondary); background: var(--bg); font-weight: 700; }
+.mbti-type-pill { min-height: 44px; border: 1px solid var(--border); border-radius: 10px; display: flex; align-items: center; justify-content: center; color: var(--text-secondary); background: var(--bg); font-weight: var(--fw-bold); }
 .mbti-type-pill.is-active { border-color: var(--personality); color: #fff; background: var(--personality); }
 .mbti-score-panel, .mbti-preference-item, .mbti-inner-row, .mbti-role-box { padding: 16px; }
-.mbti-score-panel h4 { margin-bottom: 14px; color: var(--text); font-weight: 700; }
+.mbti-score-panel h4 { margin-bottom: 14px; color: var(--text); font-weight: var(--fw-bold); }
 .mbti-score-row { display: flex; justify-content: space-between; gap: 12px; margin-bottom: 5px; color: var(--text-secondary); font-size: 0.875rem; }
-.mbti-score-row strong { color: var(--text); font-weight: 700; }
+.mbti-score-row strong { color: var(--text); font-weight: var(--fw-bold); }
 .mbti-meter { height: 8px; overflow: hidden; border-radius: 999px; background: var(--primary-light); }
 .mbti-meter div { height: 100%; border-radius: inherit; }
 .mbti-note { margin-top: 16px; }
