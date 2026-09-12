@@ -221,7 +221,7 @@ const config = computed(() => {
         name: bisNames[k] || k,
         value: clamp(pos * 100),
         display: String(sc) + ' / ' + hi,
-        level: pos >= 0.75 ? '较高' : pos >= 0.5 ? '中等偏高' : pos >= 0.25 ? '中等偏低' : '较低',
+        level: pos >= 0.75 ? '偏高' : pos >= 0.5 ? '中等偏高' : pos >= 0.25 ? '中等偏低' : '偏低',
         desc: '该维度可达区间 ' + lo + '–' + hi + '（含反向计分题）',
       })
     })

@@ -105,7 +105,7 @@ ${dims}
 • 记录冲动诱因，识别触发点；规律运动、正念练习对降低反应性冲动有较好帮助
 • 如冲动行为已造成明显后果（财务损失、关系破裂、冲动攻击等），建议寻求专业心理咨询或精神科评估`;
   } else if (totalScore >= CUT_MID) {
-    level = "较高冲动倾向";
+    level = "中等偏高冲动倾向";
     suggestion = `您的 BIS-11 总分为 ${totalScore}（可达区间 ${BIS_REACHABLE_MIN}–${BIS_REACHABLE_MAX}），冲动倾向高于中间位置。
 
 【三维度表现】

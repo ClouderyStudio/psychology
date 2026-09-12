@@ -619,7 +619,7 @@ describe("SIOSS / BIS-11 / BPAQ / YMRS / ISI 计分（2026-09 新增）", () => 
   it("BIS-11：低/中低/中高/高四档全部可达", () => {
     const mid = calculateScore({ testId: "bis", answers: full(30, 3) });
     expect(mid.totalScore).toBe(90); // 均值 3 → 正反向折算后仍为 3
-    expect(mid.level).toBe("较高冲动倾向");
+    expect(mid.level).toBe("中等偏高冲动倾向");
     expect(mid.severity).toBe(0.5);
 
     expect(calculateScore({ testId: "bis", answers: full(30, 2) }).level).toBe(
