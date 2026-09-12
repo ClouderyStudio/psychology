@@ -357,31 +357,80 @@ function computeLies(answers: Record<number, number>) {
   return { score, items, hits, rate, level, detail, alert: rate > 0.3 };
 }
 
-/** 严重程度：以“确认存在困扰”的正向回答为准 */
-function computeSeverity(answers: Record<number, number>) {
-  const values: number[] = [];
-  const strongTraits: string[] = [];
-  for (const q of multidimQuestions) {
-    if (q.kind === "lie") continue;
-    const v = answerOf(answers, q.id);
-    if (v === undefined) continue;
-    values.push(v);
-    const label = MULTIDIM_TRAIT_LABELS[q.trait];
-    if (v >= 0.5 && label) strongTraits.push(label);
-  }
+/**
+ * 严重程度：由 20 个维度的加权均值（即结果页「20 项特征强度总览」展示的同一组数字）汇总。
+ *
+ * 原实现只对「正向作答」求平均（`values.filter(a => a > 0)`），负值与 0 被整体丢弃，
+ * 因此 105 题里只要有一题答「非常符合」，总评就会被推到极重度——总评等级实际由单条题目决定。
+ * 现改为与维度分同源，保证「维度总览」与「总评等级」不可能互相矛盾。
+ *
+ * 字段语义：
+ *   mean     = 全部已作答维度的均值（含负值与 0），负值代表整体否认
+ *   marked   = 达到「中度」及以上的维度数（≥0.45），是分级的主要依据
+ *   elevated = 达到关注线（≥0.25）的维度数
+ *   pct      = 困扰覆盖面（elevated / 维度总数，0-100），语义为「有多少维度需要关注」
+ *   strongTraits = 信号最强的 4 个维度（按均值降序，而非题目顺序）
+ */
+function computeSeverity(traitMeans: Record<string, number>) {
+  const values = MULTIDIM_TRAIT_ORDER.map((t) => traitMeans[t]).filter(
+    (v): v is number => v !== undefined,
+  );
   if (values.length === 0) return null;
 
-  const positive = values.filter((a) => a > 0);
-  if (positive.length === 0) {
-    const avg = values.reduce((a, b) => a + b, 0) / values.length;
-    const level = avg < -0.25 ? "未见异常" : "正常";
-    const pct = Math.round(((avg + 1) / 2) * 100);
-    return { level, pct, strongTraits: [...new Set(strongTraits)].slice(0, 4) };
+  const mean = values.reduce((a, b) => a + b, 0) / values.length;
+  const elevated = values.filter((v) => v >= 0.25).length;
+  const marked = values.filter((v) => v >= 0.45).length;
+  const strongTraits = MULTIDIM_TRAIT_ORDER.map((t) => ({ t, v: traitMeans[t] ?? -1 }))
+    .filter((x) => x.v >= 0.45)
+    .sort((a, b) => b.v - a.v)
+    .slice(0, 4)
+    .map((x) => MULTIDIM_TRAIT_LABELS[x.t])
+    .filter((x): x is string => Boolean(x));
+
+  let level: string;
+  if (marked === 0) {
+    level = mean < -0.25 ? "未见异常" : "正常";
+  } else if (marked <= 4) {
+    level = "轻度";
+  } else if (marked <= 9) {
+    level = "中度";
+  } else if (marked <= 14) {
+    level = "重度";
+  } else {
+    level = "极重度";
   }
-  const avg = positive.reduce((a, b) => a + b, 0) / positive.length;
-  const level = avg < 0.45 ? "轻度" : avg < 0.65 ? "中度" : avg < 0.85 ? "重度" : "极重度";
-  const pct = Math.round(((avg + 1) / 2) * 100);
-  return { level, pct, strongTraits: [...new Set(strongTraits)].slice(0, 4) };
+
+  return { level, pct: Math.round((elevated / values.length) * 100), mean, elevated, marked, strongTraits };
+}
+
+/**
+ * 作答风格（直线作答 / 低变异）检测。
+ *
+ * 原实现的「回答一致性」只比对「主问 vs 复问」，对全选同一选项的直线作答完全不敏感：
+ * 105 题全选同一选项时一致率恒为 1，反而拿到「回答一致性 · 高」的背书。
+ */
+function computeResponseStyle(answers: Record<number, number>) {
+  const values = multidimQuestions
+    .filter((q) => q.kind !== "lie")
+    .map((q) => answerOf(answers, q.id))
+    .filter((v): v is number => v !== undefined);
+  if (values.length < 10) return null;
+
+  const counts = new Map<number, number>();
+  for (const v of values) counts.set(v, (counts.get(v) ?? 0) + 1);
+  const modeShare = Math.max(...counts.values()) / values.length;
+  const mean = values.reduce((a, b) => a + b, 0) / values.length;
+  const variance = values.reduce((a, b) => a + (b - mean) ** 2, 0) / values.length;
+
+  // 全选同一选项，或 95% 以上集中在同一选项且方差极低 → 直线作答
+  const flat = counts.size === 1 || (modeShare >= 0.95 && variance < 0.02);
+  return {
+    flat,
+    modeShare: Number(modeShare.toFixed(4)),
+    variance: Number(variance.toFixed(4)),
+    distinct: counts.size,
+    answered: values.length,
+  };
 }
 
 function traitLevel(s: number): { text: string; kind: "none" | "mild" | "moderate" | "severe" | "extreme" } {
@@ -486,7 +535,18 @@ export function scoreMultidim(
   const severeUnique = [...new Set(severeSignals.map((s) => s.label))];
   const concernUnique = [...new Set(concernSignals.map((s) => s.label))];
 
-  const isNormal = severeUnique.length === 0 && top.score < SUSPECT_THRESHOLD;
+  // 作答有效性：直线作答不产出任何结论，避免给无效作答盖上「评估结果良好」的章
+  const responseStyle = computeResponseStyle(answers);
+  const invalidResponse = responseStyle?.flat === true;
+  const validity = {
+    valid: !invalidResponse,
+    reason: invalidResponse
+      ? "全部或几乎所有题目选择了同一选项，属直线作答，本次结果不具备参考价值，请重新作答。"
+      : "",
+    responseStyle,
+  };
+
+  const isNormal = !invalidResponse && severeUnique.length === 0 && top.score < SUSPECT_THRESHOLD;
   const shown = ranked.filter((x) => x.score >= SUSPECT_THRESHOLD).slice(0, 3);
 
   // 主要特征方向：正向确认且信号较强的前 4 项
@@ -497,9 +557,28 @@ export function scoreMultidim(
     .map((t) => MULTIDIM_TRAIT_LABELS[t])
     .filter((x): x is string => Boolean(x));
 
-  const credibility = computeCredibility(answers);
-  const lie = computeLies(answers);
-  const severity = computeSeverity(answers);
+  // 直线作答时，一致性 / 效度校验都不成立：一致率恒为 1、效度分恒为 0，
+  // 若照常输出会把最典型的无效作答包装成「回答一致性 · 高 + 效度可信」。
+  let credibility = computeCredibility(answers);
+  if (invalidResponse) {
+    credibility = {
+      rate: 0,
+      total: credibility?.total ?? 0,
+      consistent: 0,
+      level: "回答一致性 · 不适用（直线作答）",
+      kind: "low",
+    };
+  }
+  let lie = computeLies(answers);
+  if (invalidResponse && lie) {
+    lie = {
+      ...lie,
+      level: "不适用（直线作答）",
+      detail: "本次作答为直线作答，效度校验不适用；请放松心态后重新作答。",
+      alert: true,
+    };
+  }
+  const severity = computeSeverity(traitMeans);
 
   // 20 维特征总览（含未作答维度）
   const traits = MULTIDIM_TRAIT_ORDER.map((t) => {
@@ -548,9 +627,13 @@ export function scoreMultidim(
   const posAvg = posEntries.length > 0 ? posEntries.reduce((s, x) => s + x.v, 0) / posEntries.length : 0;
   const sevLevel = severity ? severity.level : posAvg > 0.65 ? "重度" : posAvg > 0.45 ? "中度" : posAvg > 0.25 ? "轻度" : "正常";
 
-  let overallKind: "danger" | "heavy" | "moderate" | "light";
+  let overallKind: "danger" | "heavy" | "moderate" | "light" | "invalid";
   let overall: string;
-  if (severeUnique.length > 0) {
+  if (invalidResponse) {
+    overallKind = "invalid";
+    overall =
+      "本次作答被判为直线作答（全部或几乎所有题目选择了同一选项），无法据此得出任何结论。请放松心态、按实际情况重新作答一次；如对题目有疑问，可先选择「不确定」。";
+  } else if (severeUnique.length > 0) {
     overallKind = "danger";
     overall = `请优先处理安全事项：您回答中出现了${severeUnique.join("、")}相关信号。请立即联系信任的亲友，或拨打全国统一心理援助热线 12356（24 小时、免费）；若念头强烈或已有具体计划，请拨打 120 或前往就近医院急诊，并尽快安排精神科评估。`;
   } else if (sevLevel === "极重度" || sevLevel === "重度") {
@@ -604,16 +687,26 @@ export function scoreMultidim(
 
   // 评估摘要
   const posCount = Object.keys(traitScores).filter((t) => traitScores[t]! > 0.3).length;
-  const sumLevel = isNormal ? "正常" : severity ? severity.level : "轻度";
-  const sumLevelKind = isNormal
-    ? "ok"
-    : severity && (severity.level === "极重度" || severity.level === "重度")
-      ? "severe"
-      : severity && severity.level === "中度"
-        ? "warn"
-        : "ok";
+  const sumLevel = invalidResponse
+    ? "作答无效"
+    : isNormal
+      ? "正常"
+      : severity
+        ? severity.level
+        : "轻度";
+  const sumLevelKind = invalidResponse
+    ? "warn"
+    : isNormal
+      ? "ok"
+      : severity && (severity.level === "极重度" || severity.level === "重度")
+        ? "severe"
+        : severity && severity.level === "中度"
+          ? "warn"
+          : "ok";
   let summaryNote: string;
-  if (severeUnique.length > 0) {
+  if (invalidResponse) {
+    summaryNote = validity.reason;
+  } else if (severeUnique.length > 0) {
     summaryNote = "本次回答包含需要重视的安全信号，请优先参照上方安全提示采取行动，并尽快安排专业评估。";
   } else if (concernUnique.length > 0) {
     summaryNote = `本次回答在「${concernUnique.join("、")}」方向上出现需要关注的信号，建议参照上方提示与针对性建议，并在 2–4 周后复测观察变化。`;
@@ -663,11 +756,21 @@ export function scoreMultidim(
     };
   }
 
-  const level = isNormal ? "评估结果良好" : `${top.cond.name}（特征吻合度 ${top.score}%）`;
-  const severityValue = severity ? severity.pct / 100 : isNormal ? 0 : top.score / 100;
+  const level = invalidResponse
+    ? "作答无效：疑似直线作答，请重新作答"
+    : isNormal
+      ? "评估结果良好"
+      : `${top.cond.name}（特征吻合度 ${top.score}%）`;
+  const severityValue = invalidResponse
+    ? 0
+    : severity
+      ? severity.pct / 100
+      : isNormal
+        ? 0
+        : top.score / 100;
 
   return {
-    totalScore: isNormal ? 0 : top.score,
+    totalScore: invalidResponse || isNormal ? 0 : top.score,
     maxScore: 100,
     level,
     suggestion,
@@ -695,6 +798,7 @@ export function scoreMultidim(
       severeSignalDetails: severeSignals,
       concernSignals: concernUnique,
       concernSignalDetails: concernSignals,
+      validity,
       topTraits,
       posCount,
       advice: { overallKind, overall, targeted, daily, followUp, note: adviceNote },

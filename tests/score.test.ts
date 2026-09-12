@@ -2,6 +2,7 @@ import { describe, it, expect } from "vitest";
 import { calculateScore } from "../server/utils/score";
 import { bisQuestions } from "../server/utils/questions/bis-questions";
 import {
+  MULTIDIM_TRAIT_ORDER,
   buildMultidimQuestions,
   multidimQuestionById,
   multidimQuestions,
@@ -791,6 +792,28 @@ describe("心理健康多维自评量表（MULTIDIM）", () => {
     return answers;
   }
 
+  /**
+   * 非直线作答：按题号规律让作答值轻微起伏，避免被判为直线作答，
+   * 用于验证计分口径本身（效度题固定取 base）。
+   */
+  function answersWavy(
+    mode: "light" | "fast" | "standard" | "deep",
+    seed: string,
+    base: number,
+    step = base < 0 ? 0.5 : -0.5,
+  ) {
+    const answers: Record<number, number> = {};
+    buildMultidimQuestions(mode, seed).forEach((q, i) => {
+      if (q.kind === "lie") {
+        answers[q.id] = base;
+        return;
+      }
+      const v = i % 5 === 0 ? base + step : base;
+      answers[q.id] = Math.max(-1, Math.min(1, v));
+    });
+    return answers;
+  }
+
   it("四种模式题量分别为 20 / 45 / 65 / 105", () => {
     expect(buildMultidimQuestions("light", "s").length).toBe(20);
     expect(buildMultidimQuestions("fast", "s").length).toBe(45);
@@ -806,8 +829,8 @@ describe("心理健康多维自评量表（MULTIDIM）", () => {
     expect(a).not.toEqual(c);
   });
 
-  it("标准模式全部「不确定」→ 结果良好、效度可信", () => {
-    const r = calculateScore({ testId: "multidim", answers: answersFor("standard", "t1", 0) });
+  it("标准模式整体「不确定」→ 结果良好、效度可信", () => {
+    const r = calculateScore({ testId: "multidim", answers: answersWavy("standard", "t1", 0) });
     const rep: any = r.multidimReport;
     expect(rep.isNormal).toBe(true);
     expect(r.level).toBe("评估结果良好");
@@ -816,8 +839,8 @@ describe("心理健康多维自评量表（MULTIDIM）", () => {
     expect(rep.credibility.level).toBe("回答一致性 · 高");
   });
 
-  it("标准模式全部「非常符合」→ 检出安全信号、效度存疑、严重度极重度，20 维均有数据", () => {
-    const r = calculateScore({ testId: "multidim", answers: answersFor("standard", "t2", 1) });
+  it("标准模式整体「非常符合」→ 检出安全信号、效度存疑、严重度极重度，20 维均有数据", () => {
+    const r = calculateScore({ testId: "multidim", answers: answersWavy("standard", "t2", 1) });
     const rep: any = r.multidimReport;
     expect(r.totalScore).toBeGreaterThanOrEqual(40);
     expect(rep.severeSignals).toContain("自伤或轻生的念头");
@@ -828,8 +851,8 @@ describe("心理健康多维自评量表（MULTIDIM）", () => {
     expect(rep.matches.length).toBeGreaterThan(0);
   });
 
-  it("标准模式全部「完全不符合」→ 未见异常、结果良好", () => {
-    const r = calculateScore({ testId: "multidim", answers: answersFor("standard", "t3", -1) });
+  it("标准模式整体「完全不符合」→ 未见异常、结果良好", () => {
+    const r = calculateScore({ testId: "multidim", answers: answersWavy("standard", "t3", -1) });
     const rep: any = r.multidimReport;
     expect(rep.isNormal).toBe(true);
     expect(rep.severity.level).toBe("未见异常");
@@ -837,7 +860,7 @@ describe("心理健康多维自评量表（MULTIDIM）", () => {
   });
 
   it("极简模式（20 题，无复问/效度题）→ 效度与一致性为空，20 维仍有数据", () => {
-    const r = calculateScore({ testId: "multidim", answers: answersFor("light", "t4", 1) });
+    const r = calculateScore({ testId: "multidim", answers: answersWavy("light", "t4", 1) });
     const rep: any = r.multidimReport;
     expect(rep.lie).toBeNull();
     expect(rep.credibility).toBeNull();
@@ -914,7 +937,7 @@ describe("心理健康多维自评量表（MULTIDIM）", () => {
   });
 
   it("效度字段语义：score / items / hits / rate，阈值按题量归一化", () => {
-    const r = calculateScore({ testId: "multidim", answers: answersFor("standard", "t5", 1) });
+    const r = calculateScore({ testId: "multidim", answers: answersWavy("standard", "t5", 1) });
     const rep: any = r.multidimReport;
     expect(rep.lie.items).toBe(5);
     expect(rep.lie.score).toBeCloseTo(5, 5);
@@ -930,5 +953,126 @@ describe("心理健康多维自评量表（MULTIDIM）", () => {
     const lieTexts = multidimQuestions.filter((q) => q.kind === "lie").map((q) => q.text);
     expect(lieTexts).toHaveLength(5);
     expect(lieTexts.some((t) => t.includes("猜到别人接下来"))).toBe(false);
+  });
+
+  /* ===== 问题报告 P0-3 / P0-4 的回归用例 ===== */
+
+  it("直线作答（全选同一选项）→ 判定为作答无效，不再输出「评估结果良好」", () => {
+    for (const value of [1, 0.5, 0, -0.5, -1]) {
+      const r = calculateScore({
+        testId: "multidim",
+        answers: answersFor("standard", "flat", value),
+      });
+      const rep: any = r.multidimReport;
+      expect(rep.validity.valid).toBe(false);
+      expect(rep.validity.responseStyle.flat).toBe(true);
+      expect(rep.isNormal).toBe(false);
+      expect(rep.summary.level).toBe("作答无效");
+      expect(rep.advice.overallKind).toBe("invalid");
+      expect(r.level).toContain("作答无效");
+      expect(r.totalScore).toBe(0);
+      expect(r.severity).toBe(0);
+    }
+  });
+
+  it("直线作答下效度与一致性校验一并失效，不再给无效作答背书", () => {
+    const r = calculateScore({ testId: "multidim", answers: answersFor("standard", "flat2", -1) });
+    const rep: any = r.multidimReport;
+    // 旧实现：全选「完全不符合」→ 回答一致性·高 + 效度可信 + 评估结果良好
+    expect(rep.credibility.level).toContain("不适用");
+    expect(rep.credibility.rate).toBe(0);
+    expect(rep.lie.level).toBe("不适用（直线作答）");
+    expect(rep.lie.alert).toBe(true);
+  });
+
+  it("非直线但整体否认的作答仍判为有效", () => {
+    const r = calculateScore({ testId: "multidim", answers: answersWavy("standard", "ok", -1) });
+    const rep: any = r.multidimReport;
+    expect(rep.validity.valid).toBe(true);
+    expect(rep.validity.responseStyle.flat).toBe(false);
+    expect(rep.isNormal).toBe(true);
+  });
+
+  it("总评由维度分布决定：单条题目不再能拉动总评等级", () => {
+    // 全库否认，仅第 86 题肯定 → 20 维全部未见异常，总评也必须是未见异常
+    const quiet = calculateScore({ testId: "multidim", answers: answersAll({ 86: 1 }) });
+    const quietRep: any = quiet.multidimReport;
+    expect(quietRep.severity.level).toBe("未见异常");
+    expect(quiet.level).toBe("评估结果良好");
+
+    // 反向：其余题目全部最重，只把第 86 题答成「不太符合」→ 总评不得回落为正常
+    const heavy = calculateScore({ testId: "multidim", answers: answersAll({ 86: -0.5 }, 1) });
+    const heavyRep: any = heavy.multidimReport;
+    expect(["重度", "极重度"]).toContain(heavyRep.severity.level);
+  });
+
+  it("严重度百分比语义为「困扰覆盖面」，不再是把均值拉伸到 50-100", () => {
+    const rep: any = calculateScore({
+      testId: "multidim",
+      answers: answersWavy("standard", "cov", 0, -0.5),
+    }).multidimReport;
+    expect(rep.severity.marked).toBe(0);
+    expect(rep.severity.elevated).toBe(0);
+    expect(rep.severity.pct).toBe(0); // 旧实现恒为 50
+    expect(rep.severity.level).toBe("正常");
+  });
+
+  it("整体作答加重时严重度等级与覆盖面单调不降", () => {
+    const rank: Record<string, number> = {
+      未见异常: 0,
+      正常: 1,
+      轻度: 2,
+      中度: 3,
+      重度: 4,
+      极重度: 5,
+    };
+    /** 前 positiveDims 个维度整体肯定、其余整体否认；每维度末题各降一档避免被判为直线作答 */
+    const build = (positiveDims: number) => {
+      const answers: Record<number, number> = {};
+      const byTrait = new Map<string, number[]>();
+      for (const q of multidimQuestions) {
+        if (q.kind === "lie") {
+          answers[q.id] = -1;
+          continue;
+        }
+        const list = byTrait.get(q.trait) ?? [];
+        list.push(q.id);
+        byTrait.set(q.trait, list);
+      }
+      MULTIDIM_TRAIT_ORDER.forEach((trait, idx) => {
+        const ids = byTrait.get(trait) ?? [];
+        const on = idx < positiveDims;
+        ids.forEach((id, i) => {
+          const last = i === ids.length - 1;
+          answers[id] = on ? (last ? 0.5 : 1) : last ? -0.5 : -1;
+        });
+      });
+      return answers;
+    };
+
+    const rows = [1, 6, 12, 19].map((n) => {
+      const rep: any = calculateScore({ testId: "multidim", answers: build(n) }).multidimReport;
+      expect(rep.validity.valid).toBe(true);
+      return { n, level: rank[rep.severity.level]!, pct: rep.severity.pct };
+    });
+    for (let i = 1; i < rows.length; i++) {
+      expect(rows[i]!.level).toBeGreaterThanOrEqual(rows[i - 1]!.level);
+      expect(rows[i]!.pct).toBeGreaterThanOrEqual(rows[i - 1]!.pct);
+    }
+    expect(rows[rows.length - 1]!.level).toBeGreaterThan(rows[0]!.level);
+  });
+
+  it("strongTraits 取信号最强的 4 项，而非题目顺序靠前的 4 项", () => {
+    const selfEsteemIds = multidimQuestions
+      .filter((q) => q.trait === "self_esteem")
+      .map((q) => q.id);
+    const overrides: Record<number, number> = {};
+    for (const id of selfEsteemIds) overrides[id] = 1;
+    const rep: any = calculateScore({
+      testId: "multidim",
+      answers: answersAll({ ...overrides, 1: 0.5, 2: 0.5, 3: -1, 4: 0.5, 5: 0.5 }),
+      }).multidimReport;
+    expect(rep.severity.strongTraits).toContain("自我价值感");
+    expect(rep.severity.strongTraits[0]).toBe("自我价值感");
   });
 });

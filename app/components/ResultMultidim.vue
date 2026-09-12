@@ -34,6 +34,19 @@
       </ul>
     </section>
 
+    <!-- 作答无效（直线作答）：不产出任何结论 -->
+    <section v-if="isInvalid" class="md-alert md-alert--warn">
+      <div class="md-alert-head">
+        <span class="md-alert-seal md-alert-seal--warn">作答无效</span>
+        <b>本次作答无法得出有效结论</b>
+      </div>
+      <p class="md-alert-body">{{ report.validity.reason }}</p>
+      <p v-if="report.validity.responseStyle" class="md-alert-body" style="margin-top: 6px;">
+        本次作答中有 {{ Math.round(report.validity.responseStyle.modeShare * 100) }}%
+        的题目集中在同一个选项上，所有维度会得到同样的结果，因此回答一致性与作答效度校验均不适用。
+      </p>
+    </section>
+
     <!-- 关注提示（被害 / 关系观念、冲动等，与感知异常区分开） -->
     <section v-if="concernSignals.length" class="md-alert md-alert--warn">
       <div class="md-alert-head">
@@ -72,8 +85,8 @@
       <p class="md-summary-note">{{ report.summary.note }}</p>
     </section>
 
-    <!-- 回答一致性偏低提示 -->
-    <div v-if="report.credibility && report.credibility.rate < 0.5" class="md-alert md-alert--warn">
+    <!-- 回答一致性偏低提示（直线作答时由上方「作答无效」统一说明） -->
+    <div v-if="!isInvalid && report.credibility && report.credibility.rate < 0.5" class="md-alert md-alert--warn">
       回答一致性偏低：您对同一特征的两次表述回答差异较大（一致率
       {{ Math.round(report.credibility.rate * 100) }}%，{{ report.credibility.consistent }}/{{ report.credibility.total }} 对）。
       请尽量如实、稳定地作答，结果才更具参考价值。
@@ -218,6 +231,9 @@ const formattedTime = computed(() => {
   const ts = props.result?.timestamp;
   return ts ? new Date(ts).toLocaleString("zh-CN") : "—";
 });
+
+// 作答有效性（旧版本记录没有该字段，按有效处理）
+const isInvalid = computed(() => props.report?.validity?.valid === false);
 
 // 安全 / 关注信号（旧版本记录没有这些字段，统一兜底为空数组）
 const severeSignals = computed<string[]>(() => props.report?.severeSignals || []);
