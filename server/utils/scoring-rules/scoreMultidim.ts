@@ -33,6 +33,12 @@ import {
 /** 题型权重：严重度问信息最具体，主问为主导，复问仅作印证 */
 const KIND_WEIGHT: Record<string, number> = { main: 1.0, dup: 0.5, sev: 1.2, life: 0.8 };
 
+/**
+ * 结果结构版本号。历史记录留在浏览器本地，结构变更后旧记录缺字段，
+ * 结果页据此提示「该记录由旧版本生成」，避免直接白屏。
+ */
+export const MULTIDIM_REPORT_VERSION = "2.3";
+
 /** 安全 / 关注信号：维度加权均值达到该值即视为该方向成立 */
 const SIGNAL_MEAN = 0.5;
 /** 维度内低于该均值视为“未出现一致信号”（与 getTraitScores 的活跃阈值同口径） */
@@ -622,6 +628,7 @@ export function scoreMultidim(
     severity: severityValue,
     dimensionScores,
     multidimReport: {
+      reportVersion: MULTIDIM_REPORT_VERSION,
       modeName,
       isNormal,
       traits,

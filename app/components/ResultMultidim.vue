@@ -4,7 +4,7 @@
     <header class="md-hero">
       <div class="md-hero-top">
         <span class="md-hero-kicker">MULTIDIMENSIONAL SELF-ASSESSMENT</span>
-        <span class="md-hero-badge">V2.2 · {{ report.modeName || '标准评估' }}</span>
+        <span class="md-hero-badge">V{{ report.reportVersion || '2.2' }} · {{ report.modeName || '标准评估' }}</span>
       </div>
       <h3 class="md-hero-title">心理健康多维自评量表</h3>
       <p class="md-hero-sub">{{ report.summary.level }} · 覆盖 20 个核心特征维度</p>
@@ -15,6 +15,12 @@
         <span v-if="report.credibility" class="md-meta-chip">{{ report.credibility.level }}</span>
       </div>
     </header>
+
+    <!-- 旧版本记录：结构可能缺字段，先提示再展示 -->
+    <div v-if="isLegacyRecord" class="md-alert md-alert--warn">
+      这条记录由旧版本生成，部分字段（作答有效性、时间窗口标注、安全信号说明）可能缺失；
+      如需完整报告，请重新测评一次。
+    </div>
 
     <!-- 安全提示（自伤 / 幻觉信号） -->
     <section v-if="severeSignals.length" class="md-alert md-alert--danger">
@@ -102,9 +108,9 @@
     </section>
 
     <!-- 主要特征方向 -->
-    <section v-if="report.topTraits.length" class="md-chips">
+    <section v-if="topTraits.length" class="md-chips">
       <span class="md-chips-label">主要特征方向</span>
-      <span v-for="t in report.topTraits" :key="t" class="md-chip">{{ t }}</span>
+      <span v-for="t in topTraits" :key="t" class="md-chip">{{ t }}</span>
     </section>
 
     <!-- 总体结论（不再输出障碍名与吻合度百分比） -->
@@ -230,6 +236,10 @@ const formattedTime = computed(() => {
 
 // 作答有效性（旧版本记录没有该字段，按有效处理）
 const isInvalid = computed(() => props.report?.validity?.valid === false);
+
+// 旧版本记录（缺 reportVersion）与主要列表的兜底，避免结构变更后整页白屏
+const isLegacyRecord = computed(() => !props.report?.reportVersion);
+const topTraits = computed<string[]>(() => props.report?.topTraits || []);
 
 // 需关注的维度数（旧版本记录没有这些字段，回退为 0 / 20）
 const elevatedCount = computed(() => props.report?.summary?.elevated ?? 0);

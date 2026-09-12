@@ -735,8 +735,8 @@ const started = ref(false)        // 是否已进入答题（每次进入都先�
 const shuffleOrder = ref(false)   // 开始页勾选：是否打乱题目顺序
 const isSubmitting = ref(false)   // 提交中锁：防止重复提交
 
-// 多维自评量表默认开启题目乱序（配合服务端按种子随机抽题，实现乱序复测）
-if (testId === 'multidim') shuffleOrder.value = true
+// 多维自评量表不默认乱序：服务端已按「严重议题优先」排好序（自伤 / 幻觉条目排在前面），
+// 默认乱序会把该安全排序完全打掉。需要乱序复测时由用户在开始页勾选。
 
 // SIOSS 等高敏感量表：勾选"已阅读声明"才可进入
 const formalAcknowledged = ref(false)

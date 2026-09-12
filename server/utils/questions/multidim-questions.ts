@@ -404,12 +404,14 @@ export function buildMultidimQuestions(
   seed?: string,
 ): MultidimQuestion[] {
   const rnd = mulberry32(hashSeed(seed));
-  const mains = shuffled(
-    multidimQuestions
-      .filter((q) => q.kind === "main")
-      .sort((a, b) => (SEVERE_WEIGHT[b.trait] || 1) - (SEVERE_WEIGHT[a.trait] || 1)),
-    rnd,
-  );
+  // 严重议题优先被问到：按权重分层，层内再打乱。
+  // 原实现是「先 sort 再整体 shuffled」——均匀洗牌会把排序完全抵消，
+  // 严重条目（自伤 / 幻觉）从未真正提前，安全排序形同虚设。
+  const mainPool = multidimQuestions.filter((q) => q.kind === "main");
+  const tierOf = (trait: string) => SEVERE_WEIGHT[trait] || 1;
+  const mains = [...new Set(mainPool.map((q) => tierOf(q.trait)))]
+    .sort((a, b) => b - a)
+    .flatMap((w) => shuffled(mainPool.filter((q) => tierOf(q.trait) === w), rnd));
 
   // 极简自测：全部 20 个核心主问，每维度一题
   if (mode === "light") return mains.slice(0, 20);

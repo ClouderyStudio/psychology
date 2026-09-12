@@ -2,6 +2,7 @@ import { describe, it, expect } from "vitest";
 import { calculateScore } from "../server/utils/score";
 import { bisQuestions } from "../server/utils/questions/bis-questions";
 import {
+  MULTIDIM_BASE_MAINS,
   MULTIDIM_QUESTION_WINDOWS,
   MULTIDIM_TRAIT_ORDER,
   MULTIDIM_WINDOW_LABEL,
@@ -822,6 +823,24 @@ describe("心理健康多维自评量表（MULTIDIM）", () => {
     expect(buildMultidimQuestions("fast", "s").length).toBe(45);
     expect(buildMultidimQuestions("standard", "s").length).toBe(65);
     expect(buildMultidimQuestions("deep", "s").length).toBe(105);
+  });
+
+  it("严重议题优先出题：自伤 / 幻觉主问固定排在最前面", () => {
+    const severe = ["suicide", "hallucination", "somatization", "impulse", "paranoia"];
+    for (const mode of ["light", "fast", "standard", "deep"] as const) {
+      for (const seed of ["s1", "s2", "seed-A", "1789217692677"]) {
+        const seq = buildMultidimQuestions(mode, seed);
+        const head = seq.slice(0, severe.length).map((q) => q.trait);
+        // 原实现「先排序再整体洗牌」被洗牌抵消，这里锁死分层顺序
+        expect([...head].sort()).toEqual([...severe].sort());
+        // 自伤主问必须在第 5 题以内被问到
+        const suicideMain = seq.findIndex((q) => q.trait === "suicide" && q.kind === "main");
+        expect(suicideMain).toBeGreaterThanOrEqual(0);
+        expect(suicideMain).toBeLessThan(severe.length);
+        // 效度题不占用主问区
+        expect(seq.slice(0, MULTIDIM_BASE_MAINS).every((q) => q.kind !== "lie")).toBe(true);
+      }
+    }
   });
 
   it("同一种子出题一致，不同种子题目集合不同（乱序复测）", () => {
