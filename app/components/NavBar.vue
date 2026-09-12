@@ -182,7 +182,8 @@
         </div>
 
         <!-- 移动端菜单按钮 -->
-        <button @click="toggleMobileMenu" class="md:hidden p-2 rounded-lg transition-colors" style="color: var(--text);"
+        <button @click="toggleMobileMenu"
+          class="mobile-menu-toggle md:hidden p-2 rounded-lg transition-colors" style="color: var(--text);"
           @mouseenter="elStyle($event, { backgroundColor: 'var(--primary-light)' })"
           @mouseleave="elStyle($event, { backgroundColor: 'transparent' })">
           <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -192,6 +193,16 @@
             </path>
           </svg>
         </button>
+
+        <!-- Win98 经典标题栏三连按钮：仅 win98 主题由 CSS 显示，其余主题隐藏；✕ 开合菜单 -->
+        <div class="win98-caption md:hidden items-center">
+          <button type="button" class="win98-cap-btn win98-cap-min" @click="toggleMobileMenu" title="菜单"
+            aria-label="打开菜单"><span>_</span></button>
+          <button type="button" class="win98-cap-btn win98-cap-max" @click="toggleMobileMenu" title="菜单"
+            aria-label="打开菜单"><span>□</span></button>
+          <button type="button" class="win98-cap-btn win98-cap-close" @click="toggleMobileMenu" title="关闭"
+            aria-label="切换菜单"><span>✕</span></button>
+        </div>
       </div>
 
       <!-- 进度面板（下拉） -->
@@ -227,8 +238,8 @@
       </ClientOnly>
     </div>
 
-    <!-- 移动端菜单 -->
-    <div v-if="mobileMenuOpen" class="md:hidden absolute top-16 left-0 right-0 shadow-lg"
+    <!-- 移动端菜单（fixed 覆盖层 + 内部滚动：sticky 导航内的 absolute 菜单会钉死在视口，超高部分无法到达） -->
+    <div v-if="mobileMenuOpen" class="mobile-menu-panel md:hidden absolute top-16 left-0 right-0 shadow-lg"
       style="background-color: var(--card-bg);">
       <div class="flex flex-col p-4 space-y-3">
         <NuxtLink to="/" class="mobile-nav-link" :class="{ 'mobile-active': isActive('/') }"
@@ -255,7 +266,7 @@
 
         <!-- 移动端主题切换 -->
         <button @click="toggleTheme"
-          class="flex items-center gap-2 px-3 py-2 rounded-lg transition-colors w-full text-left"
+          class="mobile-nav-link flex items-center gap-2 px-3 py-2 rounded-lg transition-colors w-full text-left"
           style="color: var(--text);"
           @mouseenter="elStyle($event, { backgroundColor: 'var(--primary-light)' })"
           @mouseleave="elStyle($event, { backgroundColor: 'transparent' })">
@@ -273,8 +284,8 @@
         <!-- 移动端主题配色 -->
         <div class="pt-2 mt-1 space-y-1.5">
           <div class="text-xs font-medium" style="color: var(--text-secondary);">主题配色</div>
-          <!-- 允许换行：配色已增至 9 套，且「大字号」放大后圆点会变宽 -->
-          <div class="flex flex-wrap items-center gap-2">
+          <!-- 允许换行：配色已增至 11 套，且「大字号」放大后圆点会变宽 -->
+          <div class="accent-dots flex flex-wrap items-center gap-2">
             <button v-for="opt in accentOptions" :key="opt.id"
               class="w-7 h-7 rounded-full flex items-center justify-center transition-all"
               :style="{ backgroundColor: opt.color, boxShadow: accent === opt.id ? '0 0 0 2px var(--text)' : 'none' }"
@@ -667,6 +678,28 @@ defineExpose({
 </script>
 
 <style scoped>
+/* Win98 三连标题按钮默认隐藏，仅在 html[data-accent="win98"] 下由全局 CSS 打开 */
+.win98-caption {
+  display: none;
+}
+
+/* 移动端菜单：fixed 覆盖层 + 自身滚动。导航是 sticky，菜单若用 absolute 会钉在视口，
+   内容超过一屏时底部选项永远滑不到；win98 主题的全局规则会把 top 覆盖为 30px */
+.mobile-menu-panel {
+  position: fixed;
+  top: 4rem;
+  left: 0;
+  right: 0;
+  /* 不用 bottom:0——带 backdrop-filter 的主题会让 nav 成为 fixed 的包含块，
+     bottom 会相对 64px 高的 nav 解析把菜单压成 0；显式视口高度不受影响 */
+  height: calc(100vh - 4rem);
+  height: calc(100dvh - 4rem);
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+
 .nav-link {
   padding-left: 0.75rem;
   padding-right: 0.75rem;

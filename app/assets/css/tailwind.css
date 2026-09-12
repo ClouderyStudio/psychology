@@ -82,6 +82,7 @@
 
     /* 阴影 */
     --shadow-sm: 0 1px 3px rgba(58, 53, 64, 0.08);
+    --shadow-md: 0 4px 14px rgba(58, 53, 64, 0.1);
     --shadow-lg: 0 8px 24px rgba(58, 53, 64, 0.12);
     --shadow-xl: 0 12px 36px rgba(58, 53, 64, 0.16);
 
@@ -162,6 +163,7 @@
 
     /* 阴影 - 暗色模式下使用亮边而非暗影 */
     --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.35);
+    --shadow-md: 0 4px 14px rgba(0, 0, 0, 0.4);
     --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.45);
     --shadow-xl: 0 12px 36px rgba(0, 0, 0, 0.55);
 
@@ -710,14 +712,16 @@ html[data-accent="retro"] .md-trait-level {
    暗色对应 Win11 深色表面（#202020 / #2b2b2b）。
    暗色主色没直接用暗色模式的 #4cc2ff —— 那个亮度压不住白字（对比度 2.0），
    按「蓝白 · Google」暗色同样的思路调到 #3386cf（白字 3.85 / 深卡上 3.67）。
-   字体意图见下方 --font-stack-win11（微软雅黑）。 */
+   描边取 Fluent cardStroke（亮 #e5e5e5 / 暗 #333333），阴影用 Fluent 两层
+   elevation（投影 + 1px 环境光），形态令牌（圆角/亚克力）见本块之后的
+   「Fluent 形态」段落。字体意图见下方 --font-stack-win11（微软雅黑）。 */
 [data-accent="win11"] {
   --bg: #f3f3f3;
   --card-bg: #ffffff;
   --text: #1b1b1b;
   --text-secondary: #616161;
   --text-muted: #767676;
-  --border: #d1d1d1;
+  --border: #e5e5e5;
   --primary: #0078d4;
   --primary-light: #e5f1fb;
   --primary-dark: #005a9e;
@@ -744,6 +748,15 @@ html[data-accent="retro"] .md-trait-level {
   --rigidity: var(--personality);
   --rigidity-light: var(--personality-light);
   --rigidity-dark: var(--personality-dark);
+
+  /* Fluent 两层 elevation：一层投影 + 一层 1-2px 环境光，比默认阴影更克制干净 */
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.10), 0 0 1px rgba(0, 0, 0, 0.08);
+  --shadow-md: 0 2px 6px rgba(0, 0, 0, 0.10), 0 0 2px rgba(0, 0, 0, 0.08);
+  --shadow-lg: 0 8px 16px rgba(0, 0, 0, 0.12), 0 0 2px rgba(0, 0, 0, 0.10);
+  --shadow-xl: 0 14px 28px rgba(0, 0, 0, 0.16), 0 0 4px rgba(0, 0, 0, 0.10);
+
+  /* 遮罩：Win32 原生弹窗遮罩观感（比默认略轻） */
+  --overlay-bg: rgba(0, 0, 0, 0.30);
 }
 
 [data-accent="win11"][data-theme="dark"] {
@@ -752,7 +765,7 @@ html[data-accent="retro"] .md-trait-level {
   --text: #f3f3f3;
   --text-secondary: #c8c8c8;
   --text-muted: #9d9d9d;
-  --border: #3f3f3f;
+  --border: #333333;
   --primary: #3386cf;
   --primary-light: #1e2c3d;
   --primary-dark: #99cbf0;
@@ -779,6 +792,1444 @@ html[data-accent="retro"] .md-trait-level {
   --rigidity: var(--personality);
   --rigidity-light: var(--personality-light);
   --rigidity-dark: var(--personality-dark);
+
+  /* Fluent 深色 elevation：纯黑、比亮色模式更深，符合 Win11 深色层叠 */
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.40);
+  --shadow-md: 0 2px 6px rgba(0, 0, 0, 0.45);
+  --shadow-lg: 0 8px 16px rgba(0, 0, 0, 0.55);
+  --shadow-xl: 0 14px 28px rgba(0, 0, 0, 0.65);
+
+  --overlay-bg: rgba(0, 0, 0, 0.45);
+}
+
+/* ===================== Fluent 形态（仅 Win11 主题） =====================
+   色彩/字体令牌解决「像不像 Win11」的底色，这里补齐形态语言：
+   1. 圆角：Fluent 2 规定卡片/浮层/对话框 8px，按钮/输入等控件 4px；
+      圆形元素（rounded-full 胶囊、圆点、进度条）一律不动。
+      做法与「怀旧」直角化一致：用 html[data-accent] 选择器覆盖 Tailwind
+      圆角类和组件 scoped 样式（特异性 (0,2,1) 高于 scoped 的 (0,2,0)）。
+   2. 亚克力导航：Mica 风格半透明 + 30px 模糊，滚动时内容从栏下穿过。
+   3. 原生控件（单选/复选/滑块）跟随强调蓝，文本选区同样着色。 */
+html[data-accent="win11"] {
+  accent-color: #0078d4;
+}
+html[data-accent="win11"][data-theme="dark"] {
+  accent-color: #3386cf;
+}
+html[data-accent="win11"] ::selection {
+  background-color: rgba(0, 120, 212, 0.25);
+}
+html[data-accent="win11"][data-theme="dark"] ::selection {
+  background-color: rgba(51, 134, 207, 0.35);
+}
+
+/* 8px：卡片 / 浮层 / 对话框 / Toast / 报告面板外壳 */
+html[data-accent="win11"] .rounded-xl,
+html[data-accent="win11"] .rounded-2xl,
+html[data-accent="win11"] .alert-card,
+html[data-accent="win11"] .internal-modal-card,
+html[data-accent="win11"] .toast-item,
+html[data-accent="win11"] .mbti-hero,
+html[data-accent="win11"] .mbti-section,
+html[data-accent="win11"] .md-card,
+html[data-accent="win11"] .md-hero,
+html[data-accent="win11"] .md-match,
+html[data-accent="win11"] .md-summary-cell,
+html[data-accent="win11"] .md-summary-note,
+html[data-accent="win11"] .md-alert,
+html[data-accent="win11"] .md-ok,
+html[data-accent="win11"] .md-stats,
+html[data-accent="win11"] .md-advice-text,
+html[data-accent="win11"] .md-advice-followup,
+html[data-accent="win11"] .md-rank,
+html[data-accent="win11"] .md-tag,
+html[data-accent="win11"] .md-reason-label,
+html[data-accent="win11"] .md-trait-level {
+  border-radius: 8px;
+}
+
+/* 4px：按钮 / 输入 / 图标按钮 / 弹层内操作项 */
+html[data-accent="win11"] .rounded-lg,
+html[data-accent="win11"] .rounded-md,
+html[data-accent="win11"] .alert-close,
+html[data-accent="win11"] .alert-confirm .alert-btn,
+html[data-accent="win11"] .internal-modal-input,
+html[data-accent="win11"] .internal-modal-btn,
+html[data-accent="win11"] .internal-modal-close,
+html[data-accent="win11"] .internal-test-entry,
+html[data-accent="win11"] .toast-close {
+  border-radius: 4px;
+}
+
+/* 亚克力顶栏（NavBar 内联写死了纯色背景，需要 !important 才能接管） */
+html[data-accent="win11"] nav {
+  background-color: rgba(252, 252, 252, 0.72) !important;
+  -webkit-backdrop-filter: blur(30px) saturate(125%);
+  backdrop-filter: blur(30px) saturate(125%);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+}
+html[data-accent="win11"][data-theme="dark"] nav {
+  background-color: rgba(32, 32, 32, 0.72) !important;
+  border-bottom-color: rgba(255, 255, 255, 0.06);
+}
+
+/* 移动端展开菜单同样亚克力化（它是 nav 的直接子元素且带 md:hidden） */
+html[data-accent="win11"] nav > div.md\:hidden {
+  background-color: rgba(252, 252, 252, 0.85) !important;
+  -webkit-backdrop-filter: blur(30px) saturate(125%);
+  backdrop-filter: blur(30px) saturate(125%);
+}
+html[data-accent="win11"][data-theme="dark"] nav > div.md\:hidden {
+  background-color: rgba(32, 32, 32, 0.85) !important;
+}
+
+/* ===================== Fluent 控件精修（仅 Win11 主题） =====================
+   在上面「Fluent 形态」（8/4px 圆角、亚克力导航）的基础上，按 Win11 / WinUI 3
+   的控件令牌补齐质感，依据 WinUI 3 控件调色板（Control / Accent / Subtle fill、
+   cardStroke、Mica/Acrylic brush、焦点视觉 2px accent + 1px gap）：
+   1. Mica 云母桌面：body 固定微渐变，各页面根内联 var(--bg) 透空；
+   2. 标题用 Segoe UI Variable Display、字重 600（Win11 不用 700/800 粗黑）；
+   3. 按钮三级体系：Accent 实心（#0078d4，hover/pressed 分层）、Standard 白底描边、
+      Subtle 透明灰 hover；多维量表入口的 teal→蓝渐变统一为 accent 纯色；
+   4. 胶囊筛选改为 4px 圆角矩形分段控件；
+   5. 文本框 stroke 描边 + 聚焦 2px accent 边；
+   6. 答题选项 Fluent 卡片化：未选白底发丝边、hover neutral、选中 accent 浅底；
+   7. 下拉浮层与 Toast 亚克力化、对话框发丝边；
+   8. 细滚动条、焦点视觉、footer 发丝分隔线。
+   全部规则只在 html[data-accent="win11"] 下生效，暗色单独覆盖。 */
+
+/* ---- Mica 云母桌面背景（固定附着，内容滚动时光照不动） ---- */
+html[data-accent="win11"] body {
+  background:
+    radial-gradient(1200px 620px at 50% -220px, rgba(0, 120, 212, 0.055), rgba(0, 120, 212, 0) 62%),
+    linear-gradient(180deg, #f7f8f9 0%, #f0f1f3 100%) fixed;
+}
+html[data-accent="win11"][data-theme="dark"] body {
+  background:
+    radial-gradient(1200px 620px at 50% -220px, rgba(51, 134, 207, 0.12), rgba(51, 134, 207, 0) 62%),
+    linear-gradient(180deg, #242426 0%, #1d1d1f 100%) fixed;
+}
+/* 页面根元素（各页 .min-h-screen）内联的 var(--bg) 透空露出云母；
+   内部面板仍保留自身填充，形成 Mica 分层 */
+html[data-accent="win11"] .min-h-screen[style*="var(--bg)"] {
+  background-color: transparent !important;
+}
+
+/* ---- 标题：Display 字体 + 600 字重（未装 Variable 时逐级回退） ---- */
+html[data-accent="win11"] h1,
+html[data-accent="win11"] h2,
+html[data-accent="win11"] h3,
+html[data-accent="win11"] h4 {
+  font-family: "Segoe UI Variable Display", var(--font-stack-win11);
+  font-weight: 600;
+}
+
+/* ---- 卡片发丝边（Fluent cardStrokeColorDefault：亮 rgba(0,0,0,.057)） ---- */
+html[data-accent="win11"] .card,
+html[data-accent="win11"] .exam-q {
+  border: 1px solid rgba(0, 0, 0, 0.057);
+}
+html[data-accent="win11"][data-theme="dark"] .card,
+html[data-accent="win11"][data-theme="dark"] .exam-q {
+  border-color: rgba(255, 255, 255, 0.08);
+}
+
+/* ---- 多维量表入口：特色推荐卡，保留该量表专属的 teal→蓝品牌渐变
+   （与结果页 ResultMultidim 的 --md-grad 同族；不用 accent 蓝，
+   Win11 设置页 hero 横幅也是这种渐变做法）；阴影换 Fluent 层级去彩晕 ---- */
+html[data-accent="win11"] .external-band {
+  background: linear-gradient(90deg, #2dd4bf 0%, #38bdf8 100%) !important;
+}
+html[data-accent="win11"] .external-btn {
+  background-image: linear-gradient(135deg, #2dd4bf 0%, #3b82f6 100%) !important;
+  background-color: transparent !important;
+  color: #0f172a !important;
+  border: 1px solid transparent;
+  box-shadow: var(--shadow-sm) !important;
+}
+html[data-accent="win11"] .external-scale-card:hover .external-btn {
+  filter: brightness(1.05);
+}
+html[data-accent="win11"] .external-scale-card:active .external-btn {
+  filter: brightness(0.97);
+}
+
+/* ---- 量表卡片操作按钮：分类彩色 → Accent 实心；「重新开始」→ Standard ---- */
+html[data-accent="win11"] .card button {
+  border-radius: 4px;
+  box-shadow: none !important;
+}
+html[data-accent="win11"] .card button:not([style*="card-bg"]) {
+  background-color: var(--primary) !important;
+  color: #ffffff !important;
+  border: 1px solid transparent;
+}
+html[data-accent="win11"] .card button:not([style*="card-bg"]):hover {
+  background-color: #1a86d9 !important;
+}
+html[data-accent="win11"] .card button:not([style*="card-bg"]):active {
+  background-color: #0067bd !important;
+}
+html[data-accent="win11"] .card button[style*="card-bg"] {
+  background-color: #ffffff !important;
+  color: var(--text-secondary) !important;
+  border: 1px solid #d1d1d1 !important; /* controlStrokeColorDefault */
+}
+html[data-accent="win11"] .card button[style*="card-bg"]:hover {
+  background-color: #f9f9f9 !important;
+  border-color: #d1d1d1 !important;
+}
+html[data-accent="win11"] .card button[style*="card-bg"]:active {
+  background-color: #f0f0f0 !important;
+}
+html[data-accent="win11"][data-theme="dark"] .card button:not([style*="card-bg"]):hover {
+  background-color: #4794d8 !important;
+}
+html[data-accent="win11"][data-theme="dark"] .card button:not([style*="card-bg"]):active {
+  background-color: #2a75b8 !important;
+}
+html[data-accent="win11"][data-theme="dark"] .card button[style*="card-bg"] {
+  background-color: #2b2b2b !important;
+  border-color: #4a4a4a !important;
+}
+html[data-accent="win11"][data-theme="dark"] .card button[style*="card-bg"]:hover {
+  background-color: #333333 !important;
+  border-color: #4a4a4a !important;
+}
+html[data-accent="win11"][data-theme="dark"] .card button[style*="card-bg"]:active {
+  background-color: #3a3a3a !important;
+}
+
+/* ---- 答题/内页按钮：内联 accent 的主操作（开始/下一页/提交/跳页）去阴影、
+   hover/pressed 走 accent 分层；内联 card-bg 的次操作走 Standard 描边 ---- */
+html[data-accent="win11"] .min-h-screen button[style*="var(--primary);"],
+html[data-accent="win11"] .min-h-screen button[style*="var(--primary-dark);"]:hover {
+  box-shadow: none !important;
+  border: 1px solid transparent;
+}
+html[data-accent="win11"] .min-h-screen button[style*="var(--primary);"]:hover,
+html[data-accent="win11"] .min-h-screen button[style*="var(--primary-dark);"]:hover {
+  background-color: #1a86d9 !important;
+}
+html[data-accent="win11"] .min-h-screen button[style*="var(--primary);"]:active {
+  background-color: #0067bd !important;
+}
+html[data-accent="win11"][data-theme="dark"] .min-h-screen button[style*="var(--primary);"]:hover,
+html[data-accent="win11"][data-theme="dark"] .min-h-screen button[style*="var(--primary-dark);"]:hover {
+  background-color: #4794d8 !important;
+}
+html[data-accent="win11"][data-theme="dark"] .min-h-screen button[style*="var(--primary);"]:active {
+  background-color: #2a75b8 !important;
+}
+html[data-accent="win11"] .min-h-screen button[style*="card-bg"] {
+  box-shadow: none !important;
+  border-color: #d1d1d1 !important;
+}
+html[data-accent="win11"] .min-h-screen button[style*="card-bg"]:hover {
+  background-color: #f9f9f9 !important;
+}
+html[data-accent="win11"][data-theme="dark"] .min-h-screen button[style*="card-bg"] {
+  border-color: #4a4a4a !important;
+}
+html[data-accent="win11"][data-theme="dark"] .min-h-screen button[style*="card-bg"]:hover {
+  background-color: #333333 !important;
+}
+
+/* ---- 标签筛选 .tag-chip：胶囊 → 4px 分段控件，选中=accent 实心 ---- */
+html[data-accent="win11"] .tag-chip {
+  border-radius: 4px !important;
+  border: 1px solid #d1d1d1;
+  box-shadow: none !important;
+}
+html[data-accent="win11"] .tag-chip[style*="primary-dark"] {
+  background-color: var(--primary) !important;
+  border-color: transparent;
+}
+html[data-accent="win11"] .tag-chip:not([style*="primary-dark"]):hover {
+  background-color: #f0f0f0 !important;
+}
+html[data-accent="win11"][data-theme="dark"] .tag-chip {
+  border-color: #4a4a4a;
+}
+html[data-accent="win11"][data-theme="dark"] .tag-chip:not([style*="primary-dark"]):hover {
+  background-color: rgba(255, 255, 255, 0.06) !important;
+}
+
+/* ---- 分类筛选 .filter-btn：胶囊 → 4px，选中统一 accent（圆点保留分类色） ---- */
+html[data-accent="win11"] .filter-btn {
+  border-radius: 4px !important;
+  border: 1px solid #d1d1d1;
+  box-shadow: none !important;
+}
+html[data-accent="win11"] .filter-btn.active {
+  background-color: var(--primary) !important;
+  border-color: transparent;
+}
+html[data-accent="win11"] .filter-btn:not(.active) {
+  background-color: #ffffff !important;
+  color: var(--text-secondary) !important;
+}
+html[data-accent="win11"] .filter-btn:not(.active):hover {
+  background-color: #f0f0f0 !important;
+}
+html[data-accent="win11"][data-theme="dark"] .filter-btn {
+  border-color: #4a4a4a;
+}
+html[data-accent="win11"][data-theme="dark"] .filter-btn:not(.active) {
+  background-color: #2b2b2b !important;
+}
+html[data-accent="win11"][data-theme="dark"] .filter-btn:not(.active):hover {
+  background-color: #333333 !important;
+}
+
+/* ---- 文本控件：白底发丝边（搜索框的内联透明边被 !important 接管），
+   聚焦时 2px accent 边（WinUI 文本框 focus 态） ---- */
+html[data-accent="win11"] input:not([type="radio"]):not([type="checkbox"]):not([type="range"]):not([type="color"]),
+html[data-accent="win11"] textarea,
+html[data-accent="win11"] select {
+  border-radius: 4px;
+  border: 1px solid #d1d1d1 !important;
+  background-color: #ffffff !important;
+  color: var(--text);
+  transition: border-color 0.12s ease, box-shadow 0.12s ease;
+}
+html[data-accent="win11"] input:not([type="radio"]):not([type="checkbox"]):not([type="range"]):not([type="color"]):focus,
+html[data-accent="win11"] textarea:focus,
+html[data-accent="win11"] select:focus {
+  outline: none;
+  border-color: var(--primary) !important;
+  box-shadow: inset 0 0 0 1px var(--primary) !important;
+}
+html[data-accent="win11"][data-theme="dark"] input:not([type="radio"]):not([type="checkbox"]):not([type="range"]):not([type="color"]),
+html[data-accent="win11"][data-theme="dark"] textarea,
+html[data-accent="win11"][data-theme="dark"] select {
+  border-color: #505050 !important;
+  background-color: #2b2b2b !important;
+}
+
+/* ---- 答题选项：浅灰横条 → Fluent 卡片行（白底发丝边 / hover neutral /
+   选中 accent 浅底 + 1px accent 边）。同样命中「打乱顺序」设置行 ---- */
+html[data-accent="win11"] .min-h-screen label[style*="var(--bg)"] {
+  background-color: var(--card-bg) !important;
+  border: 1px solid var(--border) !important;
+  transition: background-color 0.12s ease, border-color 0.12s ease;
+}
+html[data-accent="win11"] .min-h-screen label[style*="var(--bg)"]:hover {
+  background-color: #f9f9f9 !important;
+}
+html[data-accent="win11"] .min-h-screen label[style*="primary-light"] {
+  border-color: var(--primary) !important;
+}
+html[data-accent="win11"][data-theme="dark"] .min-h-screen label[style*="var(--bg)"]:hover {
+  background-color: rgba(255, 255, 255, 0.05) !important;
+}
+
+/* ---- 进度条轨道：accent 浅蓝 → 中性灰（Fluent  determinate 轨道） ---- */
+html[data-accent="win11"] .min-h-screen .h-2.rounded-full[style*="primary-light"],
+html[data-accent="win11"] nav .h-1.rounded-full[style*="primary-light"] {
+  background-color: #e6e6e6 !important;
+}
+html[data-accent="win11"][data-theme="dark"] .min-h-screen .h-2.rounded-full[style*="primary-light"],
+html[data-accent="win11"][data-theme="dark"] nav .h-1.rounded-full[style*="primary-light"] {
+  background-color: #3d3d3d !important;
+}
+
+/* ---- 导航下拉浮层：Acrylic（88% 层叠材质 + 40px 模糊，发丝边） ---- */
+html[data-accent="win11"] nav .absolute.rounded-xl,
+html[data-accent="win11"] nav .absolute.rounded-lg {
+  background-color: rgba(252, 252, 252, 0.88) !important;
+  -webkit-backdrop-filter: blur(40px) saturate(125%);
+  backdrop-filter: blur(40px) saturate(125%);
+  border: 1px solid rgba(0, 0, 0, 0.08);
+}
+html[data-accent="win11"][data-theme="dark"] nav .absolute.rounded-xl,
+html[data-accent="win11"][data-theme="dark"] nav .absolute.rounded-lg {
+  background-color: rgba(43, 43, 43, 0.88) !important;
+  border-color: rgba(255, 255, 255, 0.08);
+}
+
+/* ---- Toast：Acrylic（左侧 4px 类型色条保留，只补另外三边） ---- */
+html[data-accent="win11"] .toast-item {
+  background-color: rgba(252, 252, 252, 0.9) !important;
+  -webkit-backdrop-filter: blur(40px) saturate(125%);
+  backdrop-filter: blur(40px) saturate(125%);
+  border-top: 1px solid rgba(0, 0, 0, 0.08);
+  border-right: 1px solid rgba(0, 0, 0, 0.08);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+}
+html[data-accent="win11"][data-theme="dark"] .toast-item {
+  background-color: rgba(43, 43, 43, 0.9) !important;
+  border-top-color: rgba(255, 255, 255, 0.08);
+  border-right-color: rgba(255, 255, 255, 0.08);
+  border-bottom-color: rgba(255, 255, 255, 0.08);
+}
+
+/* ---- 确认对话框：发丝边（保留左侧类型色条）+ Accent/Subtle 按钮层级 ---- */
+html[data-accent="win11"] .alert-card {
+  border-top: 1px solid rgba(0, 0, 0, 0.08);
+  border-right: 1px solid rgba(0, 0, 0, 0.08);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+}
+html[data-accent="win11"] .alert-confirm .alert-btn {
+  box-shadow: none;
+}
+html[data-accent="win11"] .alert-confirm .alert-btn-confirm:hover {
+  background-color: #1a86d9;
+}
+html[data-accent="win11"] .alert-confirm .alert-btn-confirm:active {
+  background-color: #0067bd;
+}
+html[data-accent="win11"] .alert-confirm .alert-btn-cancel {
+  background-color: transparent;
+}
+html[data-accent="win11"] .alert-confirm .alert-btn-cancel:hover {
+  background-color: rgba(0, 0, 0, 0.05);
+}
+html[data-accent="win11"] .alert-confirm .alert-btn-cancel:active {
+  background-color: rgba(0, 0, 0, 0.08);
+}
+html[data-accent="win11"] .alert-close:hover {
+  background-color: rgba(0, 0, 0, 0.05);
+}
+html[data-accent="win11"][data-theme="dark"] .alert-card {
+  border-top-color: rgba(255, 255, 255, 0.09);
+  border-right-color: rgba(255, 255, 255, 0.09);
+  border-bottom-color: rgba(255, 255, 255, 0.09);
+}
+html[data-accent="win11"][data-theme="dark"] .alert-confirm .alert-btn-confirm:hover {
+  background-color: #4794d8;
+}
+html[data-accent="win11"][data-theme="dark"] .alert-confirm .alert-btn-confirm:active {
+  background-color: #2a75b8;
+}
+html[data-accent="win11"][data-theme="dark"] .alert-confirm .alert-btn-cancel:hover {
+  background-color: rgba(255, 255, 255, 0.06);
+}
+html[data-accent="win11"][data-theme="dark"] .alert-confirm .alert-btn-cancel:active {
+  background-color: rgba(255, 255, 255, 0.1);
+}
+html[data-accent="win11"][data-theme="dark"] .alert-close:hover {
+  background-color: rgba(255, 255, 255, 0.06);
+}
+
+/* ---- 内部量表密码弹窗：同样的 Accent/Subtle 层级 ---- */
+html[data-accent="win11"] .internal-modal-card {
+  border: 1px solid rgba(0, 0, 0, 0.08);
+}
+html[data-accent="win11"] .internal-modal-btn {
+  box-shadow: none;
+}
+html[data-accent="win11"] .internal-modal-btn-confirm:hover {
+  background-color: #1a86d9;
+}
+html[data-accent="win11"] .internal-modal-btn-cancel {
+  background-color: transparent;
+}
+html[data-accent="win11"] .internal-modal-btn-cancel:hover {
+  background-color: rgba(0, 0, 0, 0.05);
+}
+html[data-accent="win11"][data-theme="dark"] .internal-modal-card {
+  border-color: rgba(255, 255, 255, 0.09);
+}
+html[data-accent="win11"][data-theme="dark"] .internal-modal-btn-confirm:hover {
+  background-color: #4794d8;
+}
+html[data-accent="win11"][data-theme="dark"] .internal-modal-btn-cancel:hover {
+  background-color: rgba(255, 255, 255, 0.06);
+}
+
+/* ---- 桌面端顶栏图标按钮：圆形 accent 浅底 → Win11 caption 式 4px ghost ---- */
+html[data-accent="win11"] nav .hidden.md\:flex > button,
+html[data-accent="win11"] nav .hidden.md\:flex > div > button {
+  background-color: transparent !important;
+  color: var(--text) !important;
+  border-radius: 4px;
+  box-shadow: none !important;
+}
+html[data-accent="win11"] nav .hidden.md\:flex > button:hover,
+html[data-accent="win11"] nav .hidden.md\:flex > div > button:hover {
+  background-color: rgba(0, 0, 0, 0.05) !important;
+}
+html[data-accent="win11"] nav .hidden.md\:flex > button:active,
+html[data-accent="win11"] nav .hidden.md\:flex > div > button:active {
+  background-color: rgba(0, 0, 0, 0.08) !important;
+}
+html[data-accent="win11"][data-theme="dark"] nav .hidden.md\:flex > button:hover,
+html[data-accent="win11"][data-theme="dark"] nav .hidden.md\:flex > div > button:hover {
+  background-color: rgba(255, 255, 255, 0.06) !important;
+}
+html[data-accent="win11"][data-theme="dark"] nav .hidden.md\:flex > button:active,
+html[data-accent="win11"][data-theme="dark"] nav .hidden.md\:flex > div > button:active {
+  background-color: rgba(255, 255, 255, 0.1) !important;
+}
+
+/* ---- footer 发丝分隔线 ---- */
+html[data-accent="win11"] footer {
+  border-top: 1px solid rgba(0, 0, 0, 0.057);
+}
+html[data-accent="win11"][data-theme="dark"] footer {
+  border-top-color: rgba(255, 255, 255, 0.06);
+}
+
+/* ---- 焦点视觉：2px accent 外框 + 1px 间隙（键盘导航可见） ---- */
+html[data-accent="win11"] button:focus-visible,
+html[data-accent="win11"] a:focus-visible,
+html[data-accent="win11"] label:focus-visible,
+html[data-accent="win11"] [tabindex]:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 1px;
+}
+
+/* ---- 细滚动条：10px、圆角拇指、无轨道无箭头（逼近 Win11 overlay scrollbar） ---- */
+html[data-accent="win11"] {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(0, 0, 0, 0.28) transparent;
+}
+html[data-accent="win11"] ::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+html[data-accent="win11"] ::-webkit-scrollbar-track {
+  background: transparent;
+}
+html[data-accent="win11"] ::-webkit-scrollbar-thumb {
+  background-color: rgba(0, 0, 0, 0.28);
+  border-radius: 8px;
+  border: 2px solid transparent;
+  background-clip: padding-box;
+}
+html[data-accent="win11"] ::-webkit-scrollbar-thumb:hover {
+  background-color: rgba(0, 0, 0, 0.42);
+}
+html[data-accent="win11"] ::-webkit-scrollbar-button {
+  display: none;
+}
+html[data-accent="win11"][data-theme="dark"] {
+  scrollbar-color: rgba(255, 255, 255, 0.3) transparent;
+}
+html[data-accent="win11"][data-theme="dark"] ::-webkit-scrollbar-thumb {
+  background-color: rgba(255, 255, 255, 0.3);
+}
+html[data-accent="win11"][data-theme="dark"] ::-webkit-scrollbar-thumb:hover {
+  background-color: rgba(255, 255, 255, 0.42);
+}
+
+/* ===================== Windows 98 经典主题 =====================
+   设计依据：Win98 / Win95 经典外观（Windows Classic）。
+   - 桌面：teal #008080；窗口：白底 + 2px 3D 斜面边框（raised bevel）；
+   - 标题栏：navy #000080 白字（暗色=高对比度黑）；
+   - 按钮：#c0c0c0 灰底凸起斜面，按下变凹陷；输入框：白底凹陷斜面；
+   - 字体：Tahoma / Microsoft Sans Serif + 宋体（见 --font-stack-win98）；
+   - 一切圆角归零，阴影全部替换为斜面（box-shadow inset 模拟）。
+   暗色模式对应 Windows 的「高对比度 #1（黑）」辅助主题。 */
+
+/* ---------- 令牌：亮色（经典外观） ---------- */
+[data-accent="win98"] {
+  /* teal 桌面；窗口内容区白色 */
+  --bg: #008080;
+  --card-bg: #ffffff;
+  --text: #000000;
+  --text-secondary: #262626;
+  --text-muted: #515151;
+  --border: #000000;
+
+  /* navy 标题栏蓝 / 选中蓝；primary-light = 按钮面灰 */
+  --primary: #000080;
+  --primary-light: #c0c0c0;
+  --primary-dark: #000080;
+  --primary-tag: #a8b8d8;
+
+  /* 分类色全部取自 VGA 16 色调色板：navy / green / maroon */
+  --symptom: #000080;
+  --symptom-light: #d6dcec;
+  --symptom-dark: #000080;
+  --symptom-tag: #a8b8d8;
+
+  --personality: #006b00;
+  --personality-light: #d6e8d6;
+  --personality-dark: #006b00;
+  --personality-tag: #a8c8a8;
+
+  --special: #800000;
+  --special-light: #e8d6d6;
+  --special-dark: #800000;
+  --special-tag: #c8a8a8;
+
+  --disharmony: #000080;
+  --disharmony-light: #d6dcec;
+  --disharmony-dark: #000080;
+
+  --flexibility: #006b00;
+  --flexibility-light: #d6e8d6;
+  --flexibility-dark: #006b00;
+
+  --rigidity: #800000;
+  --rigidity-light: #e8d6d6;
+  --rigidity-dark: #800000;
+
+  /* 气质类型：VGA 红 / 绿 / navy / 紫 */
+  --choleric: #c00000;
+  --choleric-light: #e8d6d6;
+  --choleric-dark: #800000;
+
+  --sanguine: #008000;
+  --sanguine-light: #d6e8d6;
+  --sanguine-dark: #005a00;
+
+  --phlegmatic: #000080;
+  --phlegmatic-light: #d6dcec;
+  --phlegmatic-dark: #00005f;
+
+  --melancholic: #800080;
+  --melancholic-light: #e8d6e8;
+  --melancholic-dark: #5a005a;
+
+  /* 警告：经典气泡提示黄 #ffffe1 */
+  --warning-bg: #ffffe1;
+  --warning-border: #000000;
+  --warning-text: #000000;
+
+  --danger: #c00000;
+  --danger-light: #e8d6d6;
+  --danger-dark: #7a0000;
+  --danger-border: #000000;
+
+  /* 阴影 → 2px 凸起斜面（外亮 TL + 内浅 TL + 外暗 BR + 内灰 BR） */
+  --bevel-raised:
+    inset 1px 1px 0 #ffffff,
+    inset 2px 2px 0 #dfdfdf,
+    inset -1px -1px 0 #000000,
+    inset -2px -2px 0 #808080;
+  --bevel-sunken:
+    inset 1px 1px 0 #808080,
+    inset 2px 2px 0 #000000,
+    inset -1px -1px 0 #ffffff,
+    inset -2px -2px 0 #dfdfdf;
+  --shadow-sm: var(--bevel-raised);
+  --shadow-md: var(--bevel-raised);
+  --shadow-lg: var(--bevel-raised);
+  --shadow-xl: var(--bevel-raised);
+
+  --overlay-bg: rgba(0, 0, 0, 0.22);
+}
+
+/* ---------- 令牌：暗色（高对比度 #1 黑） ---------- */
+[data-accent="win98"][data-theme="dark"] {
+  --bg: #000000;
+  --card-bg: #000000;
+  --text: #ffffff;
+  --text-secondary: #d8d8d8;
+  --text-muted: #9a9a9a;
+  --border: #ffffff;
+
+  --primary: #3a80cf;
+  --primary-light: #1a1a1a;
+  --primary-dark: #b0d4ff;
+  --primary-tag: #1f3a5c;
+
+  --symptom: #3a80cf;
+  --symptom-light: #14181f;
+  --symptom-dark: #b0d4ff;
+  --symptom-tag: #1f3a5c;
+
+  --personality: #6fcf6f;
+  --personality-light: #101c10;
+  --personality-dark: #9ee09e;
+  --personality-tag: #1f3a1f;
+
+  --special: #ff7a7a;
+  --special-light: #241010;
+  --special-dark: #ffb0b0;
+  --special-tag: #4a1f1f;
+
+  --disharmony: #3a80cf;
+  --disharmony-light: #14181f;
+  --disharmony-dark: #b0d4ff;
+
+  --flexibility: #6fcf6f;
+  --flexibility-light: #101c10;
+  --flexibility-dark: #9ee09e;
+
+  --rigidity: #ff7a7a;
+  --rigidity-light: #241010;
+  --rigidity-dark: #ffb0b0;
+
+  --choleric: #ff7a7a;
+  --choleric-light: #241010;
+  --choleric-dark: #ffb0b0;
+
+  --sanguine: #6fcf6f;
+  --sanguine-light: #101c10;
+  --sanguine-dark: #9ee09e;
+
+  --phlegmatic: #6fa8e0;
+  --phlegmatic-light: #0f1a24;
+  --phlegmatic-dark: #a8cdf0;
+
+  --melancholic: #cf8fdd;
+  --melancholic-light: #221024;
+  --melancholic-dark: #e0b3ee;
+
+  --warning-bg: #1a1a00;
+  --warning-border: #ffff80;
+  --warning-text: #ffff80;
+
+  --danger: #ff6a6a;
+  --danger-light: #241010;
+  --danger-dark: #ffb0b0;
+  --danger-border: #ff6a6a;
+
+  /* 高对比度斜面：白/浅灰 TL，灰/深灰 BR（黑色 BR 在黑底上不可见） */
+  --bevel-raised:
+    inset 1px 1px 0 #ffffff,
+    inset 2px 2px 0 #c0c0c0,
+    inset -1px -1px 0 #808080,
+    inset -2px -2px 0 #404040;
+  --bevel-sunken:
+    inset 1px 1px 0 #808080,
+    inset 2px 2px 0 #404040,
+    inset -1px -1px 0 #ffffff,
+    inset -2px -2px 0 #c0c0c0;
+  --shadow-sm: var(--bevel-raised);
+  --shadow-md: var(--bevel-raised);
+  --shadow-lg: var(--bevel-raised);
+  --shadow-xl: var(--bevel-raised);
+
+  --overlay-bg: rgba(0, 0, 0, 0.55);
+}
+
+/* ---------- 形态：一切直角（圆点/进度条也方块化，彻底复古） ---------- */
+html[data-accent="win98"] .rounded-md,
+html[data-accent="win98"] .rounded-lg,
+html[data-accent="win98"] .rounded-xl,
+html[data-accent="win98"] .rounded-2xl,
+html[data-accent="win98"] .rounded-full,
+html[data-accent="win98"] .alert-card,
+html[data-accent="win98"] .alert-close,
+html[data-accent="win98"] .alert-confirm .alert-btn,
+html[data-accent="win98"] .internal-modal-card,
+html[data-accent="win98"] .internal-modal-input,
+html[data-accent="win98"] .internal-modal-btn,
+html[data-accent="win98"] .internal-modal-close,
+html[data-accent="win98"] .internal-test-entry,
+html[data-accent="win98"] .toast-item,
+html[data-accent="win98"] .toast-close,
+html[data-accent="win98"] .mbti-hero,
+html[data-accent="win98"] .mbti-section,
+html[data-accent="win98"] .md-card,
+html[data-accent="win98"] .md-hero,
+html[data-accent="win98"] .md-match,
+html[data-accent="win98"] .md-summary-cell,
+html[data-accent="win98"] .md-summary-note,
+html[data-accent="win98"] .md-alert,
+html[data-accent="win98"] .md-ok,
+html[data-accent="win98"] .md-stats,
+html[data-accent="win98"] .md-advice-text,
+html[data-accent="win98"] .md-advice-followup,
+html[data-accent="win98"] .md-rank,
+html[data-accent="win98"] .md-tag,
+html[data-accent="win98"] .md-reason-label,
+html[data-accent="win98"] .md-trait-level {
+  border-radius: 0;
+}
+
+/* ---------- 按钮：灰底凸起 + 黑字；按下凹陷（全站唯一按钮语言）。
+   :not(.accent-dots *) 豁免移动端主题配色圆点（它们用内联色值显示各主题颜色） ---------- */
+html[data-accent="win98"] button:not(.accent-dots *) {
+  background-color: #c0c0c0 !important;
+  color: #000000 !important;
+  border: 1px solid transparent !important;
+  box-shadow: var(--bevel-raised) !important;
+  border-radius: 0 !important;
+  /* Win98 按钮文字是 Tahoma 常规字重、约 11-12px */
+  font-weight: 400 !important;
+  font-size: 0.8125rem;
+  letter-spacing: 0;
+}
+html[data-accent="win98"] button:not(.accent-dots *):active {
+  box-shadow:
+    inset 1px 1px 0 #000000,
+    inset 2px 2px 0 #808080,
+    inset -1px -1px 0 #ffffff !important;
+}
+html[data-accent="win98"] button:not(.accent-dots *):focus-visible {
+  outline: 1px dotted #000000;
+  outline-offset: -4px;
+}
+
+/* 暗色（高对比度黑）：黑底白字 + 白色斜面 */
+html[data-accent="win98"][data-theme="dark"] button:not(.accent-dots *) {
+  background-color: #000000 !important;
+  color: #ffffff !important;
+  box-shadow: var(--bevel-raised) !important;
+}
+html[data-accent="win98"][data-theme="dark"] button:not(.accent-dots *):active {
+  box-shadow:
+    inset 1px 1px 0 #ffffff,
+    inset 2px 2px 0 #c0c0c0,
+    inset -1px -1px 0 #808080 !important;
+}
+html[data-accent="win98"][data-theme="dark"] button:not(.accent-dots *):focus-visible {
+  outline-color: #ffffff;
+}
+
+/* 激活的筛选/标签/菜单项 → navy 底白字（暗色=反相黑白），
+   覆盖按钮规则需要更高特异性或同等特异性靠后 + !important */
+html[data-accent="win98"] .filter-btn.active {
+  background-color: #000080 !important;
+  color: #ffffff !important;
+}
+html[data-accent="win98"] .filter-btn.active .filter-dot {
+  background-color: #ffffff !important;
+}
+html[data-accent="win98"] .tag-chip[style*="primary-dark"] {
+  background-color: #000080 !important;
+  color: #ffffff !important;
+}
+/* 阅读偏好等面板内的选中项（内联样式含 var(--primary-light)）。
+   只匹配 button：进度条轨道等 div 也引用 primary-light，不能误伤 */
+html[data-accent="win98"] button[style*="primary-light"] {
+  background-color: #000080 !important;
+  color: #ffffff !important;
+}
+/* 选中项内的标题/说明 span 自带 muted 色，必须一并翻白，否则 navy 底上发黑 */
+html[data-accent="win98"] button[style*="primary-light"] * {
+  color: #ffffff !important;
+}
+html[data-accent="win98"][data-theme="dark"] .filter-btn.active,
+html[data-accent="win98"][data-theme="dark"] .tag-chip[style*="primary-dark"],
+html[data-accent="win98"][data-theme="dark"] button[style*="primary-light"] {
+  background-color: #ffffff !important;
+  color: #000000 !important;
+}
+html[data-accent="win98"][data-theme="dark"] button[style*="primary-light"] * {
+  color: #000000 !important;
+}
+html[data-accent="win98"][data-theme="dark"] .filter-btn.active .filter-dot {
+  background-color: #000000 !important;
+}
+
+/* ---------- 输入框：白底凹陷；暗色黑底凹陷 ---------- */
+html[data-accent="win98"] input:not([type="checkbox"]):not([type="radio"]):not([type="range"]),
+html[data-accent="win98"] textarea,
+html[data-accent="win98"] select {
+  background-color: #ffffff !important;
+  color: #000000 !important;
+  border: none !important;
+  box-shadow: var(--bevel-sunken) !important;
+  border-radius: 0 !important;
+}
+html[data-accent="win98"][data-theme="dark"] input:not([type="checkbox"]):not([type="radio"]):not([type="range"]),
+html[data-accent="win98"][data-theme="dark"] textarea,
+html[data-accent="win98"][data-theme="dark"] select {
+  background-color: #000000 !important;
+  color: #ffffff !important;
+}
+
+/* ---------- 答题页：题目块做成白底黑框分组框（内联 var(--bg) 在 win98 是 teal） ---------- */
+html[data-accent="win98"] .exam-q {
+  background-color: #ffffff !important;
+  border: 1px solid #000000;
+}
+/* 正式答题页 pages/test/[id].vue：外层 min-h-screen 保留 teal 桌面，
+   容器内所有 var(--bg) 浅底面板（题干块/说明卡/未选中选项/分页栏）改成窗口白底 */
+html[data-accent="win98"] .min-h-screen [style*="var(--bg)"] {
+  background-color: #ffffff !important;
+}
+/* 选中的选项行：内联 background-color:var(--primary-light)（灰）→ 改成 navy 反白 */
+html[data-accent="win98"] label[style*="var(--primary-light)"] {
+  background-color: #000080 !important;
+  color: #ffffff !important;
+}
+html[data-accent="win98"] label[style*="var(--primary-light)"] span {
+  color: #ffffff !important;
+}
+html[data-accent="win98"][data-theme="dark"] .exam-q {
+  background-color: #000000 !important;
+  border-color: #ffffff;
+}
+html[data-accent="win98"][data-theme="dark"] .min-h-screen [style*="var(--bg)"] {
+  background-color: #000000 !important;
+}
+html[data-accent="win98"][data-theme="dark"] label[style*="var(--primary-light)"],
+html[data-accent="win98"][data-theme="dark"] label[style*="var(--primary-light)"] span {
+  background-color: #ffffff !important;
+  color: #000000 !important;
+}
+
+/* ---------- 导航：navy 标题栏 ---------- */
+html[data-accent="win98"] nav {
+  background-color: #000080 !important;
+  box-shadow: inset 0 -2px 0 #000000, inset 0 -3px 0 #808080;
+}
+html[data-accent="win98"] nav span.font-semibold.text-lg {
+  color: #ffffff !important;
+}
+html[data-accent="win98"] nav .nav-link {
+  color: #ffffff;
+  background-color: transparent;
+}
+html[data-accent="win98"] nav .nav-link:hover {
+  background-color: #ffffff !important;
+  color: #000080 !important;
+}
+html[data-accent="win98"] nav .nav-link.active {
+  background-color: #000000 !important;
+  color: #ffffff !important;
+}
+/* 移动端展开菜单：灰色经典菜单 */
+html[data-accent="win98"] nav > div.md\:hidden {
+  background-color: #c0c0c0 !important;
+  border-top: 2px solid #000000;
+}
+html[data-accent="win98"] nav .nav-link,
+html[data-accent="win98"] nav > div.md\:hidden .mobile-nav-link {
+  border-radius: 0;
+}
+html[data-accent="win98"] nav > div.md\:hidden .mobile-nav-link {
+  color: #000000 !important;
+}
+html[data-accent="win98"] nav > div.md\:hidden .mobile-nav-link.mobile-active {
+  background-color: #000080 !important;
+  color: #ffffff !important;
+}
+
+/* 暗色：黑色标题栏 + 白色发丝线 */
+html[data-accent="win98"][data-theme="dark"] nav {
+  background-color: #000000 !important;
+  box-shadow: inset 0 -1px 0 #ffffff, inset 0 -2px 0 #808080;
+}
+html[data-accent="win98"][data-theme="dark"] nav > div.md\:hidden {
+  background-color: #000000 !important;
+  border-top-color: #ffffff;
+}
+html[data-accent="win98"][data-theme="dark"] nav > div.md\:hidden .mobile-nav-link {
+  color: #ffffff !important;
+}
+html[data-accent="win98"][data-theme="dark"] nav > div.md\:hidden .mobile-nav-link.mobile-active,
+html[data-accent="win98"][data-theme="dark"] nav .nav-link:hover {
+  background-color: #ffffff !important;
+  color: #000000 !important;
+}
+html[data-accent="win98"][data-theme="dark"] nav .nav-link.active {
+  background-color: #ffffff !important;
+  color: #000000 !important;
+}
+
+/* ---------- 弹窗：去掉毛玻璃，浮在桌面上 ---------- */
+html[data-accent="win98"] .alert-container,
+html[data-accent="win98"] .internal-modal-overlay {
+  backdrop-filter: none;
+  background-color: var(--overlay-bg);
+}
+
+/* ---------- 外链量表卡片：覆盖青蓝渐变，收编成灰色经典控件 ---------- */
+html[data-accent="win98"] .external-band {
+  background: #000080 !important;
+}
+html[data-accent="win98"] .external-tag {
+  background-color: #c0c0c0 !important;
+  color: #000000 !important;
+}
+html[data-accent="win98"] .external-btn {
+  background-color: #c0c0c0 !important;
+  /* scoped 样式用 background 简写挂了渐变（属 background-image），必须显式去掉 */
+  background-image: none !important;
+  color: #000000 !important;
+  box-shadow: var(--bevel-raised) !important;
+  border-radius: 0 !important;
+}
+html[data-accent="win98"] .external-scale-card,
+html[data-accent="win98"] .external-scale-card:hover {
+  border: 1px solid #000000;
+  box-shadow: var(--bevel-raised);
+}
+html[data-accent="win98"][data-theme="dark"] .external-band {
+  background: #ffffff !important;
+}
+html[data-accent="win98"][data-theme="dark"] .external-tag,
+html[data-accent="win98"][data-theme="dark"] .external-btn {
+  background-color: #000000 !important;
+  color: #ffffff !important;
+  box-shadow: var(--bevel-raised) !important;
+}
+html[data-accent="win98"][data-theme="dark"] .external-scale-card,
+html[data-accent="win98"][data-theme="dark"] .external-scale-card:hover {
+  border-color: #ffffff;
+}
+
+/* ---------- 选区与原生控件 ---------- */
+html[data-accent="win98"] ::selection {
+  background-color: #000080;
+  color: #ffffff;
+}
+html[data-accent="win98"][data-theme="dark"] ::selection {
+  background-color: #ffffff;
+  color: #000000;
+}
+html[data-accent="win98"] {
+  accent-color: #000080;
+}
+html[data-accent="win98"][data-theme="dark"] {
+  accent-color: #ffffff;
+}
+
+/* ---------- 经典滚动条 ---------- */
+html[data-accent="win98"] ::-webkit-scrollbar {
+  width: 16px;
+  height: 16px;
+}
+html[data-accent="win98"] ::-webkit-scrollbar-track {
+  background-color: #dfdfdf;
+  box-shadow: inset 1px 1px 0 #808080, inset -1px -1px 0 #ffffff;
+}
+html[data-accent="win98"] ::-webkit-scrollbar-thumb {
+  background-color: #c0c0c0;
+  box-shadow:
+    inset 1px 1px 0 #ffffff,
+    inset 2px 2px 0 #dfdfdf,
+    inset -1px -1px 0 #000000,
+    inset -2px -2px 0 #808080;
+}
+html[data-accent="win98"][data-theme="dark"] ::-webkit-scrollbar-track {
+  background-color: #000000;
+  box-shadow: inset 1px 1px 0 #808080, inset -1px -1px 0 #ffffff;
+}
+html[data-accent="win98"][data-theme="dark"] ::-webkit-scrollbar-thumb {
+  background-color: #2a2a2a;
+  box-shadow:
+    inset 1px 1px 0 #ffffff,
+    inset -1px -1px 0 #808080;
+}
+
+/* ===================================================================
+   Win98 精修：按 Windows 95/98 控件规范逐项还原
+   （30px 标题栏 / 三连窗口钮 / 灰底对话框 / 状态栏 / 默认按钮框）
+   =================================================================== */
+
+/* ---------- 标题栏：经典 30px 高度、13px Tahoma 粗体白字 ---------- */
+html[data-accent="win98"] nav .h-16 {
+  height: 30px;
+  min-height: 30px;
+}
+html[data-accent="win98"] nav .container {
+  padding-top: 0 !important;
+  padding-bottom: 0 !important;
+}
+/* logo：18px 灰底凸起小方块 + 11px 图标 */
+html[data-accent="win98"] nav .w-8.h-8.rounded-lg {
+  width: 18px;
+  height: 18px;
+  border-radius: 0;
+  background-color: #c0c0c0 !important;
+  box-shadow: var(--bevel-raised);
+}
+html[data-accent="win98"] nav .w-8.h-8.rounded-lg .text-xl {
+  font-size: 11px;
+  line-height: 1;
+}
+html[data-accent="win98"] nav span.font-semibold.text-lg {
+  color: #ffffff !important;
+  font-size: 13px !important;
+  font-weight: 700 !important;
+  letter-spacing: 0.5px;
+}
+/* 桌面端菜单文字 12px */
+html[data-accent="win98"] nav .nav-link {
+  padding: 2px 8px;
+  font-size: 12px;
+  font-weight: 400;
+  border-radius: 0;
+}
+/* 标题栏工具圆钮（深色模式/配色/字号）→ 22x20 方形小钮 */
+html[data-accent="win98"] nav .hidden.md\:flex .w-8.h-8.rounded-full {
+  width: 22px;
+  height: 20px;
+  min-width: 22px;
+  border-radius: 0 !important;
+  padding: 0;
+}
+html[data-accent="win98"] nav .hidden.md\:flex .w-8.h-8.rounded-full svg {
+  width: 13px;
+  height: 13px;
+}
+html[data-accent="win98"] nav .internal-test-entry,
+html[data-accent="win98"] nav .history-entry {
+  height: 20px;
+  padding: 0 6px !important;
+  font-size: 11px !important;
+  border-radius: 0;
+  display: inline-flex;
+  align-items: center;
+}
+/* 未完成数量角标 → 小方块 */
+html[data-accent="win98"] nav .w-4.h-4.rounded-full {
+  width: 13px;
+  height: 13px;
+  border-radius: 0;
+  font-size: 10px;
+}
+
+/* ---------- 标题栏右侧：最小化 / 最大化 / 关闭 三连钮（仅移动端） ---------- */
+html[data-accent="win98"] nav .win98-caption {
+  display: inline-flex;
+  gap: 2px;
+}
+@media (min-width: 768px) {
+  html[data-accent="win98"] nav .win98-caption {
+    display: none;
+  }
+}
+html[data-accent="win98"] nav .win98-cap-btn {
+  width: 22px;
+  height: 20px;
+  min-width: 22px;
+  padding: 0 !important;
+  border-radius: 0 !important;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+html[data-accent="win98"] nav .win98-cap-btn span {
+  color: #000000;
+  font-weight: 700;
+  line-height: 1;
+}
+html[data-accent="win98"] nav .win98-cap-min span {
+  font-size: 0;
+  width: 8px;
+  height: 2px;
+  background: #000000;
+  margin-bottom: 3px;
+}
+html[data-accent="win98"] nav .win98-cap-max span {
+  font-size: 12px;
+}
+html[data-accent="win98"] nav .win98-cap-close span {
+  font-size: 11px;
+}
+html[data-accent="win98"] nav .mobile-menu-toggle {
+  display: none !important;
+}
+html[data-accent="win98"][data-theme="dark"] nav .win98-cap-btn span {
+  color: #ffffff;
+}
+html[data-accent="win98"][data-theme="dark"] nav .win98-cap-min span {
+  background: #ffffff;
+}
+
+/* ---------- 移动端展开菜单：经典弹出菜单（fixed 覆盖视口、自身滚动，避免 sticky 内 overflow 在 iOS 吞触摸） ---------- */
+html[data-accent="win98"] nav > div.md\:hidden.absolute {
+  position: fixed;
+  top: 30px !important;
+  left: 0;
+  right: 0;
+  height: calc(100vh - 30px);
+  height: calc(100dvh - 30px);
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
+  background-color: #c0c0c0 !important;
+  padding: 6px !important;
+  border: 1px solid #000000;
+  box-shadow:
+    inset 1px 1px 0 #ffffff,
+    inset -1px -1px 0 #808080,
+    2px 2px 0 rgba(0, 0, 0, 0.35);
+}
+/* 菜单项：扁平、12px；hover 与选中 navy 反白 */
+html[data-accent="win98"] nav > div.md\:hidden .mobile-nav-link {
+  background-color: transparent !important;
+  box-shadow: none !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  padding: 5px 10px !important;
+  font-size: 12px;
+  font-weight: 400 !important;
+}
+html[data-accent="win98"] nav > div.md\:hidden .mobile-nav-link:hover {
+  background-color: #000080 !important;
+  color: #ffffff !important;
+}
+html[data-accent="win98"] nav > div.md\:hidden .mobile-nav-link:hover * {
+  color: #ffffff !important;
+}
+/* 分组小标题（主题配色/文字大小…）：蚀刻分隔线 */
+html[data-accent="win98"] nav > div.md\:hidden .pt-2.mt-1 {
+  border-top: 1px solid #808080;
+  box-shadow: 0 -1px 0 #ffffff;
+  margin-top: 6px !important;
+  padding-top: 6px !important;
+}
+html[data-accent="win98"][data-theme="dark"] nav > div.md\:hidden.absolute {
+  background-color: #000000 !important;
+  border-color: #ffffff;
+}
+
+/* ---------- 桌面端下拉面板（配色/字号/未完成进度）：经典菜单窗 ---------- */
+html[data-accent="win98"] nav .absolute.rounded-xl,
+html[data-accent="win98"] nav .absolute.rounded-lg {
+  border-radius: 0 !important;
+  background-color: #c0c0c0 !important;
+  border: 1px solid #000000;
+  padding: 8px !important;
+}
+/* 面板内选项平时扁平，hover navy 反白 */
+html[data-accent="win98"] nav .absolute.rounded-xl button,
+html[data-accent="win98"] nav .absolute.rounded-lg button {
+  background-color: transparent !important;
+  box-shadow: none !important;
+  border-radius: 0 !important;
+  font-size: 12px;
+}
+html[data-accent="win98"] nav .absolute.rounded-xl button:hover,
+html[data-accent="win98"] nav .absolute.rounded-lg button:hover {
+  background-color: #000080 !important;
+  color: #ffffff !important;
+}
+html[data-accent="win98"] nav .absolute.rounded-xl button:hover *,
+html[data-accent="win98"] nav .absolute.rounded-lg button:hover * {
+  color: #ffffff !important;
+}
+/* 面板内的选中项必须保持 navy（特异性高于上面的扁平规则） */
+html[data-accent="win98"] nav .absolute.rounded-xl button[style*="primary-light"],
+html[data-accent="win98"] nav .absolute.rounded-lg button[style*="primary-light"] {
+  background-color: #000080 !important;
+  color: #ffffff !important;
+}
+/* 配色面板色块卡：内联 var(--bg) 在 win98 是 teal，改白底 */
+html[data-accent="win98"] nav .absolute.rounded-xl button[style*="var(--bg)"] {
+  background-color: #ffffff !important;
+}
+html[data-accent="win98"][data-theme="dark"] nav .absolute.rounded-xl,
+html[data-accent="win98"][data-theme="dark"] nav .absolute.rounded-lg {
+  background-color: #000000 !important;
+  border-color: #ffffff;
+}
+
+/* ---------- 默认按钮（主操作）：比普通按钮多内嵌一圈黑框 ---------- */
+html[data-accent="win98"] .alert-btn-confirm,
+html[data-accent="win98"] .internal-modal-btn-confirm,
+html[data-accent="win98"] button[style*="var(--primary)"]:not(nav *) {
+  outline: 1px solid #000000;
+  outline-offset: -5px;
+}
+html[data-accent="win98"][data-theme="dark"] .alert-btn-confirm,
+html[data-accent="win98"][data-theme="dark"] .internal-modal-btn-confirm,
+html[data-accent="win98"][data-theme="dark"] button[style*="var(--primary)"]:not(nav *) {
+  outline-color: #ffffff;
+}
+
+/* ---------- 对话框（确认框 / 内部密码框）：经典灰底消息框 ---------- */
+html[data-accent="win98"] .alert-card,
+html[data-accent="win98"] .internal-modal-card {
+  background-color: #c0c0c0 !important;
+  border: 1px solid #000000;
+  box-shadow: var(--bevel-raised) !important;
+  border-radius: 0 !important;
+  padding: 16px !important;
+  gap: 12px;
+}
+html[data-accent="win98"] .alert-icon,
+html[data-accent="win98"] .internal-modal-icon {
+  font-size: 28px !important;
+}
+html[data-accent="win98"] .alert-title,
+html[data-accent="win98"] .internal-modal-title {
+  color: #000000 !important;
+  font-size: 13px !important;
+}
+html[data-accent="win98"] .alert-message,
+html[data-accent="win98"] .internal-modal-message {
+  color: #000000 !important;
+  font-size: 12px !important;
+  line-height: 1.6;
+}
+html[data-accent="win98"] .alert-buttons,
+html[data-accent="win98"] .internal-modal-buttons {
+  justify-content: center !important;
+  gap: 8px;
+}
+html[data-accent="win98"] .alert-btn,
+html[data-accent="win98"] .internal-modal-btn {
+  padding: 3px 14px !important;
+  min-width: 68px;
+  font-size: 12px !important;
+}
+html[data-accent="win98"] .alert-close,
+html[data-accent="win98"] .internal-modal-close {
+  width: 20px !important;
+  height: 18px !important;
+  padding: 0 !important;
+  font-size: 10px !important;
+  border-radius: 0 !important;
+  align-self: flex-start;
+}
+html[data-accent="win98"][data-theme="dark"] .alert-card,
+html[data-accent="win98"][data-theme="dark"] .internal-modal-card {
+  background-color: #000000 !important;
+  border-color: #ffffff;
+}
+html[data-accent="win98"][data-theme="dark"] .alert-title,
+html[data-accent="win98"][data-theme="dark"] .internal-modal-title,
+html[data-accent="win98"][data-theme="dark"] .alert-message,
+html[data-accent="win98"][data-theme="dark"] .internal-modal-message {
+  color: #ffffff !important;
+}
+
+/* ---------- Toast：经典消息框（灰底 + 18px 小✕ + navy 进度条） ---------- */
+html[data-accent="win98"] .toast-container {
+  top: 40px;
+  right: 12px;
+  gap: 8px;
+}
+html[data-accent="win98"] .toast-item {
+  background-color: #c0c0c0 !important;
+  border: 1px solid #000000 !important;
+  box-shadow: var(--bevel-raised) !important;
+  border-radius: 0 !important;
+  padding: 8px 10px !important;
+  min-width: 300px;
+  gap: 10px;
+  align-items: flex-start;
+}
+/* 去掉四种类型的彩色左边条，统一黑框 */
+html[data-accent="win98"] .toast-item.success,
+html[data-accent="win98"] .toast-item.error,
+html[data-accent="win98"] .toast-item.warning,
+html[data-accent="win98"] .toast-item.info {
+  border-left: 1px solid #000000 !important;
+}
+html[data-accent="win98"] .toast-icon {
+  font-size: 18px !important;
+}
+html[data-accent="win98"] .toast-title {
+  color: #000000 !important;
+  font-size: 12px !important;
+}
+html[data-accent="win98"] .toast-message {
+  color: #000000 !important;
+  font-size: 12px !important;
+}
+html[data-accent="win98"] .toast-close {
+  width: 18px !important;
+  height: 16px !important;
+  padding: 0 !important;
+  font-size: 10px !important;
+  border-radius: 0 !important;
+  background-color: #c0c0c0 !important;
+  color: #000000 !important;
+  box-shadow: var(--bevel-raised) !important;
+  flex-shrink: 0;
+}
+html[data-accent="win98"] .toast-progress,
+html[data-accent="win98"] .toast-item.success .toast-progress,
+html[data-accent="win98"] .toast-item.error .toast-progress,
+html[data-accent="win98"] .toast-item.warning .toast-progress,
+html[data-accent="win98"] .toast-item.info .toast-progress {
+  height: 4px !important;
+  background-color: #000080 !important;
+  box-shadow: inset 1px 1px 0 #808080;
+}
+html[data-accent="win98"][data-theme="dark"] .toast-item {
+  background-color: #000000 !important;
+  border-color: #ffffff !important;
+}
+html[data-accent="win98"][data-theme="dark"] .toast-item.success,
+html[data-accent="win98"][data-theme="dark"] .toast-item.error,
+html[data-accent="win98"][data-theme="dark"] .toast-item.warning,
+html[data-accent="win98"][data-theme="dark"] .toast-item.info {
+  border-left-color: #ffffff !important;
+}
+html[data-accent="win98"][data-theme="dark"] .toast-title,
+html[data-accent="win98"][data-theme="dark"] .toast-message {
+  color: #ffffff !important;
+}
+html[data-accent="win98"][data-theme="dark"] .toast-close {
+  background-color: #000000 !important;
+  color: #ffffff !important;
+}
+html[data-accent="win98"][data-theme="dark"] .toast-progress {
+  background-color: #3a80cf !important;
+}
+
+/* ---------- Footer：经典灰色状态栏（灰底黑字、蚀刻分隔、右下缩放斜纹） ---------- */
+html[data-accent="win98"] footer {
+  background-color: #c0c0c0 !important;
+  border-top: 0 !important;
+  box-shadow: inset 0 1px 0 #ffffff, inset 0 2px 0 #dfdfdf;
+  position: relative;
+}
+html[data-accent="win98"] footer .py-12 {
+  padding-top: 18px !important;
+  padding-bottom: 24px !important;
+}
+/* 状态栏文字统一黑色 */
+html[data-accent="win98"] footer,
+html[data-accent="win98"] footer * {
+  color: #000000 !important;
+}
+html[data-accent="win98"] footer a {
+  text-decoration: none;
+}
+html[data-accent="win98"] footer a:hover {
+  background-color: #000080 !important;
+  color: #ffffff !important;
+}
+/* footer logo 同样灰底凸起 */
+html[data-accent="win98"] footer .w-8.h-8.rounded-lg {
+  border-radius: 0;
+  background-color: #c0c0c0 !important;
+  box-shadow: var(--bevel-raised);
+}
+/* 版权区：蚀刻凹线分隔，11px 状态字 */
+html[data-accent="win98"] footer .border-t {
+  border-top: 1px solid #808080 !important;
+  box-shadow: 0 -1px 0 #ffffff;
+  padding-top: 10px !important;
+}
+/* 右下角窗口缩放斜纹 grip */
+html[data-accent="win98"] footer::after {
+  content: '';
+  position: absolute;
+  right: 4px;
+  bottom: 4px;
+  width: 14px;
+  height: 14px;
+  background-image:
+    linear-gradient(135deg, transparent 44%, #808080 44% 56%, transparent 56%),
+    linear-gradient(135deg, transparent 62%, #808080 62% 74%, transparent 74%);
+  pointer-events: none;
+}
+html[data-accent="win98"][data-theme="dark"] footer {
+  background-color: #000000 !important;
+  box-shadow: inset 0 1px 0 #ffffff;
+}
+html[data-accent="win98"][data-theme="dark"] footer,
+html[data-accent="win98"][data-theme="dark"] footer * {
+  color: #ffffff !important;
+}
+html[data-accent="win98"][data-theme="dark"] footer .border-t {
+  border-top-color: #808080 !important;
+  box-shadow: 0 -1px 0 #ffffff;
+}
+
+/* ---------- 进度条：白色凹陷槽 + navy 实心填充 ---------- */
+html[data-accent="win98"] .min-h-screen .h-2.rounded-full[style*="var(--primary-light)"],
+html[data-accent="win98"] nav .h-1.rounded-full {
+  background-color: #ffffff !important;
+  box-shadow: var(--bevel-sunken) !important;
+  border-radius: 0 !important;
+}
+html[data-accent="win98"] .min-h-screen .h-2.rounded-full[style*="var(--primary-light)"] {
+  height: 10px;
+}
+html[data-accent="win98"] nav .h-1.rounded-full {
+  height: 9px;
+}
+html[data-accent="win98"][data-theme="dark"] .min-h-screen .h-2.rounded-full[style*="var(--primary-light)"],
+html[data-accent="win98"][data-theme="dark"] nav .h-1.rounded-full {
+  background-color: #000000 !important;
 }
 
 /* ===================== 自选字体 ===================== */
@@ -846,6 +2297,8 @@ html[data-accent="retro"] .md-trait-level {
      雅黑是 Windows 专有字体、不允许自托管分发，所以 Windows 之外的平台
      回退到已自托管的思源黑体（同为现代无衬线黑体，观感最接近）。 */
   --font-stack-win11:
+    "Segoe UI Variable Text",
+    "Segoe UI Variable Display",
     "Segoe UI",
     "Microsoft YaHei UI",
     "Microsoft YaHei",
@@ -857,6 +2310,21 @@ html[data-accent="retro"] .md-trait-level {
     BlinkMacSystemFont,
     "PingFang SC",
     "Hiragino Sans GB",
+    sans-serif;
+  /* 「经典 · Win98」主题自带的字体意图：Tahoma / Microsoft Sans Serif 配宋体。
+     Win98 简体中文版界面即「MS Sans Serif（拉丁）+ 宋体（中文）」9pt；
+     Tahoma 是同期发行的更圆润位图字体，英文界面更常见。
+     这些都是 Windows 专有字体、不可自托管，其它平台回退思源黑体/系统黑体。 */
+  --font-stack-win98:
+    "Microsoft Sans Serif",
+    "MS Sans Serif",
+    Tahoma,
+    "Segoe UI",
+    SimSun,
+    "宋体",
+    "Noto Sans SC",
+    -apple-system,
+    BlinkMacSystemFont,
     sans-serif;
 }
 
@@ -939,6 +2407,18 @@ html[data-accent="retro"] .md-trait-level {
     "PingFang TC",
     "Heiti TC",
     sans-serif;
+  /* 繁体下的 Win98：Tahoma 配新細明體（PMingLiU，繁中版 Win98 界面字体） */
+  --font-stack-hant-win98:
+    "Microsoft Sans Serif",
+    "MS Sans Serif",
+    Tahoma,
+    "Microsoft JhengHei",
+    PMingLiU,
+    "新細明體",
+    "Noto Sans TC",
+    "PingFang TC",
+    "Heiti TC",
+    sans-serif;
 }
 
 :root[data-variant="hant"] {
@@ -968,6 +2448,12 @@ html[data-accent="win11"] {
 }
 html[data-variant="hant"][data-accent="win11"] {
   --font-stack-default: var(--font-stack-hant-win11);
+}
+html[data-accent="win98"] {
+  --font-stack-default: var(--font-stack-win98);
+}
+html[data-variant="hant"][data-accent="win98"] {
+  --font-stack-default: var(--font-stack-hant-win98);
 }
 
 /* ===================== 加粗（无障碍） ===================== */
@@ -1365,4 +2851,3 @@ html {
   color: var(--danger);
   text-decoration: underline;
 }
-

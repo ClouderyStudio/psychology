@@ -17,6 +17,7 @@ export const accentOptions: { id: string; label: string; color: string }[] = [
   { id: 'retro', label: '怀旧', color: '#8a6a45' },
   { id: 'google', label: '蓝白 · Google', color: '#1a73e8' },
   { id: 'win11', label: '流畅 · Win11', color: '#0078d4' },
+  { id: 'win98', label: '经典 · Win98', color: '#000080' },
 ]
 
 const isDark = ref(false)
