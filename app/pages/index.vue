@@ -143,7 +143,7 @@
             <!-- 分类标签 -->
             <div class="flex items-start justify-between mb-3">
               <span class="external-tag category-tag px-3 py-1 rounded-full text-xs font-semibold">
-                ✨ 综合评估
+                症状筛查
               </span>
               <span class="external-tag duration-badge px-2 py-1 rounded text-xs font-semibold">
                 约 3-12 分钟
@@ -168,14 +168,6 @@
 
             <div class="flex items-center mt-auto justify-between mb-4 text-xs" style="color: var(--text-muted);">
               <span>📝 <strong class="external-num">20-105</strong> 题</span>
-              <div>
-                <span class="external-tag tag px-2 py-1 rounded-full text-xs font-semibold mr-2">
-                  20 维度
-                </span>
-                <span class="external-tag tag px-2 py-1 rounded-full text-xs font-semibold">
-                  效度校验
-                </span>
-              </div>
             </div>
 
             <!-- 按钮区域 -->
