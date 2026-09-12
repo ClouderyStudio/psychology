@@ -668,10 +668,14 @@ const multidimQuery = computed(() => {
   return `?mode=${encodeURIComponent(effectiveMode.value)}${seed ? `&seed=${encodeURIComponent(seed)}` : ''}`
 })
 const { data: response, error } = await useFetch(() => `/api/tests/${testId}${multidimQuery.value}`)
-const test = computed(() => {
-  const data = response.value?.data
+const test = computed<any>(() => {
+  const data: any = (response.value as any)?.data
   return Array.isArray(data) ? null : data
 })
+
+// 服务端签发的出题凭证：提交时回传，服务端以凭证内的 mode / seed 为准，
+// 保证「生成题目的参数」与「评分时的参数」一致
+const questionToken = computed(() => (test.value as any)?.questionToken || '')
 
 // ===== 多维自评量表：模式选择 + 乱序复测 =====
 const isMultidim = computed(() => testId === 'multidim')
@@ -735,6 +739,9 @@ const started = ref(false)        // 是否已进入答题（每次进入都先�
 const shuffleOrder = ref(false)   // 开始页勾选：是否打乱题目顺序
 const isSubmitting = ref(false)   // 提交中锁：防止重复提交
 
+// 幂等键：一次测评一个 id（进入答题时生成），重复提交只结算一次
+const submissionId = `${testId}-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 10)}`
+
 // 多维自评量表不默认乱序：服务端已按「严重议题优先」排好序（自伤 / 幻觉条目排在前面），
 // 默认乱序会把该安全排序完全打掉。需要乱序复测时由用户在开始页勾选。
 
@@ -789,7 +796,7 @@ watch(
     const savedOrder = loadOrder()
     if (savedOrder && savedOrder.length === t.questions.length) {
       const byId = new Map<number, any>()
-      t.questions.forEach((q) => byId.set(q.id, q))
+      t.questions.forEach((q: any) => byId.set(q.id, q))
       allQuestions.value = pinNumberLast(savedOrder.map((id) => byId.get(id)).filter(Boolean) as any[])
     } else {
       allQuestions.value = t.questions.slice()
@@ -1229,11 +1236,14 @@ async function doSubmit() {
       testId,
       answers: answers.value,
     }
-    // 多维自评量表：带回评估模式与种子，服务端据此复现同一套题目再做校验
+    // 多维自评量表：带回评估模式、种子与出题凭证，服务端据此复现同一套题目再做校验
     if (isMultidim.value) {
       submitBody.mode = selectedMode.value
       submitBody.seed = effectiveSeed.value || undefined
+      if (questionToken.value) submitBody.questionToken = questionToken.value
     }
+    // 幂等键：同一次测评重复提交（双击、超时重试）只结算一次
+    submitBody.submissionId = submissionId
 
     const result = await $fetch('/api/submit', {
       method: 'POST',

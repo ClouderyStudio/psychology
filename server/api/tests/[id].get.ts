@@ -127,6 +127,8 @@ import {
   multidimWindowOf,
 } from "~~/server/utils/questions/multidim-questions";
 import { testIntros } from "~~/server/utils/test-intros";
+import { createQuestionToken } from "~~/server/utils/question-token";
+import { enforceRateLimit } from "~~/server/utils/rate-limit";
 
 // 按题目 id 升序排序（题库文件顺序可能与出题顺序不同）
 function sortQuestionsById<T extends { id: number }>(questions: T[]): T[] {
@@ -140,7 +142,18 @@ export default defineEventHandler(async (event) => {
   // 未指定模式时返回空题目（前端先展示模式选择）；种子用于乱序复测与提交校验复现。
   const query = getQuery(event);
   const multidimMode = isMultidimMode(query.mode) ? query.mode : null;
-  const multidimSeed = typeof query.seed === "string" ? query.seed : undefined;
+  // 种子由客户端提供、只用于选出题顺序。限制长度，避免超长字符串让哈希与出题成为放大面。
+  const rawSeed = typeof query.seed === "string" ? query.seed.trim() : "";
+  const multidimSeed = rawSeed.length > 0 && rawSeed.length <= 64 ? rawSeed : undefined;
+
+  // 每次请求都要按种子现算整套题库，加一层限流挡住脚本刷取
+  if (multidimMode) {
+    enforceRateLimit(event, {
+      scope: "multidim-questions",
+      limit: 60,
+      windowMs: 10 * 60 * 1000,
+    });
+  }
 
   const testDatabase: Record<string, Test & { modes?: typeof MULTIDIM_MODES }> = {
     phq9: {
@@ -813,8 +826,20 @@ export default defineEventHandler(async (event) => {
   }
 
   const intro = testIntros[id as string];
+  const payload: any = intro ? { ...test, intro } : { ...test };
+
+  // 多维自评量表：签发出题凭证。提交时以凭证内的 mode / seed 为准，
+  // 避免客户端的「出题参数」与「评分参数」可以不是同一套。
+  if (multidimMode) {
+    payload.questionToken = createQuestionToken({
+      testId: String(id),
+      mode: multidimMode,
+      seed: multidimSeed,
+    });
+  }
+
   return {
     success: true,
-    data: intro ? { ...test, intro } : test,
+    data: payload,
   };
 });
