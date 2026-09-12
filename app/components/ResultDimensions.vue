@@ -252,16 +252,21 @@ const config = computed(() => {
     title = '压力维度 · 不可控感 / 掌控感'
     icon = '🧘'
     color = 'var(--symptom)'
-    hint = '每项 0-4 均值：不可控感越高越易累积压力，掌控感越高则抗压越强。'
+    hint = '每项 0-4 均值。两个维度方向相反：不可控感越高越易累积压力，掌控感越高则抗压越强，不能横向比大小。'
     ;['helplessness', 'selfEfficacy'].forEach((k) => {
       const d = (s[k] || {}) as any
       const avg = Number(d.avg) || 0
+      // 标签跟随各自的方向：不可控感越高越糟，掌控感越高越好
+      const level =
+        k === 'selfEfficacy'
+          ? avg >= 2.5 ? '较强' : avg >= 1.5 ? '中等' : '偏弱'
+          : avg >= 2.5 ? '偏高' : avg >= 1.5 ? '中等' : '偏低'
       items.push({
         key: k,
         name: (d.name as string) || k,
         value: clamp(avg / 4 * 100),
         display: String(Math.round(avg * 10) / 10) + '/4',
-        level: avg >= 2.5 ? '偏高' : avg >= 1.5 ? '中等' : '偏低',
+        level,
         desc: (d.desc as string) || '',
       })
     })

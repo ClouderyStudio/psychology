@@ -248,11 +248,79 @@ describe("评分边界与维度补充", () => {
   });
 
   // —— PSS 两因子：无助感 / 自我效能 ——
-  it("PSS：全 4 → 无助感维度 24、掌控感维度 0", () => {
+  it("PSS：全 4 → 无助感 24、掌控感 16（方向与条目语义一致）", () => {
     const r = calculateScore({ testId: "pss", answers: full(10, 4) });
     expect(r.totalScore).toBe(24);
     expect(r.dimensionScores?.helplessness?.score).toBe(24);
-    expect(r.dimensionScores?.selfEfficacy?.score).toBe(0);
+    expect(r.dimensionScores?.selfEfficacy?.score).toBe(16);
+    expect(r.dimensionScores?.selfEfficacy?.avg).toBe(4);
+  });
+
+  // 第三批报告 4：掌控感子维度曾把「正向题反向折算」用到自己身上，
+  // 方向翻转一次，导致最没有掌控感的人拿到满分
+  it("PSS：全 0（从不）→ 掌控感 0/16 且描述为偏弱，不再误报抗压能力强", () => {
+    const r = calculateScore({ testId: "pss", answers: full(10, 0) });
+    const eff = r.dimensionScores?.selfEfficacy;
+    expect(eff?.score).toBe(0);
+    expect(eff?.max).toBe(16);
+    expect(eff?.avg).toBe(0);
+    expect(eff?.desc).toContain("掌控感偏弱");
+    expect(eff?.desc).not.toContain("抗压能力强");
+    // 无助感同为 0，总分 16 属"压力水平较低"——两个子维度方向不再打架
+    expect(r.dimensionScores?.helplessness?.score).toBe(0);
+  });
+
+  it("PSS：正向题作答越高 → 掌控感越高、总分越低（两处方向相反是对的）", () => {
+    const NEG = [1, 2, 3, 6, 9, 10]; // 负向表述：不可控感 / 无助
+    const POS = [4, 5, 7, 8]; // 正向表述：掌控感 / 自我效能
+    const build = (neg: number, pos: number) => {
+      const a: Record<number, number> = {};
+      for (const i of NEG) a[i] = neg;
+      for (const i of POS) a[i] = pos;
+      return a;
+    };
+
+    // 负向题固定为"从不"，只动正向题：这是唯一能单独观察方向的对照
+    const low = calculateScore({ testId: "pss", answers: build(0, 0) });
+    const high = calculateScore({ testId: "pss", answers: build(0, 4) });
+    expect(low.dimensionScores?.selfEfficacy?.score).toBe(0);
+    expect(high.dimensionScores?.selfEfficacy?.score).toBe(16);
+    // 子维度越高越有掌控感；总分因反向折算反而下降
+    expect(high.dimensionScores?.selfEfficacy?.score).toBeGreaterThan(
+      low.dimensionScores?.selfEfficacy?.score,
+    );
+    expect(low.totalScore).toBe(16);
+    expect(high.totalScore).toBe(0);
+
+    // 逐题验证：只把第 4/5/7/8 题调高，掌控感 +2、总分 -2
+    for (const id of POS) {
+      const a = build(2, 2);
+      const before = calculateScore({ testId: "pss", answers: a });
+      a[id] = 4;
+      const after = calculateScore({ testId: "pss", answers: a });
+      expect(after.dimensionScores?.selfEfficacy?.score).toBe(
+        (before.dimensionScores?.selfEfficacy?.score as number) + 2,
+      );
+      expect(after.totalScore).toBe(before.totalScore - 2);
+    }
+    // 无助感条目则相反：调高 → 总分升、掌控感不变
+    const b = build(2, 2);
+    b[3] = 4;
+    const afterHelpless = calculateScore({ testId: "pss", answers: b });
+    expect(afterHelpless.dimensionScores?.helplessness?.score).toBe(14);
+    expect(afterHelpless.dimensionScores?.selfEfficacy?.score).toBe(8);
+    expect(afterHelpless.totalScore).toBe(22);
+  });
+
+  it("PSS：两个子维度的上限与题数一致（无助感 6 题 24、掌控感 4 题 16）", () => {
+    const r = calculateScore({ testId: "pss", answers: full(10, 4) });
+    expect(r.dimensionScores?.helplessness?.max).toBe(24);
+    expect(r.dimensionScores?.selfEfficacy?.max).toBe(16);
+    for (const k of ["helplessness", "selfEfficacy"]) {
+      const d = r.dimensionScores?.[k];
+      expect(d.score).toBeLessThanOrEqual(d.max);
+      expect(d.score).toBeGreaterThanOrEqual(0);
+    }
   });
 
   // —— SDS 精神运动维度（反向折算）——

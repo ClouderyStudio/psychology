@@ -390,12 +390,18 @@ function scorePSS(answers: Record<number, number>): ScoringResult {
   }
 
   // PSS-10 两因子：不可控感/无助 vs 掌控感/自我效能（因子结构为文献公认）
+  //
+  // 方向说明：4、5、7、8 四题是正向表述（"对自己处理个人问题的能力感到有信心"
+  // 一类），只有在计算**总分**时才需要反向折算——总分越高代表压力越大。
+  // 但"掌控感 / 自我效能"这个子维度本身是越高越好的：答得越频繁，掌控感越强。
+  // 原实现在子维度上也做了 4 - raw 折算，等于把方向翻转了一次，导致全答"从不"
+  // 的人拿到满分 16/16 并被判"抗压能力强"（第三批报告 4）。
   const helplessItems = [1, 2, 3, 6, 9, 10];
   const efficacyItems = [4, 5, 7, 8];
   let helplessSum = 0;
   for (const i of helplessItems) helplessSum += getAnswerValue(answers, i, 0);
   let efficacySum = 0;
-  for (const i of efficacyItems) efficacySum += 4 - getAnswerValue(answers, i, 0);
+  for (const i of efficacyItems) efficacySum += getAnswerValue(answers, i, 0);
   const helplessAvg = helplessSum / helplessItems.length;
   const efficacyAvg = efficacySum / efficacyItems.length;
 
@@ -405,6 +411,7 @@ function scorePSS(answers: Record<number, number>): ScoringResult {
       : helplessAvg >= 1.5
         ? "尚能应对生活中的不确定性，偶有失控感。"
         : "对生活掌控感较强，较少因不可控事件感到压力。";
+  // 描述方向与数值方向保持一致：得分越高 = 越有掌控感
   const efficacyDesc =
     efficacyAvg >= 3
       ? "面对困难时较有信心，善于自我调节，抗压能力强。"
