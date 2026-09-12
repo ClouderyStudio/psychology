@@ -47,6 +47,13 @@ interface ScoringInput {
 export interface ScoringResult {
   totalScore: number;
   maxScore: number;
+  /**
+   * 可达最低分。含反向计分的量表（如 BIS-11）总分范围会被压窄，
+   * 最低可能分远高于 0，只报 maxScore 会让读者误判分数的相对位置。
+   */
+  minScore?: number;
+  /** 分数口径说明（仅在该量表的分母容易被误读时下发） */
+  scoreNote?: string;
   level: string;
   suggestion: string;
   severity: number;

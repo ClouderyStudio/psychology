@@ -476,35 +476,84 @@ describe("SIOSS / BIS-11 / BPAQ / YMRS / ISI 计分（2026-09 新增）", () => 
     expect(r.level).toBe("结果参考价值有限（掩饰倾向明显）");
   });
 
-  // —— BIS-11 Barratt 冲动性量表：30 题 1-5，反向题 6-score，满分 150 ——
-  it("BIS-11：全选 1 → 反向题折算为 5，总分 74、中等冲动", () => {
+  // —— BIS-11 Barratt 冲动性量表：30 题 1-5，11 题反向计分 ——
+  // 反向题把总分范围压窄：全选 1 → 19 正向×1 + 11 反向×5 = 74，全选 5 → 106。
+  // 分档切点必须按可达区间 74–106 设置，否则「低冲动倾向」永远不可达（第三批报告 1）。
+  it("BIS-11：全选最低档 → 总分 74，落在最低一档（旧实现误判为中等冲动）", () => {
     const r = calculateScore({ testId: "bis", answers: full(30, 1) });
     expect(r.totalScore).toBe(74); // 19 正向×1 + 11 反向×(6-1)
-    expect(r.maxScore).toBe(150);
-    expect(r.level).toBe("中等冲动倾向");
+    expect(r.level).toBe("低冲动倾向");
+    expect(r.severity).toBe(0);
     expect(r.dimensionScores?.attention?.score).toBe(22);
     expect(r.dimensionScores?.motor?.score).toBe(26);
     expect(r.dimensionScores?.nonplanning?.score).toBe(26);
   });
 
-  it("BIS-11：全选 2 → 总分 82 → 较高冲动；全选 3 → 总分 90 → 高冲动", () => {
-    const up = calculateScore({ testId: "bis", answers: full(30, 2) });
-    expect(up.totalScore).toBe(82);
-    expect(up.level).toBe("较高冲动倾向");
-    const high = calculateScore({ testId: "bis", answers: full(30, 3) });
-    expect(high.totalScore).toBe(90);
-    expect(high.level).toBe("高冲动倾向");
+  it("BIS-11：全选最高档 → 总分 106，落在最高一档", () => {
+    const r = calculateScore({ testId: "bis", answers: full(30, 5) });
+    expect(r.totalScore).toBe(106);
+    expect(r.level).toBe("高冲动倾向");
+    expect(r.severity).toBe(1);
   });
 
-  it("BIS-11：反向题答 5、其余答 1 → 每题均折算 1 分，总分 30（地板）", () => {
-    const a: Record<number, number> = {};
-    for (const q of bisQuestions) a[q.id] = q.reverse ? 5 : 1;
-    const r = calculateScore({ testId: "bis", answers: a });
-    expect(r.totalScore).toBe(30);
-    expect(r.level).toBe("低冲动倾向");
-    expect(r.dimensionScores?.attention?.score).toBe(10);
-    expect(r.dimensionScores?.motor?.score).toBe(10);
-    expect(r.dimensionScores?.nonplanning?.score).toBe(10);
+  it("BIS-11：低/中低/中高/高四档全部可达", () => {
+    const mid = calculateScore({ testId: "bis", answers: full(30, 3) });
+    expect(mid.totalScore).toBe(90); // 均值 3 → 正反向折算后仍为 3
+    expect(mid.level).toBe("较高冲动倾向");
+    expect(mid.severity).toBe(0.5);
+
+    expect(calculateScore({ testId: "bis", answers: full(30, 2) }).level).toBe(
+      "中等偏低冲动倾向",
+    );
+    expect(calculateScore({ testId: "bis", answers: full(30, 4) }).level).toBe("高冲动倾向");
+
+    // 四档标签互不相同，且不出现「理论满分 150 却达不到」的档位落空
+    const levels = new Set(
+      [1, 2, 3, 4, 5].map(
+        (v) => calculateScore({ testId: "bis", answers: full(30, v) }).level,
+      ),
+    );
+    expect(levels.size).toBeGreaterThanOrEqual(3);
+  });
+
+  it("BIS-11：分数口径写明可达区间，分母不再用理论满分 150", () => {
+    const r = calculateScore({ testId: "bis", answers: full(30, 3) });
+    expect(r.minScore).toBe(74);
+    expect(r.maxScore).toBe(106);
+    expect(r.scoreNote).toContain("74");
+    expect(r.scoreNote).toContain("106");
+    expect(r.scoreNote).toContain("150"); // 理论满分只作说明
+    expect(r.suggestion).toContain("可达区间 74–106");
+    // 各维度同时给出可达上下限
+    expect(r.dimensionScores?.attention?.min).toBe(22);
+    expect(r.dimensionScores?.attention?.max).toBe(38);
+  });
+
+  it("BIS-11：反向题全部按语义方向计分（题号锁定，防止误改）", () => {
+    // 反向题清单经逐条语义核对：答「总是」代表更不冲动的条目才反向
+    const reverseIds = bisQuestions.filter((q) => q.reverse).map((q) => q.id);
+    expect(reverseIds.sort((a, b) => a - b)).toEqual([
+      1, 10, 11, 13, 14, 15, 16, 20, 21, 22, 24,
+    ]);
+    // 逐题验证：把某题从最低档改到最高档，总分必须按该题方向升降
+    const base = calculateScore({ testId: "bis", answers: full(30, 1) }).totalScore;
+    for (const q of bisQuestions) {
+      const a = full(30, 1);
+      a[q.id] = 5;
+      const delta = calculateScore({ testId: "bis", answers: a }).totalScore - base;
+      expect(delta).toBe(q.reverse ? -4 : 4);
+    }
+  });
+
+  it("BIS-11：语义上明确指向「低冲动」的条目确为反向计分", () => {
+    // 第三批报告用「我能认真思考并完成一项任务」举例，认为它未被反向计分。
+    // 该条在本表中是 id 11，逐题探针显示它确实反向（总分 -4），报告看到的是
+    // 显示序号与题目 id 不一致造成的错位；此用例锁定语义方向。
+    for (const id of [11, 14, 20, 15, 16, 22, 1, 10, 21]) {
+      const a = full(30, 1);
+      a[id] = 5;
+      expect(calculateScore({ testId: "bis", answers: a }).totalScore).toBeLessThan(74);
+    }
   });
 
   // —— BPAQ Buss-Perry 攻击性量表：29 题 1-5 全正向，满分 145 ——

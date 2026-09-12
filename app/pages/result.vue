@@ -57,6 +57,12 @@
               </div>
             </div>
 
+            <!-- 分数口径说明：含反向计分的量表（如 BIS-11）总分区间会被压窄，
+                 只用理论满分作分母会让读者误判分数的相对位置 -->
+            <p v-if="scoreNote" class="max-w-xl mx-auto text-xs mb-8 text-center leading-relaxed" style="color: var(--text-muted);">
+              {{ scoreNote }}
+            </p>
+
             <!-- 等级标签 -->
             <div v-if="!isMBTI && !isSeven && !isPsyAge && !isMultidim" class="text-center mb-6">
               <div v-if="!canScore" class="text-2xl font-semibold mb-2" style="color: var(--text);">你的测评结果是:</div>
@@ -452,6 +458,9 @@ const displayScore = computed(() => {
   }
   return result.value?.totalScore || 0
 })
+
+// 分数口径说明（仅在下发时展示，例如 BIS-11 的可达区间说明）
+const scoreNote = computed(() => result.value?.scoreNote || '')
 
 // 计算属性
 const circumference = 2 * Math.PI * 88

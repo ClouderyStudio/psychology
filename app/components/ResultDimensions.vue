@@ -204,7 +204,7 @@ const config = computed(() => {
     title = 'BIS-11 · 三维冲动剖面'
     icon = '⚡'
     color = 'var(--personality)'
-    hint = '注意力冲动 / 运动冲动 / 无计划冲动，各维度 10-50 分（每题均分 1-5）。'
+    hint = '注意力冲动 / 运动冲动 / 无计划冲动，每维 10 题。含反向计分题，各维度实际可达区间不同（已逐项标注），条形长度按该区间内的相对位置绘制。'
     const bisNames: Record<string, string> = {
       attention: '注意力冲动',
       motor: '运动冲动',
@@ -213,13 +213,16 @@ const config = computed(() => {
     ;['attention', 'motor', 'nonplanning'].forEach((k) => {
       const d = (s[k] || {}) as any
       const sc = Number(d.score) || 0
-      const avg = sc / 10
+      const lo = Number(d.min) || 0
+      const hi = Number(d.max) || 50
+      const pos = hi > lo ? (sc - lo) / (hi - lo) : 0
       items.push({
         key: k,
         name: bisNames[k] || k,
-        value: clamp(sc / 50 * 100),
-        display: String(sc) + '/50',
-        level: avg >= 4 ? '较高' : avg >= 3 ? '中等' : '较低',
+        value: clamp(pos * 100),
+        display: String(sc) + ' / ' + hi,
+        level: pos >= 0.75 ? '较高' : pos >= 0.5 ? '中等偏高' : pos >= 0.25 ? '中等偏低' : '较低',
+        desc: '该维度可达区间 ' + lo + '–' + hi + '（含反向计分题）',
       })
     })
   } else if (props.testId === 'bpaq') {
