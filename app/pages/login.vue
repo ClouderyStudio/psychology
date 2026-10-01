@@ -8,7 +8,7 @@
             登录<span style="color: var(--primary);">心灵驿站</span>
           </h1>
           <p class="text-sm mb-6" style="color: var(--text-secondary);">
-            用 Casdoor 账号登录，测评记录就能在多台设备之间共享
+            用 云术统一身份认证平台 账号登录，测评记录就能在多台设备之间共享
           </p>
 
           <!-- 正在跳转 / 处理回调 -->
@@ -44,7 +44,7 @@
             <button class="px-6 py-2.5 rounded-lg font-medium transition-all w-full mb-3"
               :style="{ backgroundColor: 'var(--primary)', color: 'white', boxShadow: 'var(--shadow-sm)' }"
               @click="startLogin">
-              使用 Casdoor 登录
+              使用 云术统一身份认证平台 登录
             </button>
             <button class="px-6 py-2.5 rounded-lg text-sm transition-all w-full"
               style="background-color: var(--bg); color: var(--text-secondary);" @click="goBack">
@@ -54,7 +54,7 @@
         </div>
 
         <p class="text-xs text-center mt-6" style="color: var(--text-muted);">
-          登录由 ClouderyApi 的身份服务（Casdoor）完成，本站不接触你的账号密码。
+          登录由云术工作室的身份服务（云术统一身份认证平台）完成，本站不接触你的账号密码。
         </p>
       </ClientOnly>
     </div>

@@ -23,7 +23,7 @@
           <div class="text-5xl mb-4">🔐</div>
           <div class="text-xl font-medium mb-2" style="color: var(--text);">尚未登录</div>
           <p class="text-sm mb-6 leading-relaxed" style="color: var(--text-secondary);">
-            登录（Casdoor）后，本机已有的测评记录会一并同步到云端；<br />
+            登录（云术统一身份认证平台）后，本机已有的测评记录会一并同步到云端；<br />
             不登录也可以继续使用，记录只保存在当前设备上。
           </p>
           <button class="px-6 py-2.5 rounded-lg font-medium transition-all"
