@@ -73,6 +73,16 @@ export const useAnswerStore = defineStore("answer", {
       return this.currentResultKey;
     },
 
+    /**
+     * 当前结果对应的本机记录键。
+     * 刷新页面后 currentResultKey 是空的，而结果对象本身带着 resultKey
+     * （saveResultRecord / writeRecord 都会写入）。只认 currentResultKey
+     * 会让「保存备注」之类的就地更新变成新建一条重复记录。
+     */
+    resolveCurrentKey(): string | null {
+      return this.currentResultKey || this.result?.resultKey || null;
+    },
+
     /** 备注就地写回当前记录；没有记录键时（异常路径）退化为新建 */
     updateResultNote(note: string) {
       if (!this.result?.testId) return null;
@@ -85,7 +95,24 @@ export const useAnswerStore = defineStore("answer", {
       this.result = updatedResult;
       this.lastResult = updatedResult;
       this.currentResultKey = updateResultRecord(
-        this.currentResultKey,
+        this.resolveCurrentKey(),
+        updatedResult,
+      );
+      return updatedResult;
+    },
+
+    /**
+     * AI 分析就地写回当前记录（与备注同一条路径）。
+     * 回存后再次打开这条历史记录可以直接展示，不必重新请求模型。
+     */
+    updateResultAiAnalysis(aiAnalysis: any) {
+      if (!this.result?.testId) return null;
+
+      const updatedResult = { ...this.result, aiAnalysis };
+      this.result = updatedResult;
+      this.lastResult = updatedResult;
+      this.currentResultKey = updateResultRecord(
+        this.resolveCurrentKey(),
         updatedResult,
       );
       return updatedResult;

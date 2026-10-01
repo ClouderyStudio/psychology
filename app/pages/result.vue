@@ -94,6 +94,14 @@
               <p class="whitespace-pre-line" style="color: var(--text-secondary);">{{ result.suggestion }}</p>
             </div>
 
+            <!-- AI 结果分析：进入页面自动生成；历史记录里缓存过就直接复用 -->
+            <ResultAiAnalysis
+              :result="result"
+              :risk="siossRisk?.kind === 'danger'"
+              :category="resultCategory"
+              :time-frame="resultTimeFrame"
+              @saved="onAiAnalysisSaved" />
+
             <!-- 备注（导出时不包含交互编辑区） -->
             <div class="export-ignore rounded-lg p-6 mb-6" :style="{ backgroundColor: 'var(--card-bg)', border: '1px solid var(--border)' }">
               <h3 class="font-bold text-lg mb-3 flex items-center" style="color: var(--text);">
@@ -227,6 +235,12 @@ const saveNote = () => {
   $toast.success(noteDraft.value ? '备注已保存' : '备注已清除', '完成')
 }
 
+// AI 分析生成后回存本机记录：同一份结果再次打开时直接复用，不重复花模型额度
+const onAiAnalysisSaved = (aiAnalysis: any) => {
+  const updated = answerStore.updateResultAiAnalysis(aiAnalysis)
+  if (updated) result.value = updated
+}
+
 // 无总分（或总分无实际意义）的量表，以类型等级作为主要内容；
 // 清单统一来自 app/utils/test-display.ts（自动导入）
 
@@ -334,6 +348,8 @@ const isFormalTest = computed(() => FORMAL_TESTS.includes(result.value?.testId))
 const canScore = ref(false)
 // 评估时间范围：由 /api/tests/list 下发（各量表窗口不一致，结果里也要能说明）
 const resultTimeFrame = ref('')
+// 量表分类（symptom / special / personality …）：AI 分析据此判断是否人格类量表
+const resultCategory = ref('')
 
 // 人格性格类量表通常无总分，不展示分数环；BIS/BPAQ 虽属人格特质类但有总分。
 // 多维自评量表由专用报告组件呈现，同样不使用通用分数环。
@@ -348,6 +364,7 @@ const syncCanScore = async () => {
     const testList = ((await $fetch<any>('/api/tests/list'))?.data) || []
     const found = testList.find((el: any) => el.id === testId)
     resultTimeFrame.value = found?.timeFrame || ''
+    resultCategory.value = found?.category || ''
     const scoredPersonality = ['bis', 'bpaq'].includes(testId)
     canScore.value = found
       ? (found.category === 'symptom' || found.category === 'special' || scoredPersonality) &&
