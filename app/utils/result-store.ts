@@ -60,6 +60,19 @@ export function testIdFromRecordKey(key: string): string | null {
   return m ? m[1]! : null;
 }
 
+/**
+ * 记录内容变化后广播一次，交给 plugins/cloud-sync.client.ts 决定是否上传云端。
+ * 本机存档本身不关心账号，订阅方（登录态判断）自己决定要不要发请求。
+ */
+function announceResultChange(key: string | null): void {
+  if (!key || typeof window === "undefined") return;
+  try {
+    window.dispatchEvent(new CustomEvent("psychology:result-saved", { detail: { key } }));
+  } catch {
+    // 老浏览器（无 CustomEvent 构造）或事件被拦截：不影响本机存档
+  }
+}
+
 function stamp(): string {
   return new Date().toISOString();
 }
@@ -121,6 +134,7 @@ export function saveResultRecord(result: any): string | null {
   } catch (e) {
     console.error("清理旧记录失败", e);
   }
+  announceResultChange(key);
   return key;
 }
 
@@ -141,7 +155,55 @@ export function updateResultRecord(key: string | null, result: any): string | nu
     console.error("更新测评结果失败", e);
     return null;
   }
+  announceResultChange(key);
   return key;
+}
+
+/**
+ * 写入一条来自云端的记录（多平台同步用）。
+ * 与 saveResultRecord 的区别：键由调用方给定（云端记录键与本机同格式），
+ * 且**不**广播 result-saved —— 否则同步下来的每条记录都会被再次上传。
+ */
+export function importCloudRecord(key: string, result: any): string | null {
+  const store = ls();
+  if (!store || !result?.testId) return null;
+
+  const at = RECORD_RE.test(key) ? key : uniqueResultKey(store, String(result.testId), Date.now());
+  try {
+    writeRecord(store, at, result);
+    const last = readRecord(store, LAST_RESULT_KEY);
+    const incoming = new Date(result?.timestamp || 0).getTime();
+    if (last && last.testId === result.testId) {
+      if (incoming >= new Date(last.timestamp || 0).getTime()) {
+        store.setItem(LAST_RESULT_KEY, JSON.stringify({ ...result, resultKey: at, savedAt: last.savedAt || stamp() }));
+      }
+    } else if (!last) {
+      store.setItem(LAST_RESULT_KEY, JSON.stringify({ ...result, resultKey: at, savedAt: stamp() }));
+    }
+  } catch (e) {
+    console.error("写入云端记录失败", e);
+    return null;
+  }
+  return at;
+}
+
+/**
+ * 给本机记录补上云端 Id（同一份记录在云端的主键）。
+ * 不广播事件：这只是补元数据，内容没有变。
+ */
+export function markCloudRecord(key: string, cloudId: string): boolean {
+  const store = ls();
+  if (!store || !cloudId || !RECORD_RE.test(key)) return false;
+
+  const result = readRecord(store, key);
+  if (!result || result.cloudId === cloudId) return false;
+  try {
+    writeRecord(store, key, { ...result, cloudId });
+  } catch (e) {
+    console.error("写入云端标识失败", e);
+    return false;
+  }
+  return true;
 }
 
 export function listResultRecords(): StoredResult[] {

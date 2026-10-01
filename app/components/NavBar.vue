@@ -179,6 +179,12 @@
             title="查看所有测试历史">
             🕘 测试历史
           </NuxtLink>
+
+          <!-- 账号入口：登录后展示用户名，未登录是登录入口 -->
+          <NuxtLink to="/account" class="nav-link account-entry" :class="{ active: isActive('/account') }"
+            :title="accountTitle">
+            👤 {{ accountLabel }}
+          </NuxtLink>
         </div>
 
         <!-- 移动端菜单按钮 -->
@@ -257,6 +263,10 @@
         <NuxtLink to="/history" class="mobile-nav-link" :class="{ 'mobile-active': isActive('/history') }"
           @click="mobileMenuOpen = false">
           🕘 测试历史
+        </NuxtLink>
+        <NuxtLink to="/account" class="mobile-nav-link" :class="{ 'mobile-active': isActive('/account') }"
+          @click="mobileMenuOpen = false">
+          👤 {{ accountLabel }}
         </NuxtLink>
 
         <!-- 移动端内部测试入口 -->
@@ -423,6 +433,20 @@ const { fontScale, setFontScale, fontScaleOptions } = useFontScale()
 const { fontFamily, setFontFamily, fontFamilyOptions } = useFontFamily()
 const { fontWeight, setFontWeight, fontWeightOptions } = useFontWeight()
 const { hanVariant, setHanVariant, hanVariantOptions, findHanVariant } = useHanVariant()
+
+// 账号入口：登录状态由 plugins/cloud-sync.client.ts 在客户端刷新，
+// 服务端首屏固定显示「登录」，避免 hydration 前后文案不一致
+const auth = useAuth()
+const accountLabel = computed(() => {
+  if (auth.isAuthed.value) {
+    const name = auth.user.value?.username
+    return name ? (name.length > 8 ? name.slice(0, 8) + '…' : name) : '我的'
+  }
+  return auth.status.value === 'authed' ? '我的' : '登录'
+})
+const accountTitle = computed(() =>
+  auth.isAuthed.value ? '我的账号与云端同步' : '登录后可在多平台共享测评记录',
+)
 
 // 内部测试访问凭证由服务端 /api/internal/auth 校验签发，客户端只负责展示密码框
 

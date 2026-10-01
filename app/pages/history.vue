@@ -8,8 +8,35 @@
             测试<span class="accent" style="color: var(--primary);">历史</span>
           </h1>
           <p class="text-base" style="color: var(--text-secondary);">
-            这里记录了你在本设备上完成过的所有测评结果
+            {{ subtitle }}
           </p>
+        </div>
+
+        <!-- 云端同步状态：未登录引导登录，已登录显示同步入口 -->
+        <div class="mb-6 rounded-xl p-4 flex items-center justify-between flex-wrap gap-3"
+          style="background-color: var(--card-bg); box-shadow: var(--shadow-sm);">
+          <div class="text-sm" style="color: var(--text-secondary);">
+            <template v-if="!auth.isAuthed.value">
+              ☁️ 记录目前只保存在本设备。
+              <NuxtLink to="/login?return=%2Fhistory" style="color: var(--primary);">
+                登录后可在手机、电脑等多平台共享
+              </NuxtLink>
+            </template>
+            <template v-else>
+              ☁️ 已开启云端同步（{{ auth.user.value?.username || '已登录' }} · 云端 {{ cloud.total.value }} 条）
+              <NuxtLink to="/account" class="ml-1" style="color: var(--primary);">管理账号</NuxtLink>
+            </template>
+          </div>
+          <button v-if="auth.isAuthed.value" class="text-xs px-3 py-1.5 rounded-lg transition-colors"
+            :disabled="cloud.syncing.value"
+            :style="{
+              backgroundColor: 'var(--primary-light)',
+              color: 'var(--primary)',
+              cursor: cloud.syncing.value ? 'wait' : 'pointer',
+            }"
+            @click="syncCloud">
+            {{ cloud.syncing.value ? '同步中…' : '立即同步' }}
+          </button>
         </div>
 
         <!-- 加载中 -->
@@ -130,7 +157,13 @@
           </div>
 
           <p class="text-xs text-center mt-6" style="color: var(--text-muted);">
-            记录保存在本机浏览器中（不上传服务器），可随时删除；清除浏览器数据会一并清除这些记录
+            <template v-if="auth.isAuthed.value">
+              记录同时保存在本机浏览器与你的云端账号（按登录用户隔离，别人读不到），可随时删除；
+              清除浏览器数据只会清掉本机这一份
+            </template>
+            <template v-else>
+              记录保存在本机浏览器中（不上传服务器），可随时删除；清除浏览器数据会一并清除这些记录
+            </template>
           </p>
         </div>
       </ClientOnly>
@@ -144,6 +177,15 @@ import { useAnswerStore } from '~/stores/answer'
 const router = useRouter()
 const { $toast, $confirm } = useNuxtApp()
 const answerStore = useAnswerStore()
+// 云端存档状态：未登录时下面是引导，登录后是同步入口（见 plugins/cloud-sync.client.ts）
+const auth = useAuth()
+const cloud = useCloudSync()
+
+const subtitle = computed(() =>
+  auth.isAuthed.value
+    ? '这里记录了你在这台设备与云端账号里的所有测评结果'
+    : '这里记录了你在本设备上完成过的所有测评结果',
+)
 
 interface HistoryItem {
   /** 本机存档键，一条测评一个键（同一量表可有多条） */
@@ -255,8 +297,14 @@ const removeHistory = (item: HistoryItem) => {
   $confirm({
     title: '删除记录',
     message: `确定要删除「${item.testTitle}」${item.attempt > 1 ? `第 ${item.attempt} 次` : ''}的测评记录吗？此操作不可恢复。`,
-    onConfirm: () => {
-      removeResultRecord(item.key)
+    onConfirm: async () => {
+      const cloudId = item.raw?.cloudId
+      if (auth.isAuthed.value && typeof cloudId === 'string' && cloudId) {
+        // 云端与本机一起删；只删本机的话，下一次同步会把它传回云端（看起来像删不掉）
+        await cloud.removeEverywhere(cloudId, item.key)
+      } else {
+        removeResultRecord(item.key)
+      }
       // 若该记录正被「最近一次结果」引用，removeResultRecord 会自动回退到剩余最新一条
       answerStore.clearResultCache()
       if (compareKey.value === item.key) compareKey.value = null
@@ -269,9 +317,12 @@ const removeHistory = (item: HistoryItem) => {
 const clearAllHistory = () => {
   $confirm({
     title: '清空历史',
-    message: '确定要清空所有测评记录吗？此操作不可恢复。',
-    onConfirm: () => {
+    message: auth.isAuthed.value
+      ? '确定要清空所有测评记录吗？本机与云端账号中的记录都会被删除，此操作不可恢复。'
+      : '确定要清空所有测评记录吗？此操作不可恢复。',
+    onConfirm: async () => {
       const count = clearResultRecords()
+      if (auth.isAuthed.value) await cloud.clearCloud()
       answerStore.clearResultCache()
       compareKey.value = null
       loadHistory()
@@ -291,7 +342,23 @@ const goHome = () => {
   router.push('/')
 }
 
-onMounted(() => {
+/** 手动同步：拉回云端记录后刷新列表 */
+async function syncCloud(): Promise<void> {
+  const summary = await cloud.syncNow()
   loadHistory()
+  if (summary) $toast.success(`已同步：上传 ${summary.uploaded} 条，云端共 ${summary.total} 条`, '完成')
+  else if (cloud.error.value) $toast.error(cloud.error.value, '同步失败')
+}
+
+onMounted(async () => {
+  cloud.init()
+  loadHistory()
+
+  // 登录状态下先把云端记录补齐（换设备后第一次打开就能看到全部历史），再重新渲染列表
+  if (auth.status.value === 'unknown') await auth.refresh()
+  if (auth.isAuthed.value && cloud.autoSync.value) {
+    await cloud.syncNow()
+    loadHistory()
+  }
 })
 </script>

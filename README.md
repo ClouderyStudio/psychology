@@ -31,6 +31,7 @@
 | ⚡ **答题进度保存** | 自动保存答题进度，刷新/退出不丢失     |
 | 📈 **可视化报告**   | 测评结果图表化展示，结果一目了然      |
 | 🤖 **AI 结果解读** | 进入结果页自动生成中文解读，按量表类型分流；可手动重新生成，备注是否交给 AI 由本人决定 |
+| 👤 **多平台同步** | 用 Casdoor 账号登录后，测评结果云端存档，手机 / 平板 / 电脑共享同一份历史；不登录也完全可用 |
 
 ---
 
@@ -201,7 +202,10 @@ psychology/
 |   │   ├── about.vue        # 关于页面
 |   │   ├── resources.vue    # 心理资源
 |   │   ├── test/[id].vue    # 答题页面
-|   │   └── result.vue       # 结果页面
+|   │   ├── result.vue       # 结果页面
+|   │   ├── history.vue      # 测评历史（含云同步入口）
+|   │   ├── login.vue        # Casdoor 登录 / 回调
+|   │   └── account.vue      # 账号中心（云端记录管理）
 │   │   ├── exam/            # 内部测试（列表 / 答题）
 │   │   └── admin.vue        # 后台管理面板
 |   ├── plugins/             # 插件
@@ -236,7 +240,7 @@ psychology/
 | ------------------------------- | ---------------------------------------- | ------------------------- |
 | `NITRO_INTERNAL_TEST_PASSWORD`  | 进入内部测试的访问密码                    | `yunshu`                  |
 | `NITRO_INTERNAL_SECRET`         | 签发访问凭证的 HMAC 签名密钥（生产必设）  | 回退到密码                |
-| `NUXT_PUBLIC_CLOUDERY_API_BASE` | 前端直连 ClouderyApi（/exam 与 /admin）的基地址 | `https://localhost:7288`  |
+| `NUXT_PUBLIC_CLOUDERY_API_BASE` | 前端直连 ClouderyApi（/exam、/admin 与账号 / 云同步）的基地址 | `https://localhost:7288`  |
 
 > 前端跨域直连：需在 ClouderyApi 的 `Cors:AllowedOrigins` 放行本项目站点。开发环境 ClouderyApi 自签证书需在浏览器信任（`dotnet dev-certs https --trust`）。
 
@@ -279,6 +283,41 @@ psychology/
 - 基地址与内部测试 / 后台管理共用 `NUXT_PUBLIC_CLOUDERY_API_BASE`（默认 `https://localhost:7288`），跨域需在 ClouderyApi 的 `Cors:AllowedOrigins` 中放行站点来源。
 
 ---
+
+## 👤 账号与多平台同步
+
+本站**不需要账号**即可使用：不登录也能测评、看历史，记录只存在浏览器 localStorage。登录后把结果同步到云端，即可在手机、平板、电脑等多平台共享同一份测评历史。
+
+| 入口 | 说明 |
+| ---- | ---- |
+| `/login` | 使用 **Casdoor** 登录（唯一登录方式，无本地账号密码）；登录成功后自动回到登录前的页面 |
+| `/account` | 账号中心：头像 / 用户名 / 邮箱、退出登录、立即同步、本机与云端记录数、自动同步开关、云端记录查看与删除、清空云端记录 |
+| 导航栏「👤」 | 未登录显示「登录」，已登录显示用户名，点击进入 `/account` |
+
+### 同步行为
+
+- **登录即同步**：已登录且自动同步开启（默认开启；关闭状态记在 localStorage `psychology-cloud-sync`）时，进入页面会拉取云端记录与本机合并；测评完成保存时（`psychology:result-saved` 事件）单条即时上传。
+- **合并规则**（`app/utils/cloud-results.ts` 的 `planCloudSync`）：以本机记录键 `test_<testId>_result_<时间戳>` 作为 `clientKey`。云端没有 → 上传；两端同名且本机更新 → 上传并补云端 Id；云端更新 → 只补 Id；云端独有 → 下载到本机。
+- **删除**：登录后在历史页删除会同时删除云端记录（否则下次同步会被传回）；账号中心可单独删除云端记录或清空云端。
+- **隐私**：未登录时数据仍只留在本机；登录后同步的是测评结果正文（含 AI 解读与备注）；账号信息只用于界面展示用户名 / 邮箱 / 头像。
+
+### 配置
+
+- 复用 `NUXT_PUBLIC_CLOUDERY_API_BASE`（默认 `https://localhost:7288`）访问 ClouderyApi 的 `/identity/auth/*` 与 `/exam/results`。
+- **需在 Casdoor 应用中登记回调地址**：开发 `http://localhost:3000/login`、生产 `https://pt.cldery.com/login`，否则 Casdoor 会拒绝授权。
+- 会话 Cookie 为 `SameSite=None; Secure`，因此**生产环境必须 HTTPS**，本地开发需信任 ClouderyApi 的自签证书（`dotnet dev-certs https --trust`）；跨域需在 ClouderyApi 的 `Cors:AllowedOrigins` 放行本站。
+- 云端表由 ClouderyApi 侧维护：`dotnet ef database update --context ClouderyApiContext`（迁移 `AddExamResults`）。
+
+### 相关实现文件
+
+| 文件 | 说明 |
+| ---- | ---- |
+| `app/utils/cloud-results.ts` | 纯函数：本机记录 ↔ 云端记录互转与同步计划 |
+| `app/utils/result-store.ts` | 本机存档读写，另有 `importCloudRecord` / `markCloudRecord` / `announceResultChange` |
+| `app/composables/useAuth.ts` | Casdoor 登录 / 回调 / 登出与登录态 |
+| `app/composables/useCloudSync.ts` | 同步编排：拉取、分批上传（每 100 条）、单条上传、删除与清空 |
+| `app/plugins/cloud-sync.client.ts` | 启动时初始化同步并监听本机保存事件 |
+| `tests/cloud-results.test.ts` | 同步计划与本机存档扩展的单元测试 |
 
 ## 📄 开源协议
 
