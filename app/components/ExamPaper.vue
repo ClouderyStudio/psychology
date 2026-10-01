@@ -99,7 +99,7 @@
                     <span class="answer-badge"
                       :style="isCorrect(sIndex, qIndex)
                         ? 'background-color: var(--special-light); color: var(--special-dark)'
-                        : 'background-color: #fdecea; color: #c0392b'">
+                        : 'background-color: var(--danger-light); color: var(--danger)'">
                       {{ isCorrect(sIndex, qIndex) ? '✓' : '✗' }} 你的答案：{{ formatUserAnswer(sIndex, qIndex, question) }}
                     </span>
                   </div>
@@ -172,7 +172,7 @@
                     解锁
                   </button>
                 </div>
-                <p v-if="passwordError" class="mt-3 text-xs font-medium" style="color: #c0392b">⚠️ 密码错误，请重试</p>
+                <p v-if="passwordError" class="mt-3 text-xs font-medium" style="color: var(--danger)">⚠️ 密码错误，请重试</p>
               </div>
             </div>
 

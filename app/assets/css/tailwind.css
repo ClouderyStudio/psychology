@@ -17,40 +17,22 @@
     --text-muted: #9a919e;
     --border: #e6dde8;
 
-    /* 主色调 */
+    /* ---------- 主色（11 套 accent 主题各自覆盖） ---------- */
     --primary: #5b8c9e;
     --primary-light: #e8f0f4;
     --primary-dark: #3d6a7c;
+    /* 主色标签底 / 悬停底：介于 --primary-light 与 --primary 之间的一档薄色块 */
+    --primary-tag: #d0e4ed;
 
-    /* 症状筛查 - 蓝色系 */
-    --symptom: #5b8c9e;
-    --symptom-light: #eaf3f7;
-    --symptom-dark: #3d6a7c;
-    --symptom-tag: #d0e4ed;
-
-    /* 人格性格 - 紫色系 */
+    /* ---------- 维度分类色（accent 主题各自覆盖） ---------- */
+    /* 症状与失和两类不在这里写死：它们恒等于主色，由下方「分类色别名」统一派生。 */
     --personality: #7b6b8e;
     --personality-light: #f2eef6;
     --personality-dark: #5a4d6b;
-    --personality-tag: #e2daea;
 
-    /* 专项量表 - 绿色系 */
     --special: #5e8c6f;
     --special-light: #eaf5ee;
     --special-dark: #456d54;
-    --special-tag: #d0e8d6;
-
-    --disharmony: #5b8c9e;
-    --disharmony-light: #e8f0f4;
-    --disharmony-dark: #3d6a7c;
-
-    --flexibility: #5e8c6f;
-    --flexibility-light: #eaf5ee;
-    --flexibility-dark: #456d54;
-
-    --rigidity: #7b6b8e;
-    --rigidity-light: #f2eef6;
-    --rigidity-dark: #5a4d6b;
 
     /* 气质类型颜色 */
     --choleric: #e07a5f; /* 胆汁质 - 赤陶色（热情、活力） */
@@ -80,6 +62,34 @@
     --danger-dark: #7a2019;
     --danger-border: #d9a09a;
 
+    /* ---------- 严重度 5 级（结果页统一色阶：1 最低 → 5 最高，0 表示未知） ---------- */
+    /* 实心色：进度条、圆环 */
+    --sev-0: #9ca3af;
+    --sev-1: #10b981;
+    --sev-2: #3b82f6;
+    --sev-3: #eab308;
+    --sev-4: #f97316;
+    --sev-5: #ef4444;
+    /* 标签底色 */
+    --sev-0-soft: #f3f4f6;
+    --sev-1-soft: #dcfce7;
+    --sev-2-soft: #dbeafe;
+    --sev-3-soft: #fef9c3;
+    --sev-4-soft: #ffedd5;
+    --sev-5-soft: #fee2e2;
+    /* 标签文字色 */
+    --sev-0-text: #374151;
+    --sev-1-text: #15803d;
+    --sev-2-text: #1d4ed8;
+    --sev-3-text: #a16207;
+    --sev-4-text: #c2410c;
+    --sev-5-text: #b91c1c;
+
+    /* ---------- 品牌渐变（首页「外部量表」入口专用；刻意不随 accent 变化） ---------- */
+    --brand-gradient: linear-gradient(90deg, #2dd4bf 0%, #38bdf8 100%);
+    --brand-gradient-strong: linear-gradient(135deg, #2dd4bf 0%, #3b82f6 100%);
+    --brand-on: #0f172a;
+
     /* 阴影 */
     --shadow-sm: 0 1px 3px rgba(58, 53, 64, 0.08);
     --shadow-md: 0 4px 14px rgba(58, 53, 64, 0.1);
@@ -98,40 +108,20 @@
     --text-muted: #615a68;
     --border: #222233;
 
-    /* 主色调 */
+    /* ---------- 主色 ---------- */
     --primary: #1e85a8;
     --primary-light: #12242e;
     --primary-dark: #8dbccb;
+    --primary-tag: #16303d;
 
-    /* 症状筛查 - 蓝色系 */
-    --symptom: #1e85a8;
-    --symptom-light: #12242e;
-    --symptom-dark: #8dbccb;
-    --symptom-tag: #16303d;
-
-    /* 人格性格 - 紫色系 */
+    /* ---------- 维度分类色 ---------- */
     --personality: #95889f;
     --personality-light: #171426;
     --personality-dark: #ada2bd;
-    --personality-tag: #221830;
 
-    /* 专项量表 - 绿色系 */
     --special: #6b987c;
     --special-light: #122019;
     --special-dark: #89b198;
-    --special-tag: #172a1f;
-
-    --disharmony: #1e85a8;
-    --disharmony-light: #12242e;
-    --disharmony-dark: #8dbccb;
-
-    --flexibility: #6b987c;
-    --flexibility-light: #122019;
-    --flexibility-dark: #89b198;
-
-    --rigidity: #95889f;
-    --rigidity-light: #171426;
-    --rigidity-dark: #ada2bd;
 
     /* 气质类型颜色 */
     --choleric: #cf7c64;
@@ -161,6 +151,20 @@
     --danger-dark: #cd8a7c;
     --danger-border: #663d38;
 
+    /* ---------- 严重度 5 级：暗色下换成深底 + 亮字（实心色沿用上方亮色值） ---------- */
+    --sev-0-soft: #1e2026;
+    --sev-1-soft: #0f2a1e;
+    --sev-2-soft: #0f1e33;
+    --sev-3-soft: #2a2208;
+    --sev-4-soft: #2b1a0c;
+    --sev-5-soft: #2b1212;
+    --sev-0-text: #b6bac2;
+    --sev-1-text: #5fd8a0;
+    --sev-2-text: #7dabf0;
+    --sev-3-text: #e0c04a;
+    --sev-4-text: #f0a273;
+    --sev-5-text: #f08b8b;
+
     /* 阴影 - 暗色模式下使用亮边而非暗影 */
     --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.35);
     --shadow-md: 0 4px 14px rgba(0, 0, 0, 0.4);
@@ -170,6 +174,21 @@
     /* 遮罩层 */
     --overlay-bg: rgba(0, 0, 0, 0.66);
   }
+}
+
+/* ===================== 分类色别名（唯一来源） ===================== */
+/* 症状 / 失和两类恒等于主色，维度色直接用 --personality / --special。
+   这段写在 @layer base 之外：无层级规则的优先级高于 base 层，因此对默认配色
+   也生效；某个 accent 若要偏离，只需在自己块里重新声明该变量即可
+   （例如 win98 的 --symptom-light —— 它的 --primary-light 是按钮面灰，不能用）。
+   值用 var() 引用，在计算时解析，所以与下方 accent 块的书写顺序无关。 */
+:root {
+  --symptom: var(--primary);
+  --symptom-light: var(--primary-light);
+  --symptom-dark: var(--primary-dark);
+  --disharmony: var(--symptom);
+  --disharmony-light: var(--symptom-light);
+  --disharmony-dark: var(--symptom-dark);
 }
 
 /* ===================== 大字号（无障碍） ===================== */
@@ -195,25 +214,9 @@
   --personality: #7d8fc4;
   --personality-light: #edeff9;
   --personality-dark: #5f6fa8;
-  --personality-tag: #e0e3f2;
   --special: #c98a3f;
   --special-light: #fbf2e4;
   --special-dark: #a06a2e;
-  --special-tag: #f0e0c4;
-  /* 症状类跟随主色；维度跟随对应分类色 */
-  --symptom: var(--primary);
-  --symptom-light: var(--primary-light);
-  --symptom-dark: var(--primary-dark);
-  --symptom-tag: var(--primary-tag);
-  --disharmony: var(--primary);
-  --disharmony-light: var(--primary-light);
-  --disharmony-dark: var(--primary-dark);
-  --flexibility: var(--special);
-  --flexibility-light: var(--special-light);
-  --flexibility-dark: var(--special-dark);
-  --rigidity: var(--personality);
-  --rigidity-light: var(--personality-light);
-  --rigidity-dark: var(--personality-dark);
 }
 
 [data-accent="emerald"][data-theme="dark"] {
@@ -224,25 +227,9 @@
   --personality: #8491bd;
   --personality-light: #15172a;
   --personality-dark: #9aa5c9;
-  --personality-tag: #1e2240;
   --special: #bd8b4d;
   --special-light: #211a10;
   --special-dark: #c9a671;
-  --special-tag: #2e2516;
-  /* 症状类跟随主色；维度跟随对应分类色 */
-  --symptom: var(--primary);
-  --symptom-light: var(--primary-light);
-  --symptom-dark: var(--primary-dark);
-  --symptom-tag: var(--primary-tag);
-  --disharmony: var(--primary);
-  --disharmony-light: var(--primary-light);
-  --disharmony-dark: var(--primary-dark);
-  --flexibility: var(--special);
-  --flexibility-light: var(--special-light);
-  --flexibility-dark: var(--special-dark);
-  --rigidity: var(--personality);
-  --rigidity-light: var(--personality-light);
-  --rigidity-dark: var(--personality-dark);
 }
 
 [data-accent="violet"] {
@@ -253,25 +240,9 @@
   --personality: #9e6bb0;
   --personality-light: #f6edf8;
   --personality-dark: #7f4f92;
-  --personality-tag: #ecddf2;
   --special: #6f9e6b;
   --special-light: #ecf6ed;
   --special-dark: #55804f;
-  --special-tag: #ddeedd;
-  /* 症状类跟随主色；维度跟随对应分类色 */
-  --symptom: var(--primary);
-  --symptom-light: var(--primary-light);
-  --symptom-dark: var(--primary-dark);
-  --symptom-tag: var(--primary-tag);
-  --disharmony: var(--primary);
-  --disharmony-light: var(--primary-light);
-  --disharmony-dark: var(--primary-dark);
-  --flexibility: var(--special);
-  --flexibility-light: var(--special-light);
-  --flexibility-dark: var(--special-dark);
-  --rigidity: var(--personality);
-  --rigidity-light: var(--personality-light);
-  --rigidity-dark: var(--personality-dark);
 }
 
 [data-accent="violet"][data-theme="dark"] {
@@ -282,25 +253,9 @@
   --personality: #a884b8;
   --personality-light: #221429;
   --personality-dark: #b998c4;
-  --personality-tag: #321d40;
   --special: #7ba886;
   --special-light: #122018;
   --special-dark: #8fb99a;
-  --special-tag: #172a1e;
-  /* 症状类跟随主色；维度跟随对应分类色 */
-  --symptom: var(--primary);
-  --symptom-light: var(--primary-light);
-  --symptom-dark: var(--primary-dark);
-  --symptom-tag: var(--primary-tag);
-  --disharmony: var(--primary);
-  --disharmony-light: var(--primary-light);
-  --disharmony-dark: var(--primary-dark);
-  --flexibility: var(--special);
-  --flexibility-light: var(--special-light);
-  --flexibility-dark: var(--special-dark);
-  --rigidity: var(--personality);
-  --rigidity-light: var(--personality-light);
-  --rigidity-dark: var(--personality-dark);
 }
 
 [data-accent="sunset"] {
@@ -311,25 +266,9 @@
   --personality: #a86b6e;
   --personality-light: #f8ecec;
   --personality-dark: #864f52;
-  --personality-tag: #eedfdf;
   --special: #6f9e6b;
   --special-light: #ecf6ed;
   --special-dark: #55804f;
-  --special-tag: #ddeedd;
-  /* 症状类跟随主色；维度跟随对应分类色 */
-  --symptom: var(--primary);
-  --symptom-light: var(--primary-light);
-  --symptom-dark: var(--primary-dark);
-  --symptom-tag: var(--primary-tag);
-  --disharmony: var(--primary);
-  --disharmony-light: var(--primary-light);
-  --disharmony-dark: var(--primary-dark);
-  --flexibility: var(--special);
-  --flexibility-light: var(--special-light);
-  --flexibility-dark: var(--special-dark);
-  --rigidity: var(--personality);
-  --rigidity-light: var(--personality-light);
-  --rigidity-dark: var(--personality-dark);
 }
 
 [data-accent="sunset"][data-theme="dark"] {
@@ -340,25 +279,9 @@
   --personality: #b08a8d;
   --personality-light: #22161a;
   --personality-dark: #bd9a9e;
-  --personality-tag: #321f23;
   --special: #7ba886;
   --special-light: #122018;
   --special-dark: #8fb99a;
-  --special-tag: #172a1e;
-  /* 症状类跟随主色；维度跟随对应分类色 */
-  --symptom: var(--primary);
-  --symptom-light: var(--primary-light);
-  --symptom-dark: var(--primary-dark);
-  --symptom-tag: var(--primary-tag);
-  --disharmony: var(--primary);
-  --disharmony-light: var(--primary-light);
-  --disharmony-dark: var(--primary-dark);
-  --flexibility: var(--special);
-  --flexibility-light: var(--special-light);
-  --flexibility-dark: var(--special-dark);
-  --rigidity: var(--personality);
-  --rigidity-light: var(--personality-light);
-  --rigidity-dark: var(--personality-dark);
 }
 
 [data-accent="rose"] {
@@ -369,54 +292,22 @@
   --personality: #7b6b9e;
   --personality-light: #f0edf6;
   --personality-dark: #5d4f7f;
-  --personality-tag: #e3ddee;
   --special: #6f9e6b;
   --special-light: #ecf6ed;
   --special-dark: #55804f;
-  --special-tag: #ddeedd;
-  /* 症状类跟随主色；维度跟随对应分类色 */
-  --symptom: var(--primary);
-  --symptom-light: var(--primary-light);
-  --symptom-dark: var(--primary-dark);
-  --symptom-tag: var(--primary-tag);
-  --disharmony: var(--primary);
-  --disharmony-light: var(--primary-light);
-  --disharmony-dark: var(--primary-dark);
-  --flexibility: var(--special);
-  --flexibility-light: var(--special-light);
-  --flexibility-dark: var(--special-dark);
-  --rigidity: var(--personality);
-  --rigidity-light: var(--personality-light);
-  --rigidity-dark: var(--personality-dark);
 }
 
 [data-accent="rose"][data-theme="dark"] {
-  --primary: #d52857;
+  --primary: #f48fb1;
   --primary-light: #211227;
-  --primary-dark: #c995a5;
+  --primary-dark: #f48fb1;
   --primary-tag: #32192c;
   --personality: #9186ad;
   --personality-light: #171426;
   --personality-dark: #a99cbd;
-  --personality-tag: #221c40;
   --special: #7ba886;
   --special-light: #122018;
   --special-dark: #8fb99a;
-  --special-tag: #172a1e;
-  /* 症状类跟随主色；维度跟随对应分类色 */
-  --symptom: var(--primary);
-  --symptom-light: var(--primary-light);
-  --symptom-dark: var(--primary-dark);
-  --symptom-tag: var(--primary-tag);
-  --disharmony: var(--primary);
-  --disharmony-light: var(--primary-light);
-  --disharmony-dark: var(--primary-dark);
-  --flexibility: var(--special);
-  --flexibility-light: var(--special-light);
-  --flexibility-dark: var(--special-dark);
-  --rigidity: var(--personality);
-  --rigidity-light: var(--personality-light);
-  --rigidity-dark: var(--personality-dark);
 }
 
 [data-accent="teal"] {
@@ -427,25 +318,9 @@
   --personality: #6f8fb0;
   --personality-light: #edf3f8;
   --personality-dark: #55708e;
-  --personality-tag: #dde8f0;
   --special: #c98a6f;
   --special-light: #fbf1ec;
   --special-dark: #a06a4f;
-  --special-tag: #f0e0d8;
-  /* 症状类跟随主色；维度跟随对应分类色 */
-  --symptom: var(--primary);
-  --symptom-light: var(--primary-light);
-  --symptom-dark: var(--primary-dark);
-  --symptom-tag: var(--primary-tag);
-  --disharmony: var(--primary);
-  --disharmony-light: var(--primary-light);
-  --disharmony-dark: var(--primary-dark);
-  --flexibility: var(--special);
-  --flexibility-light: var(--special-light);
-  --flexibility-dark: var(--special-dark);
-  --rigidity: var(--personality);
-  --rigidity-light: var(--personality-light);
-  --rigidity-dark: var(--personality-dark);
 }
 
 [data-accent="teal"][data-theme="dark"] {
@@ -456,25 +331,9 @@
   --personality: #7f99b6;
   --personality-light: #141b26;
   --personality-dark: #96abc9;
-  --personality-tag: #1c2b40;
   --special: #bd8a71;
   --special-light: #211812;
   --special-dark: #c9a58a;
-  --special-tag: #2e211a;
-  /* 症状类跟随主色；维度跟随对应分类色 */
-  --symptom: var(--primary);
-  --symptom-light: var(--primary-light);
-  --symptom-dark: var(--primary-dark);
-  --symptom-tag: var(--primary-tag);
-  --disharmony: var(--primary);
-  --disharmony-light: var(--primary-light);
-  --disharmony-dark: var(--primary-dark);
-  --flexibility: var(--special);
-  --flexibility-light: var(--special-light);
-  --flexibility-dark: var(--special-dark);
-  --rigidity: var(--personality);
-  --rigidity-light: var(--personality-light);
-  --rigidity-dark: var(--personality-dark);
 }
 
 [data-accent="mint"] {
@@ -485,25 +344,9 @@
   --personality: #4a90c4;
   --personality-light: #e8f2fa;
   --personality-dark: #35719e;
-  --personality-tag: #d5e6f4;
   --special: #c98a3f;
   --special-light: #fbf2e4;
   --special-dark: #a06a2e;
-  --special-tag: #f0e0c4;
-  /* 症状类跟随主色；维度跟随对应分类色 */
-  --symptom: var(--primary);
-  --symptom-light: var(--primary-light);
-  --symptom-dark: var(--primary-dark);
-  --symptom-tag: var(--primary-tag);
-  --disharmony: var(--primary);
-  --disharmony-light: var(--primary-light);
-  --disharmony-dark: var(--primary-dark);
-  --flexibility: var(--special);
-  --flexibility-light: var(--special-light);
-  --flexibility-dark: var(--special-dark);
-  --rigidity: var(--personality);
-  --rigidity-light: var(--personality-light);
-  --rigidity-dark: var(--personality-dark);
 }
 
 [data-accent="mint"][data-theme="dark"] {
@@ -514,25 +357,9 @@
   --personality: #69a3c4;
   --personality-light: #101f2c;
   --personality-dark: #8ab4c9;
-  --personality-tag: #172f40;
   --special: #bd8b4d;
   --special-light: #211a10;
   --special-dark: #c9a671;
-  --special-tag: #2e2516;
-  /* 症状类跟随主色；维度跟随对应分类色 */
-  --symptom: var(--primary);
-  --symptom-light: var(--primary-light);
-  --symptom-dark: var(--primary-dark);
-  --symptom-tag: var(--primary-tag);
-  --disharmony: var(--primary);
-  --disharmony-light: var(--primary-light);
-  --disharmony-dark: var(--primary-dark);
-  --flexibility: var(--special);
-  --flexibility-light: var(--special-light);
-  --flexibility-dark: var(--special-dark);
-  --rigidity: var(--personality);
-  --rigidity-light: var(--personality-light);
-  --rigidity-dark: var(--personality-dark);
 }
 
 /* 怀旧：白色背景 + 深墨文字 + 衬线字体，面板改为直角 */
@@ -550,25 +377,9 @@
   --personality: #77587f;
   --personality-light: #ede6ef;
   --personality-dark: #5c4262;
-  --personality-tag: #e0d4e3;
   --special: #96683a;
   --special-light: #f2e9dc;
   --special-dark: #754f28;
-  --special-tag: #e7d6bf;
-  /* 症状类跟随主色；维度跟随对应分类色 */
-  --symptom: var(--primary);
-  --symptom-light: var(--primary-light);
-  --symptom-dark: var(--primary-dark);
-  --symptom-tag: var(--primary-tag);
-  --disharmony: var(--primary);
-  --disharmony-light: var(--primary-light);
-  --disharmony-dark: var(--primary-dark);
-  --flexibility: var(--special);
-  --flexibility-light: var(--special-light);
-  --flexibility-dark: var(--special-dark);
-  --rigidity: var(--personality);
-  --rigidity-light: var(--personality-light);
-  --rigidity-dark: var(--personality-dark);
   font-family: "Songti SC", "STSong", "SimSun", "Noto Serif SC", Georgia, "Times New Roman", serif;
   letter-spacing: 0.01em;
 }
@@ -615,25 +426,9 @@ html[data-accent="retro"] .md-trait-level {
   --personality: #b6a2cc;
   --personality-light: #2c2436;
   --personality-dark: #d0bfe2;
-  --personality-tag: #3c3248;
   --special: #d59a68;
   --special-light: #3a2c1e;
   --special-dark: #e8bb8e;
-  --special-tag: #4c3a28;
-  /* 症状类跟随主色；维度跟随对应分类色 */
-  --symptom: var(--primary);
-  --symptom-light: var(--primary-light);
-  --symptom-dark: var(--primary-dark);
-  --symptom-tag: var(--primary-tag);
-  --disharmony: var(--primary);
-  --disharmony-light: var(--primary-light);
-  --disharmony-dark: var(--primary-dark);
-  --flexibility: var(--special);
-  --flexibility-light: var(--special-light);
-  --flexibility-dark: var(--special-dark);
-  --rigidity: var(--personality);
-  --rigidity-light: var(--personality-light);
-  --rigidity-dark: var(--personality-dark);
 }
 
 /* Google 风格：白底 + Google 蓝，分类色取自 Material 调色板（蓝/绿/红） */
@@ -651,25 +446,9 @@ html[data-accent="retro"] .md-trait-level {
   --personality: #188038;
   --personality-light: #e6f4ea;
   --personality-dark: #0d652d;
-  --personality-tag: #ceead6;
   --special: #d93025;
   --special-light: #fce8e6;
   --special-dark: #a50e0e;
-  --special-tag: #fad2cf;
-  /* 症状类跟随主色；维度跟随对应分类色 */
-  --symptom: var(--primary);
-  --symptom-light: var(--primary-light);
-  --symptom-dark: var(--primary-dark);
-  --symptom-tag: var(--primary-tag);
-  --disharmony: var(--primary);
-  --disharmony-light: var(--primary-light);
-  --disharmony-dark: var(--primary-dark);
-  --flexibility: var(--special);
-  --flexibility-light: var(--special-light);
-  --flexibility-dark: var(--special-dark);
-  --rigidity: var(--personality);
-  --rigidity-light: var(--personality-light);
-  --rigidity-dark: var(--personality-dark);
 }
 
 [data-accent="google"][data-theme="dark"] {
@@ -686,25 +465,9 @@ html[data-accent="retro"] .md-trait-level {
   --personality: #81c995;
   --personality-light: #1e2f24;
   --personality-dark: #a8dab5;
-  --personality-tag: #27402f;
   --special: #f28b82;
   --special-light: #3a2422;
   --special-dark: #f6aea9;
-  --special-tag: #4d2d2a;
-  /* 症状类跟随主色；维度跟随对应分类色 */
-  --symptom: var(--primary);
-  --symptom-light: var(--primary-light);
-  --symptom-dark: var(--primary-dark);
-  --symptom-tag: var(--primary-tag);
-  --disharmony: var(--primary);
-  --disharmony-light: var(--primary-light);
-  --disharmony-dark: var(--primary-dark);
-  --flexibility: var(--special);
-  --flexibility-light: var(--special-light);
-  --flexibility-dark: var(--special-dark);
-  --rigidity: var(--personality);
-  --rigidity-light: var(--personality-light);
-  --rigidity-dark: var(--personality-dark);
 }
 
 /* Windows 11（Fluent）：浅灰应用底 + Win11 强调蓝。
@@ -729,25 +492,9 @@ html[data-accent="retro"] .md-trait-level {
   --personality: #107c10;
   --personality-light: #e4f1e4;
   --personality-dark: #0b5a0b;
-  --personality-tag: #c8e6c8;
   --special: #d13438;
   --special-light: #fdeaea;
   --special-dark: #a4262c;
-  --special-tag: #f6d8d9;
-  /* 症状类跟随主色；维度跟随对应分类色 */
-  --symptom: var(--primary);
-  --symptom-light: var(--primary-light);
-  --symptom-dark: var(--primary-dark);
-  --symptom-tag: var(--primary-tag);
-  --disharmony: var(--primary);
-  --disharmony-light: var(--primary-light);
-  --disharmony-dark: var(--primary-dark);
-  --flexibility: var(--special);
-  --flexibility-light: var(--special-light);
-  --flexibility-dark: var(--special-dark);
-  --rigidity: var(--personality);
-  --rigidity-light: var(--personality-light);
-  --rigidity-dark: var(--personality-dark);
 
   /* Fluent 两层 elevation：一层投影 + 一层 1-2px 环境光，比默认阴影更克制干净 */
   --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.10), 0 0 1px rgba(0, 0, 0, 0.08);
@@ -773,25 +520,9 @@ html[data-accent="retro"] .md-trait-level {
   --personality: #6ccb5f;
   --personality-light: #1e2f1e;
   --personality-dark: #9fdc95;
-  --personality-tag: #27422a;
   --special: #ff8f8f;
   --special-light: #3a2422;
   --special-dark: #ffb3b3;
-  --special-tag: #4d2d2a;
-  /* 症状类跟随主色；维度跟随对应分类色 */
-  --symptom: var(--primary);
-  --symptom-light: var(--primary-light);
-  --symptom-dark: var(--primary-dark);
-  --symptom-tag: var(--primary-tag);
-  --disharmony: var(--primary);
-  --disharmony-light: var(--primary-light);
-  --disharmony-dark: var(--primary-dark);
-  --flexibility: var(--special);
-  --flexibility-light: var(--special-light);
-  --flexibility-dark: var(--special-dark);
-  --rigidity: var(--personality);
-  --rigidity-light: var(--personality-light);
-  --rigidity-dark: var(--personality-dark);
 
   /* Fluent 深色 elevation：纯黑、比亮色模式更深，符合 Win11 深色层叠 */
   --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.40);
@@ -938,12 +669,12 @@ html[data-accent="win11"][data-theme="dark"] .exam-q {
    （与结果页 ResultMultidim 的 --md-grad 同族；不用 accent 蓝，
    Win11 设置页 hero 横幅也是这种渐变做法）；阴影换 Fluent 层级去彩晕 ---- */
 html[data-accent="win11"] .external-band {
-  background: linear-gradient(90deg, #2dd4bf 0%, #38bdf8 100%) !important;
+  background: var(--brand-gradient) !important;
 }
 html[data-accent="win11"] .external-btn {
-  background-image: linear-gradient(135deg, #2dd4bf 0%, #3b82f6 100%) !important;
+  background-image: var(--brand-gradient-strong) !important;
   background-color: transparent !important;
-  color: #0f172a !important;
+  color: var(--brand-on) !important;
   border: 1px solid transparent;
   box-shadow: var(--shadow-sm) !important;
 }
@@ -1494,33 +1225,18 @@ html[data-accent="win11"][data-theme="dark"] .internal-modal-btn-cancel {
   --primary-dark: #000080;
   --primary-tag: #a8b8d8;
 
-  /* 分类色全部取自 VGA 16 色调色板：navy / green / maroon */
-  --symptom: #000080;
+  /* 分类色全部取自 VGA 16 色调色板：navy / green / maroon。
+     症状/失和=主色，由文件上方「分类色别名」派生；这里只保留例外：
+     本主题的 --primary-light 是按钮面灰，症状浅底必须仍是浅蓝。 */
   --symptom-light: #d6dcec;
-  --symptom-dark: #000080;
-  --symptom-tag: #a8b8d8;
 
   --personality: #006b00;
   --personality-light: #d6e8d6;
   --personality-dark: #006b00;
-  --personality-tag: #a8c8a8;
 
   --special: #800000;
   --special-light: #e8d6d6;
   --special-dark: #800000;
-  --special-tag: #c8a8a8;
-
-  --disharmony: #000080;
-  --disharmony-light: #d6dcec;
-  --disharmony-dark: #000080;
-
-  --flexibility: #006b00;
-  --flexibility-light: #d6e8d6;
-  --flexibility-dark: #006b00;
-
-  --rigidity: #800000;
-  --rigidity-light: #e8d6d6;
-  --rigidity-dark: #800000;
 
   /* 气质类型：VGA 红 / 绿 / navy / 紫 */
   --choleric: #c00000;
@@ -1582,32 +1298,15 @@ html[data-accent="win11"][data-theme="dark"] .internal-modal-btn-cancel {
   --primary-dark: #b0d4ff;
   --primary-tag: #1f3a5c;
 
-  --symptom: #3a80cf;
   --symptom-light: #14181f;
-  --symptom-dark: #b0d4ff;
-  --symptom-tag: #1f3a5c;
 
   --personality: #6fcf6f;
   --personality-light: #101c10;
   --personality-dark: #9ee09e;
-  --personality-tag: #1f3a1f;
 
   --special: #ff7a7a;
   --special-light: #241010;
   --special-dark: #ffb0b0;
-  --special-tag: #4a1f1f;
-
-  --disharmony: #3a80cf;
-  --disharmony-light: #14181f;
-  --disharmony-dark: #b0d4ff;
-
-  --flexibility: #6fcf6f;
-  --flexibility-light: #101c10;
-  --flexibility-dark: #9ee09e;
-
-  --rigidity: #ff7a7a;
-  --rigidity-light: #241010;
-  --rigidity-dark: #ffb0b0;
 
   --choleric: #ff7a7a;
   --choleric-light: #241010;

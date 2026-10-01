@@ -143,7 +143,7 @@ defineExpose({
 }
 
 .toast-item.error {
-  border-left: 4px solid #e74c3c;
+  border-left: 4px solid var(--danger);
 }
 
 .toast-item.warning {
@@ -209,7 +209,7 @@ defineExpose({
 }
 
 .toast-item.error .toast-progress {
-  background-color: #e74c3c;
+  background-color: var(--danger);
 }
 
 .toast-item.warning .toast-progress {

@@ -14,14 +14,14 @@
           </div>
           <div class="flex items-center gap-2">
             <span class="text-sm" style="color: var(--text-secondary);">均分: {{ getDimAverage(dim.key) }}</span>
-            <span class="text-xs px-2 py-1 rounded-full" :class="getLevelClass(getDimLevel(dim.key))">
+            <span class="text-xs px-2 py-1 rounded-full" :style="sevTone(sevRank(getDimLevel(dim.key)))">
               {{ getDimLevel(dim.key) }}
             </span>
           </div>
         </div>
         <div class="w-full rounded-full h-2" style="background-color: var(--primary-light);">
           <div class="rounded-full h-2 transition-all duration-500"
-            :style="{ width: getDimPercentage(dim.key) + '%', backgroundColor: getLevelColor(getDimLevel(dim.key)) }">
+            :style="{ width: getDimPercentage(dim.key) + '%', backgroundColor: sevColor(sevRank(getDimLevel(dim.key))) }">
           </div>
         </div>
         <p class="text-xs mt-2" style="color: var(--text-muted);">{{ getDimDescription(dim.key) }}</p>
@@ -62,27 +62,6 @@ const getDimPercentage = (key: string) => {
   return d && typeof d.average === 'number' ? (d.average / 5) * 100 : 0
 }
 
-const getLevelClass = (level: string) => {
-  const classes: Record<string, string> = {
-    '很低': 'bg-green-100 text-green-700',
-    '较低': 'bg-blue-100 text-blue-700',
-    '中等': 'bg-yellow-100 text-yellow-700',
-    '较高': 'bg-orange-100 text-orange-700',
-    '很高': 'bg-red-100 text-red-700',
-  }
-  return classes[level] || 'bg-gray-100 text-gray-700'
-}
-
-const getLevelColor = (level: string) => {
-  const colors: Record<string, string> = {
-    '很低': '#10b981',
-    '较低': '#3b82f6',
-    '中等': '#eab308',
-    '较高': '#f97316',
-    '很高': '#ef4444',
-  }
-  return colors[level] || '#9ca3af'
-}
 </script>
 
 <style scoped>

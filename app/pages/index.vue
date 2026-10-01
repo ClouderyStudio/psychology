@@ -623,7 +623,7 @@ if (error.value) {
 
 /* 顶部色带：薄荷 → 天蓝柔和渐变 */
 .external-band {
-  background: linear-gradient(90deg, #2dd4bf 0%, #38bdf8 100%);
+  background: var(--brand-gradient);
 }
 
 /* 标签/徽章：中性弱层级（亮色浅米底、暗色深底），无边框无发光 */
@@ -653,8 +653,8 @@ if (error.value) {
 
 /* 唯一视觉焦点：主按钮薄荷 → 天蓝渐变，深色文字在明暗模式下均高对比 */
 .external-btn {
-  background: linear-gradient(135deg, #2dd4bf 0%, #3b82f6 100%);
-  color: #0f172a;
+  background: var(--brand-gradient-strong);
+  color: var(--brand-on);
   box-shadow: 0 6px 18px rgba(59, 130, 246, 0.28);
 }
 

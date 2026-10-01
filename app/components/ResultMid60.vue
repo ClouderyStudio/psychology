@@ -95,7 +95,7 @@
     </section>
 
     <!-- 安全提示 -->
-    <section v-if="safety" class="mb-6 p-4 rounded-lg" style="background-color: #fdecea; color: #c0392b;">
+    <section v-if="safety" class="mb-6 p-4 rounded-lg" style="background-color: var(--danger-light); color: var(--danger);">
       <div class="font-bold mb-1">🚨 安全提示</div>
       <p class="text-sm">您在自伤相关条目（题 22 / 44 / 58）上分数较高。若当前存在伤害自己或结束生命的想法，请尽快寻求帮助：</p>
       <p class="text-sm mt-2 whitespace-pre-line">· 全国心理援助热线：400-161-9995&#10;· 24小时心理危机热线（北京）：010-82951332&#10;· 紧急情况请拨打 120 或前往医院急诊</p>

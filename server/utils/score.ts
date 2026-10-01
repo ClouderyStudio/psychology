@@ -618,32 +618,26 @@ function scoreSCCS(answers: Record<number, number>): ScoringResult {
 
   // 确定和谐等级
   let harmonyLevel = "";
-  let harmonyColor = "";
   let harmonyDesc = "";
 
   if (harmonyIndex >= 4.5) {
     harmonyLevel = "高度和谐";
-    harmonyColor = "#3d6a4f";
     harmonyDesc =
       "你拥有良好的自我和谐度。你的内心世界与外在经验能够较好地整合，面对变化时灵活从容，同时保持开放的心态。这种状态有助于心理健康和个人成长。";
   } else if (harmonyIndex >= 3.5) {
     harmonyLevel = "比较和谐";
-    harmonyColor = "#5e8c6f";
     harmonyDesc =
       "你的自我和谐度处于良好水平。大多数时候你能够接纳自己，适应环境。可能在特定情境下会感到一些内心冲突，但整体上能够保持平衡。";
   } else if (harmonyIndex >= 2.5) {
     harmonyLevel = "一般";
-    harmonyColor = "#8b6919";
     harmonyDesc =
       "你的自我和谐度处于中等水平。你可能会在某些方面感到内心矛盾或难以适应变化。建议多关注自己的内心感受，尝试以更开放和灵活的态度面对自己和周围的世界。";
   } else if (harmonyIndex >= 1.5) {
     harmonyLevel = "不太和谐";
-    harmonyColor = "#8b3d1f";
     harmonyDesc =
       "你的自我和谐度偏低，可能经常感到内心冲突、难以适应变化，或者固守着某些观念难以改变。建议你寻求心理咨询师的帮助，探索内心的矛盾，学习更灵活的应对方式。";
   } else {
     harmonyLevel = "严重不和谐";
-    harmonyColor = "#8b1a1a";
     harmonyDesc =
       "你的自我和谐度较低，内心冲突可能较为严重。我们真诚地建议你考虑寻求专业心理咨询师的帮助，系统性地探索自我，学习接纳自己、调节情绪的方法。请记住，求助是勇敢和智慧的表现。";
   }

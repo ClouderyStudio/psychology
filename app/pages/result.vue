@@ -71,7 +71,7 @@
             <div v-if="!isMBTI && !isSeven && !isPsyAge && !isMultidim" class="text-center mb-6">
               <div v-if="!canScore" class="text-2xl font-semibold mb-2" style="color: var(--text);">你的测评结果是:</div>
 
-              <div class="inline-block px-6 py-2 rounded-full text-lg font-semibold" :class="levelColorClass">
+              <div class="inline-block px-6 py-2 rounded-full text-lg font-semibold" :style="levelTone">
                 {{ result.level }}
               </div>
             </div>
@@ -126,8 +126,8 @@
                 <span>{{ Math.round(severityPercent) }}%</span>
               </div>
               <div class="w-full rounded-full h-3" style="background-color: var(--primary-light);">
-                <div class="rounded-full h-3 transition-all duration-1000" :class="severityBarClass"
-                  :style="{ width: `${severityPercent}%` }"></div>
+                <div class="rounded-full h-3 transition-all duration-1000"
+                  :style="{ width: `${severityPercent}%`, backgroundColor: severityBarColor }"></div>
               </div>
             </div>
 
@@ -506,41 +506,11 @@ const severityColor = computed(() => {
   return 'var(--primary)'
 })
 
-const levelColorClass = computed(() => {
-  const severity = result.value?.severity || 0
-  if (severity < 0.3) return 'bg-green-100 text-green-700'
-  if (severity < 0.6) return 'bg-yellow-100 text-yellow-700'
-  return 'bg-red-100 text-red-700'
-})
+// 严重度配色统一走 --sev-* 令牌（见 app/utils/severity.ts）
+const sevRankValue = computed(() => sevRankFromScore(result.value?.severity ?? 0))
+const levelTone = computed(() => sevTone(sevRankValue.value))
+const severityBarColor = computed(() => sevColor(sevRankValue.value))
 
-const severityBarClass = computed(() => {
-  const severity = result.value?.severity || 0
-  if (severity < 0.3) return 'bg-green-500'
-  if (severity < 0.6) return 'bg-yellow-500'
-  return 'bg-red-500'
-})
-
-const getLevelClass = (level: string) => {
-  const classes: Record<string, string> = {
-    '很低': 'bg-green-100 text-green-700',
-    '较低': 'bg-blue-100 text-blue-700',
-    '中等': 'bg-yellow-100 text-yellow-700',
-    '较高': 'bg-orange-100 text-orange-700',
-    '很高': 'bg-red-100 text-red-700'
-  }
-  return classes[level] || 'bg-gray-100 text-gray-700'
-}
-
-const getLevelColor = (level: string) => {
-  const colors: Record<string, string> = {
-    '很低': '#10b981',
-    '较低': '#3b82f6',
-    '中等': '#eab308',
-    '较高': '#f97316',
-    '很高': '#ef4444'
-  }
-  return colors[level] || '#9ca3af'
-}
 const setButtonBg = (event: Event, color: string) => {
   const target = event.currentTarget
   if (target instanceof HTMLElement) {

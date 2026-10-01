@@ -6,6 +6,9 @@ const THEME_KEY = 'psychology-theme'
 const THEME_ACCENT_KEY = 'psychology-theme-accent'
 
 // 可选主题配色（default 为默认蓝色系；每色均适配暗色/亮色模式）
+// color 是选择器色点的填充色，应与 tailwind.css 中对应 [data-accent] 块的
+// --primary 保持一致（唯一例外：「怀旧」色点取该主题整体暖色基调，
+// 与其亮色 --primary #3f5b76 不同）。
 export const accentOptions: { id: string; label: string; color: string }[] = [
   { id: 'default', label: '天青 · 默认', color: '#5b8c9e' },
   { id: 'emerald', label: '晨翠', color: '#2f8f6b' },

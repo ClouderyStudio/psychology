@@ -51,7 +51,7 @@
               </div>
 
               <div class="p-4 rounded-lg cursor-pointer transition-all hover:transform hover:-translate-y-1"
-                style="background-color: var(--personality-bg); box-shadow: var(--shadow-sm);"
+                style="background-color: var(--personality-light); box-shadow: var(--shadow-sm);"
                 @click="openLink('https://www.xinli001.com/')">
                 <h3 class="font-semibold mb-1" style="color: var(--text);">壹心理</h3>
                 <p class="text-sm" style="color: var(--text-secondary);">心理健康服务平台，提供科普文章和咨询服务</p>
@@ -63,7 +63,7 @@
           <div>
             <h2 class="text-2xl font-bold mb-4" style="color: var(--text);">📖 自助资源推荐</h2>
             <div class="space-y-3">
-              <div class="p-4 rounded-lg" style="background-color: var(--special-bg);">
+              <div class="p-4 rounded-lg" style="background-color: var(--special-light);">
                 <h3 class="font-semibold mb-2" style="color: var(--text);">正念冥想</h3>
                 <p class="text-sm" style="color: var(--text-secondary);">
                   推荐App：潮汐、Calm、Headspace<br>
@@ -71,7 +71,7 @@
                 </p>
               </div>
 
-              <div class="p-4 rounded-lg" style="background-color: var(--special-bg);">
+              <div class="p-4 rounded-lg" style="background-color: var(--special-light);">
                 <h3 class="font-semibold mb-2" style="color: var(--text);">自助书籍</h3>
                 <p class="text-sm" style="color: var(--text-secondary);">
                   《伯恩斯新情绪疗法》- 认知行为疗法经典<br>
@@ -80,7 +80,7 @@
                 </p>
               </div>
 
-              <div class="p-4 rounded-lg" style="background-color: var(--special-bg);">
+              <div class="p-4 rounded-lg" style="background-color: var(--special-light);">
                 <h3 class="font-semibold mb-2" style="color: var(--text);">在线课程</h3>
                 <p class="text-sm" style="color: var(--text-secondary);">
                   中国大学MOOC：心理学与生活、积极心理学<br>
