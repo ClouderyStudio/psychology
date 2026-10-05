@@ -86,7 +86,7 @@ async function handleLoginCallback() {
     if (window.opener) { window.close() }
     else { auth.value = 'authed'; loadPapers() }
   } catch (e: any) {
-    error.value = '登录回调失败：' + (e?.data?.message || e?.message || '未知错误')
+    error.value = '登录回调失败：' + (e?.data?.detail || e?.data?.message || e?.message || '未知错误')
   }
 }
 
@@ -130,7 +130,7 @@ async function login() {
     stopPolling()
     pollTimer = setInterval(checkAuth, 3000)
   } catch (e: any) {
-    error.value = '发起登录失败：' + (e?.data?.message || e?.message || '请检查 ClouderyApi 是否运行')
+    error.value = '发起登录失败：' + (e?.data?.detail || e?.data?.message || e?.message || '请检查 ClouderyApi 是否运行')
   }
 }
 
@@ -148,7 +148,7 @@ async function loadPapers() {
   try {
     papers.value = await $fetch<any[]>(base + '/exam/ExamPapers')
   } catch (e: any) {
-    error.value = '获取试卷失败：' + (e?.data?.message || e?.message || 'ClouderyApi 不可用')
+    error.value = '获取试卷失败：' + (e?.data?.detail || e?.data?.message || e?.message || 'ClouderyApi 不可用')
   } finally { loading.value = false }
 }
 
@@ -172,7 +172,7 @@ async function openEdit(p: any) {
     formJson.value = JSON.stringify(full?.sections || [], null, 2)
   } catch (e: any) {
     if (e?.statusCode === 401) { auth.value = 'unauth'; return }
-    saveError.value = '加载试卷详情失败：' + (e?.data?.message || e?.message || '未知错误')
+    saveError.value = '加载试卷详情失败：' + (e?.data?.detail || e?.data?.message || e?.message || '未知错误')
   }
   editorOpen.value = true
 }
@@ -196,7 +196,7 @@ async function save() {
   } catch (e: any) {
     if (e?.statusCode === 401) auth.value = 'unauth'
     else if (e?.statusCode === 403) saveError.value = '无管理员权限，操作被拒绝'
-    else saveError.value = '保存失败：' + (e?.data?.message || e?.message || '未知错误')
+    else saveError.value = '保存失败：' + (e?.data?.detail || e?.data?.message || e?.message || '未知错误')
   } finally { saving.value = false }
 }
 
@@ -207,7 +207,7 @@ async function removePaper(p: any) {
     loadPapers()
   } catch (e: any) {
     if (e?.statusCode === 403) error.value = '无管理员权限，操作被拒绝'
-    else error.value = '删除失败：' + (e?.data?.message || e?.message || '未知错误')
+    else error.value = '删除失败：' + (e?.data?.detail || e?.data?.message || e?.message || '未知错误')
   }
 }
 

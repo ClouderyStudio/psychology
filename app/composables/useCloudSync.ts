@@ -125,7 +125,7 @@ export function useCloudSync() {
       lastSyncedAt.value = Date.now()
       return { uploaded: plan.upload.length, total: records.length }
     } catch (e: any) {
-      error.value = e?.data?.message || e?.message || '云端同步失败，请稍后重试'
+      error.value = e?.data?.detail || e?.data?.message || e?.message || '云端同步失败，请稍后重试'
       return null
     } finally {
       syncing.value = false
@@ -148,7 +148,7 @@ export function useCloudSync() {
       lastSyncedAt.value = Date.now()
       return true
     } catch (e: any) {
-      error.value = e?.data?.message || e?.message || '云端上传失败'
+      error.value = e?.data?.detail || e?.data?.message || e?.message || '云端上传失败'
       return false
     }
   }
@@ -168,7 +168,7 @@ export function useCloudSync() {
       total.value = Math.max(0, total.value - 1)
       return true
     } catch (e: any) {
-      error.value = e?.data?.message || e?.message || '删除云端记录失败'
+      error.value = e?.data?.detail || e?.data?.message || e?.message || '删除云端记录失败'
       return false
     }
   }
@@ -182,7 +182,7 @@ export function useCloudSync() {
       total.value = records.length
       return records
     } catch (e: any) {
-      error.value = e?.data?.message || e?.message || '读取云端记录失败'
+      error.value = e?.data?.detail || e?.data?.message || e?.message || '读取云端记录失败'
       return []
     }
   }
@@ -211,7 +211,7 @@ export function useCloudSync() {
       total.value = 0
       return res?.deleted ?? 0
     } catch (e: any) {
-      error.value = e?.data?.message || e?.message || '清空云端记录失败'
+      error.value = e?.data?.detail || e?.data?.message || e?.message || '清空云端记录失败'
       return 0
     }
   }

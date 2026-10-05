@@ -531,7 +531,7 @@ const submitInternalPassword = async () => {
     router.push('/exam')
   } catch (e: any) {
     passwordError.value = true
-    $toast.error(e?.data?.statusMessage || '密码错误，请重试', '内部测试')
+    $toast.error(e?.data?.detail || e?.data?.statusMessage || '密码错误，请重试', '内部测试')
   } finally {
     internalAuthSubmitting.value = false
   }

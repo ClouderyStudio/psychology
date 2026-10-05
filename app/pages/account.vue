@@ -188,7 +188,7 @@ async function startLogin(): Promise<void> {
   try {
     await auth.login('/account')
   } catch (e: any) {
-    $toast.error(e?.data?.message || e?.message || '发起登录失败，请稍后重试', '登录')
+    $toast.error(e?.data?.detail || e?.data?.message || e?.message || '发起登录失败，请稍后重试', '登录')
   }
 }
 

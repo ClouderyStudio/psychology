@@ -71,7 +71,7 @@ const errorMessage = ref('')
 const returnTo = ref('/account')
 
 function describeError(e: any, fallback: string): string {
-  return e?.data?.message || e?.data?.statusMessage || e?.message || fallback
+  return e?.data?.detail || e?.data?.message || e?.data?.statusMessage || e?.message || fallback
 }
 
 /** 处理 Casdoor 回调：URL 里带 code/state 时才动作 */

@@ -1344,7 +1344,7 @@ async function doSubmit() {
   } catch (error: any) {
     console.error('提交失败', error)
     $toast.error(
-      error?.data?.statusMessage || error?.data?.message || '提交失败，请稍后重试',
+      error?.data?.detail || error?.data?.statusMessage || error?.data?.message || '提交失败，请稍后重试',
       '错误',
     )
   } finally {
