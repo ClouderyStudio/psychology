@@ -247,7 +247,9 @@ psychology/
 ### 后台管理面板（/admin）
 
 - 用 **Casdoor 账号登录**：`GET /identity/auth/state` 取 state → 新窗口跳 Casdoor 登录 → 本站收到 `code` 后 `POST /identity/auth/callback` 建立会话。
-- 试卷**列表 / 新增 / 编辑（JSON）/ 删除**；写操作由 ClouderyApi 端 `[AdminOnly]` 校验（`Authorization:Admins` 白名单中的 CasdoorId）。
+- 试卷**列表 / 新增 / 编辑 / 删除**；写操作由 ClouderyApi 端 `[AdminOnly]` 校验（`Authorization:Admins` 白名单中的 CasdoorId）。
+- 新增与编辑用可视化编辑器（`app/components/ExamPaperEditor.vue`）：章节 / 题目 / 选项增删改与上下移、题型切换（判断 / 单选 / 多选 / 简答）、点选正确答案、每题分值、解析备注；底部实时显示章节数 / 题量 / 满分并按规则校验，有未保存修改时关闭会二次确认。
+- 编辑走管理员接口 `GET /exam/ExamPapers/{id}/full` 拉取含答案与解析的完整内容（公开列表接口为防作弊不下发答案）；保存为**整卷覆盖**，试卷 ID 由服务端生成。
 - 首次启用时创建数据表并录入试卷：`dotnet ef database update --context ClouderyApiContext`（迁移 `AddExamPapers` 仅新增 `ExamPapers` 表，兼容既有 schema）。
 
 ### 试卷 JSON 结构（sections 数组）
@@ -257,7 +259,7 @@ psychology/
   "questions": [ { "text": "题干", "answer": "A", "note": "解析（可选）" } ] } ]
 ```
 
-多选题加 `"type": "multiple"`，`answer` 由选项标签组成（如 `"ABC"`）。
+多选题加 `"type": "multiple"`，`answer` 由选项标签组成（如 `"ABC"`）；简答题加 `"type": "essay"`（`answer` 作参考答案存文本，不参与自动判分，也不计入满分）。不写 `type` 时按有无 `options` 推断为单选或判断，与后端判分逻辑一致。
 
 ## 🤖 AI 结果解读
 

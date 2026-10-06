@@ -37,34 +37,30 @@
               <div class="text-xs mt-0.5" style="color: var(--text-muted);">ID: {{ p.id }} · {{ p.sections?.length || 0 }} 个章节</div>
             </div>
             <div class="flex items-center gap-2">
-              <button @click="openEdit(p)" class="px-3 py-1 rounded-lg text-sm" style="background-color: var(--primary-light); color: var(--primary);">编辑</button>
+              <button @click="openEdit(p)" :disabled="openingId === p.id" class="px-3 py-1 rounded-lg text-sm" style="background-color: var(--primary-light); color: var(--primary);">{{ openingId === p.id ? '加载中…' : '编辑' }}</button>
               <button @click="removePaper(p)" class="px-3 py-1 rounded-lg text-sm" style="background-color: var(--symptom-light); color: var(--symptom);">删除</button>
             </div>
           </div>
           <p v-if="!papers.length" class="text-center py-8" style="color: var(--text-muted);">暂无试卷，点击“新增试卷”创建。</p>
         </div>
-        <div v-if="editorOpen" class="fixed inset-0 z-50 flex items-center justify-center p-4" style="background-color: rgba(0,0,0,0.5);">
-          <div class="rounded-xl w-full max-w-2xl p-6 space-y-3" style="background-color: var(--card-bg);">
-            <div class="flex items-center justify-between">
-              <h3 class="font-bold" style="color: var(--text);">{{ editing ? '编辑试卷' : '新增试卷' }}</h3>
-              <button @click="editorOpen = false" style="color: var(--text-muted);">✕</button>
-            </div>
-            <div><label class="text-sm block mb-1" style="color: var(--text-secondary);">试卷 ID</label><input v-model="formId" :disabled="editing" class="w-full px-3 py-2 rounded-lg" style="background-color: var(--bg); color: var(--text);" placeholder="如 A / B" /></div>
-            <div><label class="text-sm block mb-1" style="color: var(--text-secondary);">试卷名称</label><input v-model="formName" class="w-full px-3 py-2 rounded-lg" style="background-color: var(--bg); color: var(--text);" placeholder="如 计算机 A卷" /></div>
-            <div><label class="text-sm block mb-1" style="color: var(--text-secondary);">内容（JSON：sections 数组）</label><textarea v-model="formJson" rows="14" class="w-full px-3 py-2 rounded-lg font-mono text-xs" style="background-color: var(--bg); color: var(--text);"></textarea></div>
-            <p v-if="saveError" class="text-sm p-2 rounded" style="background-color: var(--warning-bg); color: var(--warning-text);">{{ saveError }}</p>
-            <div class="flex justify-end gap-2 pt-1">
-              <button @click="editorOpen = false" class="px-4 py-2 rounded-lg text-sm" style="background-color: var(--bg); color: var(--text-secondary);">取消</button>
-              <button @click="save" :disabled="saving" class="px-4 py-2 rounded-lg text-sm font-medium" style="background-color: var(--primary); color: white;">{{ saving ? '保存中…' : '保存' }}</button>
-            </div>
-          </div>
-        </div>
+        <ExamPaperEditor
+          :open="editorOpen"
+          :mode="editing ? 'edit' : 'create'"
+          :name="formName"
+          :sections="formSections"
+          :saving="saving"
+          :server-error="saveError"
+          @save="save"
+          @close="editorOpen = false"
+        />
       </div>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
+import type { ExamSection } from '~/types/exam'
+
 const config = useRuntimeConfig()
 const base = (config.public.clouderyApiBase as string) || 'https://localhost:7288'
 const route = useRoute()
@@ -99,7 +95,8 @@ const editorOpen = ref(false)
 const editing = ref(false)
 const formId = ref('')
 const formName = ref('')
-const formJson = ref('')
+const formSections = ref<ExamSection[]>([])
+const openingId = ref('')
 const saveError = ref('')
 const saving = ref(false)
 let pollTimer: any = null
@@ -156,36 +153,41 @@ function openCreate() {
   editing.value = false
   formId.value = ''
   formName.value = ''
-  formJson.value = "[\n  {\n    \"title\": \"一、题型\",\n    \"pointsPerQuestion\": 1,\n    \"questions\": [\n      { \"text\": \"题目内容\", \"answer\": \"A\" }\n    ]\n  }\n]"
+  // 空数组进编辑器后由 blankSections() 播种一个可编辑的章节
+  formSections.value = []
   saveError.value = ''
   editorOpen.value = true
 }
 
 async function openEdit(p: any) {
-  editing.value = true
-  formId.value = p.id
-  formName.value = p.name
-  saveError.value = ''
+  if (openingId.value) return
+  openingId.value = p.id
+  error.value = ''
   // 公开列表不含答案，编辑用管理员全量接口拉取含答案/解析的完整内容
   try {
-    const full = await $fetch<any>(base + '/exam/ExamPapers/' + p.id + '/full', { credentials: 'include' })
-    formJson.value = JSON.stringify(full?.sections || [], null, 2)
+    const full = await $fetch<{ name?: string; sections?: ExamSection[] }>(base + '/exam/ExamPapers/' + p.id + '/full', { credentials: 'include' })
+    editing.value = true
+    formId.value = p.id
+    formName.value = full?.name || p.name
+    formSections.value = full?.sections || []
+    saveError.value = ''
+    editorOpen.value = true
   } catch (e: any) {
-    if (e?.statusCode === 401) { auth.value = 'unauth'; return }
-    saveError.value = '加载试卷详情失败：' + (e?.data?.detail || e?.data?.message || e?.message || '未知错误')
-  }
-  editorOpen.value = true
+    if (e?.statusCode === 401) auth.value = 'unauth'
+    else error.value = '加载试卷详情失败：' + (e?.data?.detail || e?.data?.message || e?.message || '未知错误')
+  } finally { openingId.value = '' }
 }
 
-async function save() {
-  let sections: any
-  try { sections = JSON.parse(formJson.value) } catch { saveError.value = 'JSON 格式有误，请检查'; return }
-  if (!Array.isArray(sections)) { saveError.value = '内容必须是 sections 数组'; return }
-  if (!formName.value.trim()) { saveError.value = '请填写试卷名称'; return }
+async function save(payload: { name: string; sections: ExamSection[] }) {
+  if (saving.value) return
+  const name = payload.name.trim()
+  if (!name) { saveError.value = '请填写试卷名称'; return }
+  // 整卷覆盖：后端 PUT/POST 以 name + sections 为准，试卷 ID 由服务端生成
+  const sections = payload.sections
   saving.value = true
   saveError.value = ''
   try {
-    const body = { id: formId.value || undefined, name: formName.value.trim(), sections }
+    const body = { name, sections }
     if (editing.value) {
       await $fetch(base + '/exam/ExamPapers/' + formId.value, { method: 'PUT', body, credentials: 'include' })
     } else {
