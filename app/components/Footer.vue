@@ -60,8 +60,15 @@
                 >心理资源</NuxtLink
               >
             </li>
-            <!-- <li><a href="#" class="footer-link" style="color: var(--text-secondary);">隐私政策</a></li>
-            <li><a href="#" class="footer-link" style="color: var(--text-secondary);">使用条款</a></li> -->
+            <li>
+              <NuxtLink
+                to="/privacy"
+                class="footer-link"
+                style="color: var(--text-secondary)"
+                >隐私政策</NuxtLink
+              >
+            </li>
+            <!-- <li><a href="#" class="footer-link" style="color: var(--text-secondary);">使用条款</a></li> -->
           </ul>
         </div>
 
