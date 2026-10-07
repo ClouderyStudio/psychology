@@ -64,8 +64,13 @@ export const PROFILE_MAX_COUNT = 12;
 export const PROFILE_VALUE_MAX = 220;
 /** 维度说明文案上限 */
 export const DIMENSION_DESC_MAX = 60;
-/** 本地兜底文本的自动重试间隔：模型恢复可用后过一段时间再自动试一次 */
+/** 本地兜底文本陈旧多久后界面给出「可重新生成」的提示（不再自动重试） */
 export const LOCAL_ANALYSIS_TTL_MS = 10 * 60 * 1000;
+
+/** 结果页「把分数交给模型」的按量表同意记录：localStorage 里存一个量表 ID 数组 */
+const AI_CONSENT_KEY = "psychology-ai-analysis-consent";
+/** 同意记录最多保留的量表数，超出后淘汰最早的，避免无限增长 */
+const AI_CONSENT_MAX = 64;
 
 /** 结果是「类型/画像」而不是程度高低的量表：分数不能当严重度解读 */
 const TYPE_SCALES = new Set([
@@ -547,16 +552,80 @@ export function splitAnalysisSections(analysis: unknown): string[] {
 }
 
 /**
- * 是否该在主界面自动生成/刷新分析。
- * engine 为 llm 的结果一直复用（不重复花额度）；本地兜底文本只是规则拼装，
- * 超过 TTL 就再试一次模型，避免模型或密钥恢复后用户仍一直看到兜底内容。
+ * 本机缓存的分析是否已经陈旧。
+ *
+ * 只用来决定界面上要不要给出「可重新生成」的提示，不再驱动任何自动请求：
+ * 结果页不会自己把分数发给模型，只有用户点按钮才会。因此「没有缓存」不算陈旧。
+ * engine 为 llm 的解读一直有效；本地兜底文本超过 TTL 视为陈旧。
  */
 export function shouldRefreshAnalysis(cached: any, now: number = Date.now()): boolean {
-  if (!cached || typeof cached !== "object" || !cached.analysis) return true;
+  if (!cached || typeof cached !== "object" || !cached.analysis) return false;
   if (cached.engine === "llm") return false;
   const at = Date.parse(String(cached.generatedAt ?? ""));
   if (!Number.isFinite(at)) return true;
   return now - at >= LOCAL_ANALYSIS_TTL_MS;
+}
+
+/** 量表 ID 统一裁剪，避免 "phq9" 与 " phq9 " 被当成两个量表 */
+function normalizeTestId(value: unknown): string {
+  return typeof value === "string" ? value.trim() : "";
+}
+
+/** 读取同意过的量表 ID 列表；旧版本写下的全局 "1" 不算数，会重新询问 */
+function readAiAnalysisConsents(): string[] {
+  if (typeof window === "undefined") return [];
+  try {
+    const parsed = JSON.parse(window.localStorage.getItem(AI_CONSENT_KEY) || "null");
+    if (!Array.isArray(parsed)) return [];
+    return parsed.filter((item): item is string => typeof item === "string" && item.trim() !== "");
+  } catch {
+    return [];
+  }
+}
+
+function writeAiAnalysisConsents(ids: string[]): void {
+  if (typeof window === "undefined") return;
+  try {
+    if (ids.length === 0) {
+      window.localStorage.removeItem(AI_CONSENT_KEY);
+      return;
+    }
+    window.localStorage.setItem(AI_CONSENT_KEY, JSON.stringify(ids.slice(-AI_CONSENT_MAX)));
+  } catch {
+    /* 存储被禁用时静默跳过 */
+  }
+}
+
+/**
+ * 这个量表是否已经就「把分数、等级与维度发送给大模型」明确点头过。
+ *
+ * 同意是**按量表**记的：在 PHQ-9 上点过「我已了解」，不代表 MBTI 也同意，
+ * 换一个量表会重新询问。没有 testId 时一律返回 false —— 无法归属的同意不生效。
+ * 默认返回 false：没点头就不该有任何自动请求。
+ */
+export function hasAiAnalysisConsent(testId: unknown): boolean {
+  const id = normalizeTestId(testId);
+  if (!id) return false;
+  return readAiAnalysisConsents().includes(id);
+}
+
+/** 记下某个量表的同意。写不进去（隐私模式等）也不影响本次会话内的使用 */
+export function rememberAiAnalysisConsent(testId: unknown): void {
+  const id = normalizeTestId(testId);
+  if (!id) return;
+  const ids = readAiAnalysisConsents().filter((item) => item !== id);
+  ids.push(id);
+  writeAiAnalysisConsents(ids);
+}
+
+/** 清除同意记录：给了 testId 只清那一个，不给则全部清掉（删除站点数据会连带清掉） */
+export function forgetAiAnalysisConsent(testId?: unknown): void {
+  const id = normalizeTestId(testId);
+  if (!id) {
+    writeAiAnalysisConsents([]);
+    return;
+  }
+  writeAiAnalysisConsents(readAiAnalysisConsents().filter((item) => item !== id));
 }
 
 /** 结果来源标签：AI 模型 / 服务端本地兜底 */

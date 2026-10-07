@@ -94,7 +94,7 @@
               <p class="whitespace-pre-line" style="color: var(--text-secondary);">{{ result.suggestion }}</p>
             </div>
 
-            <!-- AI 结果分析：进入页面自动生成；历史记录里缓存过就直接复用 -->
+            <!-- AI 结果分析：需用户点击并阅读提示后才请求；历史记录里缓存过就直接展示 -->
             <ResultAiAnalysis
               :result="result"
               :risk="siossRisk?.kind === 'danger'"

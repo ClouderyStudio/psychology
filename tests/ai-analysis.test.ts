@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import {
   DIMENSION_MAX_COUNT,
   LOCAL_ANALYSIS_TTL_MS,
@@ -9,6 +9,9 @@ import {
   buildAnalysisRequest,
   extractDimensions,
   extractProfile,
+  forgetAiAnalysisConsent,
+  hasAiAnalysisConsent,
+  rememberAiAnalysisConsent,
   resolveScoreKind,
   shouldRefreshAnalysis,
   splitAnalysisSections,
@@ -16,6 +19,40 @@ import {
 
 /** 换行在模板里显式写出，避免依赖文件里的转义 */
 const NL = "\n";
+
+/** 测试环境是 node，这里给一个最小的 Web Storage 实现 */
+class MemoryStorage implements Storage {
+  private map = new Map<string, string>();
+  get length() {
+    return this.map.size;
+  }
+  clear() {
+    this.map.clear();
+  }
+  getItem(key: string) {
+    return this.map.has(key) ? this.map.get(key)! : null;
+  }
+  key(index: number) {
+    return [...this.map.keys()][index] ?? null;
+  }
+  removeItem(key: string) {
+    this.map.delete(key);
+  }
+  setItem(key: string, value: string) {
+    this.map.set(key, String(value));
+  }
+}
+
+let local: MemoryStorage;
+
+beforeEach(() => {
+  local = new MemoryStorage();
+  (globalThis as any).window = { localStorage: local, sessionStorage: new MemoryStorage() };
+});
+
+afterEach(() => {
+  delete (globalThis as any).window;
+});
 
 describe("buildAnalysisRequest", () => {
   it("没有 testId 时不组装请求", () => {
@@ -193,11 +230,12 @@ describe("shouldRefreshAnalysis", () => {
   const now = Date.parse("2026-10-01T10:00:00Z");
   const ago = (ms: number) => new Date(now - ms).toISOString();
 
-  it("没有缓存就必须生成", () => {
-    expect(shouldRefreshAnalysis(undefined, now)).toBe(true);
-    expect(shouldRefreshAnalysis(null, now)).toBe(true);
-    expect(shouldRefreshAnalysis({}, now)).toBe(true);
-    expect(shouldRefreshAnalysis({ analysis: "" }, now)).toBe(true);
+  it("没有缓存不算陈旧：不会再自动请求模型", () => {
+    expect(shouldRefreshAnalysis(undefined, now)).toBe(false);
+    expect(shouldRefreshAnalysis(null, now)).toBe(false);
+    expect(shouldRefreshAnalysis({}, now)).toBe(false);
+    expect(shouldRefreshAnalysis({ analysis: "" }, now)).toBe(false);
+    expect(shouldRefreshAnalysis("x" as any, now)).toBe(false);
   });
 
   it("AI 生成的结果一直复用，不再重复请求模型", () => {
@@ -473,5 +511,98 @@ describe("analysisEngineLabel", () => {
     expect(analysisEngineLabel("llm")).toBe("AI 生成");
     expect(analysisEngineLabel("local")).toBe("本地生成");
     expect(analysisEngineLabel(undefined)).toBe("本地生成");
+  });
+});
+
+describe("AI 分析同意记录（按量表）", () => {
+  it("默认没有同意：没点过按钮就不该自动请求", () => {
+    expect(hasAiAnalysisConsent("phq9")).toBe(false);
+    expect(hasAiAnalysisConsent(undefined)).toBe(false);
+    expect(hasAiAnalysisConsent("")).toBe(false);
+    expect(hasAiAnalysisConsent("   ")).toBe(false);
+  });
+
+  it("同意只对点过的那个量表生效，换量表要重新问", () => {
+    rememberAiAnalysisConsent("phq9");
+    expect(local.getItem("psychology-ai-analysis-consent")).toBe('["phq9"]');
+    expect(hasAiAnalysisConsent("phq9")).toBe(true);
+    expect(hasAiAnalysisConsent("mbti")).toBe(false);
+    expect(hasAiAnalysisConsent("gad7")).toBe(false);
+  });
+
+  it("可以累积多个量表，重复点同一个不会写出重复项", () => {
+    rememberAiAnalysisConsent("phq9");
+    rememberAiAnalysisConsent("mbti");
+    rememberAiAnalysisConsent("phq9");
+    expect(JSON.parse(local.getItem("psychology-ai-analysis-consent")!)).toEqual(["mbti", "phq9"]);
+    expect(hasAiAnalysisConsent("phq9")).toBe(true);
+    expect(hasAiAnalysisConsent("mbti")).toBe(true);
+  });
+
+  it("量表 ID 前后空格被裁掉，不会当成两个量表", () => {
+    rememberAiAnalysisConsent("  phq9  ");
+    expect(hasAiAnalysisConsent("phq9")).toBe(true);
+    expect(JSON.parse(local.getItem("psychology-ai-analysis-consent")!)).toEqual(["phq9"]);
+  });
+
+  it("没有 testId 时不写记录，也不认为已同意", () => {
+    rememberAiAnalysisConsent("");
+    rememberAiAnalysisConsent(undefined);
+    expect(local.getItem("psychology-ai-analysis-consent")).toBeNull();
+    expect(hasAiAnalysisConsent("phq9")).toBe(false);
+  });
+
+  it("清除单个量表保留其它量表，不传参则全部清除", () => {
+    rememberAiAnalysisConsent("phq9");
+    rememberAiAnalysisConsent("mbti");
+    forgetAiAnalysisConsent("phq9");
+    expect(hasAiAnalysisConsent("phq9")).toBe(false);
+    expect(hasAiAnalysisConsent("mbti")).toBe(true);
+    forgetAiAnalysisConsent();
+    expect(local.getItem("psychology-ai-analysis-consent")).toBeNull();
+    expect(hasAiAnalysisConsent("mbti")).toBe(false);
+  });
+
+  it("旧版本留下的全局 \"1\" 不算数，会重新询问", () => {
+    local.setItem("psychology-ai-analysis-consent", "1");
+    expect(hasAiAnalysisConsent("phq9")).toBe(false);
+    rememberAiAnalysisConsent("phq9");
+    expect(hasAiAnalysisConsent("phq9")).toBe(true);
+  });
+
+  it("记录损坏（非 JSON / 非数组 / 混入非字符串）时安全降级", () => {
+    local.setItem("psychology-ai-analysis-consent", "{oops");
+    expect(hasAiAnalysisConsent("phq9")).toBe(false);
+    local.setItem("psychology-ai-analysis-consent", '{"a":1}');
+    expect(hasAiAnalysisConsent("phq9")).toBe(false);
+    local.setItem("psychology-ai-analysis-consent", '["phq9", 7, null, "  "]');
+    expect(hasAiAnalysisConsent("phq9")).toBe(true);
+    expect(hasAiAnalysisConsent("7")).toBe(false);
+  });
+
+  it("localStorage 抛错时静默降级，不阻断本次会话", () => {
+    (globalThis as any).window = {
+      localStorage: {
+        getItem() {
+          throw new Error("blocked");
+        },
+        setItem() {
+          throw new Error("blocked");
+        },
+        removeItem() {
+          throw new Error("blocked");
+        },
+      },
+    };
+    expect(hasAiAnalysisConsent("phq9")).toBe(false);
+    expect(() => rememberAiAnalysisConsent("phq9")).not.toThrow();
+    expect(() => forgetAiAnalysisConsent("phq9")).not.toThrow();
+  });
+
+  it("没有 window 时（服务端渲染）一律安全返回", () => {
+    delete (globalThis as any).window;
+    expect(hasAiAnalysisConsent("phq9")).toBe(false);
+    expect(() => rememberAiAnalysisConsent("phq9")).not.toThrow();
+    expect(() => forgetAiAnalysisConsent("phq9")).not.toThrow();
   });
 });
