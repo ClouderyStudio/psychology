@@ -11,6 +11,7 @@
  * 无总分 / 总分不具意义的量表：以类型或等级作为主要展示内容。
  * - 人格与类型量表：结果本身就是类型，分数无意义
  * - multidim：维度强度是相对值，参考方向已不再计分，因此也不展示分数
+ * - ecrr：两个维度是各自 18 题的均分，没有可累加的总分（相加无意义）
  */
 export const TYPE_ONLY_TESTS: readonly string[] = [
   "mbti",
@@ -21,6 +22,7 @@ export const TYPE_ONLY_TESTS: readonly string[] = [
   "seven",
   "psy-age",
   "multidim",
+  "ecrr",
 ];
 
 export function isTypeOnlyTest(testId: string | null | undefined): boolean {

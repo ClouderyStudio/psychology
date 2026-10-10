@@ -118,6 +118,19 @@ import { socialQuestions, socialOptions } from "~~/server/utils/questions/social
 import { phobiaQuestions, phobiaOptions } from "~~/server/utils/questions/phobia-questions";
 import { agoraQuestions, agoraOptions } from "~~/server/utils/questions/agora-questions";
 import { sepanxQuestions, sepanxOptions } from "~~/server/utils/questions/sepanx-questions";
+import { auditQuestions } from "~~/server/utils/questions/audit-questions";
+import { igdsOptions, igdsQuestions } from "~~/server/utils/questions/igds-questions";
+import { eat26Options, eat26Questions } from "~~/server/utils/questions/eat26-questions";
+import { scoffOptions, scoffQuestions } from "~~/server/utils/questions/scoff-questions";
+import { asrsOptions, asrsQuestions } from "~~/server/utils/questions/asrs-questions";
+import { ecrrOptions, ecrrQuestions } from "~~/server/utils/questions/ecrr-questions";
+import {
+  psqiDaytimeOptions,
+  psqiFrequencyOptions,
+  psqiQualityOptions,
+  psqiQuestions,
+} from "~~/server/utils/questions/psqi-questions";
+import { swlsOptions, swlsQuestions } from "~~/server/utils/questions/swls-questions";
 import {
   buildMultidimQuestions,
   isMultidimMode,
@@ -787,6 +800,161 @@ export default defineEventHandler(async (event) => {
       })),
       scoringRules: {
         type: "sepanx",
+      },
+    },
+    audit: {
+      id: "audit",
+      title: "酒精使用障碍筛查量表（AUDIT）",
+      description:
+        "WHO 协作项目编制（Saunders 等 1993），10 题评估饮酒量、依赖症状与有害后果，总分 0-40，≥8 提示危险或有害饮酒。",
+      instructions:
+        "请按你过去一年的真实情况作答。第 1-3 题问的是一般的饮酒情况，第 4-10 题问过去一年；第 9、10 题若「有但不在过去一年」也算有相关经历。不饮酒者第 1 题选「从不」，其余题目选最低档即可。结果用于筛查参考，不构成诊断。",
+      questions: auditQuestions.map((q) => ({
+        id: q.id,
+        text: q.text,
+        type: "likert",
+        options: q.options,
+      })),
+      scoringRules: {
+        type: "audit",
+      },
+    },
+    igds: {
+      id: "igds",
+      title: "网络游戏障碍量表（简式）",
+      description:
+        "Pontes 与 Griffiths 2015 年编制（IGDS9-SF），9 题对应 DSM-5 网络游戏障碍的 9 条标准，其中 ≥5 条达到「非常频繁」提示症状与网络游戏障碍相符。",
+      instructions:
+        "请按过去 12 个月的情况作答，每题从「从不 / 很少 / 有时 / 经常 / 非常频繁」中选择。官方判定依据是「非常频繁」的条目数（≥5 条），而非总分高低。结果用于筛查参考，不构成诊断。",
+      questions: igdsQuestions.map((q) => ({
+        id: q.id,
+        text: q.text,
+        type: "likert",
+        options: igdsOptions,
+      })),
+      scoringRules: {
+        type: "igds",
+      },
+    },
+    eat26: {
+      id: "eat26",
+      title: "进食态度测验（EAT-26）",
+      description:
+        "Garner 等 1982 年编制的进食态度筛查量表，26 题覆盖节食、贪食与食物关注、口腔控制三个方向，总分 0-78，≥20 为官方筛查阳性线。",
+      instructions:
+        "请按你平时的实际感受作答，每题从「总是 / 经常 / 常常 / 有时 / 很少 / 从不」中选择。本量表问的是一贯的进食态度与行为，没有固定时间窗口；结果用于筛查参考，不构成诊断。",
+      // 26 题共用一套 value 唯一的档位选项；第 26 题的反向计分在 scoreEAT26 里处理
+      questions: eat26Questions.map((q) => ({
+        id: q.id,
+        text: q.text,
+        type: "likert",
+        options: eat26Options,
+      })),
+      scoringRules: {
+        type: "eat26",
+      },
+    },
+    scoff: {
+      id: "scoff",
+      title: "SCOFF 进食障碍筛查问卷",
+      description:
+        "Morgan 等 1999 年编制的 5 题进食障碍筛查问卷（Sick / Control / One stone / Fat / Food），二分类作答，≥2 项为筛查阳性。",
+      instructions:
+        "每题回答「是」或「否」，无需判断程度。SCOFF 只有阳性与阴性两档结果，用于提示是否需要专业评估，不构成诊断。",
+      questions: scoffQuestions.map((q) => ({
+        id: q.id,
+        text: q.text,
+        type: "likert",
+        options: scoffOptions,
+      })),
+      scoringRules: {
+        type: "scoff",
+      },
+    },
+    asrs: {
+      id: "asrs",
+      title: "成人 ADHD 自评量表（ASRS-v1.1）",
+      description:
+        "世界卫生组织（WHO）成人 ADHD 工作组编制（2003），18 题对应 DSM-IV-TR 的 ADHD 症状条目，Part A 的阴影计数 ≥4 提示症状可能与成人 ADHD 相符。",
+      instructions:
+        "请按过去 6 个月的真实情况作答，每题从「从不 / 很少 / 有时 / 常常 / 非常频繁」中选择。本量表仅适用于 18 岁以上人群；判定依据是 Part A（第 1-6 题）中达到各自频率阈值的题数，而不是总分高低。结果用于筛查参考，不构成诊断。",
+      questions: asrsQuestions.map((q) => ({
+        id: q.id,
+        text: q.text,
+        type: "likert",
+        options: asrsOptions,
+      })),
+      scoringRules: {
+        type: "asrs",
+      },
+    },
+    ecrr: {
+      id: "ecrr",
+      title: "亲密关系经历量表修订版（ECR-R）",
+      description:
+        "Fraley、Waller 与 Brennan 2000 年编制，36 题分别测量成人依恋的焦虑与回避两个维度（各 18 题），用于了解自己在亲密关系中的依恋倾向。",
+      instructions:
+        "请按你在亲密关系中一般的感受作答（不只是当前这一段关系），每题从 1=强烈不同意 到 7=强烈同意。第 9、11、20、22、26-31、33-36 题为反向表述，照实选择即可，计分时系统会自动处理。本量表不产出总分，结果呈现两个维度的均分。",
+      questions: ecrrQuestions.map((q) => ({
+        id: q.id,
+        text: q.text,
+        type: "likert",
+        options: ecrrOptions,
+        dimension: q.dimension,
+      })),
+      scoringRules: {
+        type: "ecrr",
+      },
+    },
+    psqi: {
+      id: "psqi",
+      title: "匹兹堡睡眠质量指数（PSQI）",
+      description:
+        "Buysse 等 1989 年编制，18 个自评条目折算成 7 个成分（睡眠质量、入睡时间、睡眠时间、睡眠效率、睡眠障碍、催眠药物、日间功能障碍），总分 0-21，分越高睡眠越差。",
+      instructions:
+        "请按最近一个月的真实睡眠情况作答。第 1-4 题用滑块选择就寝时间、入睡用时、起床时间与实际睡眠时长；第 5-9 题按出现频率或程度选择。总分 >5 提示睡眠质量差（国内常用界值为 >7）。结果用于筛查参考，不构成诊断。",
+      questions: psqiQuestions.map((q) => {
+        if (q.input === "range") {
+          return {
+            id: q.id,
+            text: q.text,
+            type: "range" as const,
+            min: q.min,
+            max: q.max,
+            step: q.step,
+            minLabel: q.minLabel,
+            maxLabel: q.maxLabel,
+          };
+        }
+        let options = psqiFrequencyOptions;
+        if (q.code === "Q6") options = psqiQualityOptions;
+        if (q.code === "Q9") options = psqiDaytimeOptions;
+        return {
+          id: q.id,
+          text: q.text,
+          type: "likert" as const,
+          options,
+        };
+      }),
+      scoringRules: {
+        type: "psqi",
+      },
+    },
+    swls: {
+      id: "swls",
+      title: "生活满意度量表（SWLS）",
+      description:
+        "Diener 等 1985 年编制的主观幸福感量表，5 题 7 点评分，总分 5-35，分越高表示对整体生活越满意（方向与症状量表相反）。",
+      instructions:
+        "请按你对自己整个人生的整体判断作答，每题从 1=非常不同意 到 7=非常同意。本量表问的不是最近的情绪，而是你对生活现状的总体评价；没有对错，凭第一感觉作答即可。",
+      questions: swlsQuestions.map((q) => ({
+        id: q.id,
+        text: q.text,
+        type: "likert",
+        options: swlsOptions,
+      })),
+      scoringRules: {
+        type: "swls",
       },
     },
     multidim: {

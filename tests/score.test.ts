@@ -1556,3 +1556,267 @@ describe("心理健康多维自评量表（MULTIDIM）", () => {
     expect(rep.severity.strongTraits[0]).toBe("自我价值感");
   });
 });
+
+describe("ASRS-v1.1 成人 ADHD 自评量表", () => {
+  it("全选最高频率 → Part A 阴影计数满 6，判为阳性", () => {
+    const r = calculateScore({ testId: "asrs", answers: full(18, 4) });
+    expect(r.maxScore).toBe(72);
+    expect(r.totalScore).toBe(72);
+    expect(r.dimensionScores?.shadow?.score).toBe(6);
+    expect(r.dimensionScores?.shadow?.max).toBe(6);
+    expect(r.level).toContain("筛查阳性");
+  });
+
+  it("全选从不 → 阴影计数 0，未达阈值", () => {
+    const r = calculateScore({ testId: "asrs", answers: full(18, 0) });
+    expect(r.totalScore).toBe(0);
+    expect(r.dimensionScores?.shadow?.score).toBe(0);
+    expect(r.level).toBe("未达筛查阈值");
+    expect(r.dimensionScores?.inattention?.score).toBe(0);
+    expect(r.dimensionScores?.hyperactive?.score).toBe(0);
+  });
+
+  it("阴影计分按每题各自的阈值（Part A 取 ≥2、其余取 ≥3）", () => {
+    // 「有时」=2：Part A 第 1-3 题达标，第 4-6 题（阈值 3）不达标
+    const r = calculateScore({ testId: "asrs", answers: full(18, 2) });
+    expect(r.dimensionScores?.shadow?.score).toBe(3);
+    expect(r.level).toBe("未达筛查阈值");
+    // 只要第 4 题升到 3 分，Part A 计数即达 4
+    const r2 = calculateScore({ testId: "asrs", answers: { ...full(18, 2), 4: 3 } });
+    expect(r2.dimensionScores?.shadow?.score).toBe(4);
+    expect(r2.level).toContain("筛查阳性");
+  });
+
+  it("分量表按 APA 原件划分（注意力缺陷 10 题 / 多动冲动 8 题）", () => {
+    expect(calculateScore({ testId: "asrs", answers: full(18, 4) }).dimensionScores?.inattention?.max).toBe(40);
+    expect(calculateScore({ testId: "asrs", answers: full(18, 4) }).dimensionScores?.hyperactive?.max).toBe(32);
+  });
+});
+
+describe("ECR-R 亲密关系经历量表修订版", () => {
+  it("全选 7 分：焦虑维度（含 2 道反向题）与回避维度（含 12 道反向题）分别计分", () => {
+    const r = calculateScore({ testId: "ecrr", answers: full(36, 7) });
+    // 焦虑 18 题中 9、11 为反向 → 16×7 + 2×1 = 114，均值 6.33
+    expect(r.dimensionScores?.anxiety?.score).toBe(Number((114 / 18).toFixed(2)));
+    // 回避 18 题中 12 道反向 → 6×7 + 12×1 = 54，均值 3
+    expect(r.dimensionScores?.avoidance?.score).toBe(3);
+  });
+
+  it("没有可累加的总分", () => {
+    const r = calculateScore({ testId: "ecrr", answers: full(36, 4) });
+    expect(r.totalScore).toBe(0);
+    expect(r.maxScore).toBe(0);
+    // 全部选中立 4 分 → 反向后仍是 4，两维都落在中点
+    expect(r.dimensionScores?.anxiety?.score).toBe(4);
+    expect(r.dimensionScores?.avoidance?.score).toBe(4);
+  });
+
+  it("按两维与中点 4 的比较给出四种倾向（非官方分类）", () => {
+    const pattern = (r: ReturnType<typeof calculateScore>) => r.dimensionScores?.pattern?.level as string;
+
+    // 两个维度都低：焦虑题全 1（反向后 9/11 → 7，均值 30/18≈1.67）、回避题全 7（12 道反向 → 1，均值 54/18=3）
+    const secure: Record<number, number> = full(36, 1);
+    for (let id = 19; id <= 36; id++) secure[id] = 7;
+    expect(pattern(calculateScore({ testId: "ecrr", answers: secure }))).toBe("安全型倾向");
+
+    // 焦虑高、回避低：焦虑题全 7（16×7+2×1=114，均值 6.33）、回避题全 7（均值 3）
+    expect(pattern(calculateScore({ testId: "ecrr", answers: full(36, 7) }))).toBe("焦虑型（专注型）倾向");
+
+    // 焦虑低、回避高：焦虑题全 1（均值 1.67）、回避题全 1（6×1+12×7=90，均值 5）
+    expect(pattern(calculateScore({ testId: "ecrr", answers: full(36, 1) }))).toBe("回避型（冷漠型）倾向");
+
+    // 两维都高：焦虑题全 7、回避题全 1
+    const fearful: Record<number, number> = full(36, 7);
+    for (let id = 19; id <= 36; id++) fearful[id] = 1;
+    expect(pattern(calculateScore({ testId: "ecrr", answers: fearful }))).toBe("紊乱型（恐惧-回避型）倾向");
+  });
+
+  it("反向题按 8 - 原分处理，第 21 题不反向", () => {
+    // 只把第 21 题抬到 7，回避维度应升高 3/18
+    const base = calculateScore({ testId: "ecrr", answers: full(36, 4) }).dimensionScores?.avoidance?.score as number;
+    const bumped = calculateScore({ testId: "ecrr", answers: { ...full(36, 4), 21: 7 } }).dimensionScores?.avoidance?.score as number;
+    // 均值保留两位小数：4.00 → 4.17（若第 21 题也反向，则应降到 3.83）
+    expect(base).toBe(4);
+    expect(bumped).toBe(4.17);
+  });
+});
+
+describe("PSQI 匹兹堡睡眠质量指数", () => {
+  it("全部按最差情况作答 → 总分满 21", () => {
+    const answers: Record<number, number> = {};
+    // Q1 就寝 0 点 / Q2 入睡 120 分钟 / Q3 起床 0 点 → 卧床 0 小时（效率无法计算记 0 分）
+    answers[1] = 0; answers[2] = 120; answers[3] = 0; answers[4] = 0;
+    for (let id = 5; id <= 14; id++) answers[id] = 3;
+    answers[15] = 3; answers[16] = 3; answers[17] = 3; answers[18] = 3;
+    const r = calculateScore({ testId: "psqi", answers });
+    expect(r.maxScore).toBe(21);
+    // 睡眠时间 0 小时 → C = 3
+    expect(r.dimensionScores?.duration?.score).toBe(3);
+    expect(r.dimensionScores?.efficiency?.score).toBe(0);
+  });
+
+  it("睡眠时间充裕时的成分 C 为 0，入睡快时成分 B 为 0", () => {
+    const answers: Record<number, number> = {
+      1: 23, 2: 10, 3: 7, 4: 8,
+      5: 0, 6: 0, 7: 0, 8: 0, 9: 0, 10: 0, 11: 0, 12: 0, 13: 0, 14: 0,
+      15: 0, 16: 0, 17: 0, 18: 0,
+    };
+    const r = calculateScore({ testId: "psqi", answers });
+    expect(r.dimensionScores?.duration?.score).toBe(0);
+    expect(r.dimensionScores?.latency?.score).toBe(0);
+    expect(r.dimensionScores?.quality?.score).toBe(0);
+    expect(r.totalScore).toBe(0);
+    expect(r.level).toBe("睡眠质量尚可");
+  });
+
+  it("总分 >5 判为睡眠质量差", () => {
+    const answers: Record<number, number> = {
+      1: 1, 2: 60, 3: 4, 4: 4,
+      5: 3, 6: 3, 7: 3, 8: 3, 9: 3, 10: 3, 11: 3, 12: 3, 13: 3, 14: 3,
+      15: 3, 16: 0, 17: 2, 18: 2,
+    };
+    const r = calculateScore({ testId: "psqi", answers });
+    expect(r.totalScore).toBeGreaterThan(5);
+    expect(r.level).toContain("睡眠质量差");
+  });
+});
+
+describe("SWLS 生活满意度量表", () => {
+  it("全选最高 → 35 分，极度满意", () => {
+    const r = calculateScore({ testId: "swls", answers: full(5, 7) });
+    expect(r.totalScore).toBe(35);
+    expect(r.maxScore).toBe(35);
+    expect(r.level).toBe("极度满意");
+  });
+
+  it("全选最低 → 5 分，极度不满意；方向与症状量表相反", () => {
+    const r = calculateScore({ testId: "swls", answers: full(5, 1) });
+    expect(r.totalScore).toBe(5);
+    expect(r.level).toBe("极度不满意");
+    // 满意度越低，「问题严重度」越高（方向与症状量表一致）
+    expect(r.severity).toBe(1);
+  });
+
+  it("全选中立 4 分 → 20 分，中立档", () => {
+    const r = calculateScore({ testId: "swls", answers: full(5, 4) });
+    expect(r.totalScore).toBe(20);
+    expect(r.level).toBe("中立");
+    expect(r.dimensionScores?.band?.level).toBe("中立");
+  });
+});
+
+describe("AUDIT 酒精使用障碍筛查量表", () => {
+  it("全选最高 → 40 分，高风险饮酒模式", () => {
+    const answers: Record<number, number> = {};
+    for (let id = 1; id <= 8; id++) answers[id] = 4;
+    answers[9] = 4; answers[10] = 4;
+    const r = calculateScore({ testId: "audit", answers });
+    expect(r.totalScore).toBe(40);
+    expect(r.maxScore).toBe(40);
+    expect(r.level).toContain("专科");
+    expect(r.dimensionScores?.hazardous?.score).toBe(12);
+    expect(r.dimensionScores?.dependence?.score).toBe(12);
+    expect(r.dimensionScores?.harmful?.score).toBe(16);
+  });
+
+  it("全选 0 → 总分 0，未见饮酒风险", () => {
+    const r = calculateScore({ testId: "audit", answers: full(10, 0) });
+    expect(r.totalScore).toBe(0);
+    expect(r.level).toBe("未见饮酒风险");
+    expect(r.severity).toBeLessThan(0.1);
+  });
+
+  it("第 9、10 题只有 0/2/4 三档，界值 8 / 16 / 20 分档", () => {
+    // 第 1-4 题各 2 分 = 8 → 危险饮酒档
+    const r = calculateScore({ testId: "audit", answers: { ...full(10, 0), 1: 2, 2: 2, 3: 2, 4: 2 } });
+    expect(r.totalScore).toBe(8);
+    expect(r.level).toContain("危险");
+    // 第 9、10 题各 4 分 = 8 → 同样进危险档，说明这两题按 0/2/4 计
+    const r2 = calculateScore({ testId: "audit", answers: { ...full(10, 0), 9: 4, 10: 4 } });
+    expect(r2.totalScore).toBe(8);
+    expect(r2.level).toBe(r.level);
+    // 16 分起进入简短干预档
+    const r3 = calculateScore({ testId: "audit", answers: { ...full(10, 0), 1: 4, 2: 4, 3: 4, 4: 4 } });
+    expect(r3.totalScore).toBe(16);
+    expect(r3.level).toContain("简短");
+  });
+});
+
+describe("IGDS9-SF 网络游戏障碍量表", () => {
+  it("全部「非常频繁」→ 9 项被认可，达到筛查标准", () => {
+    const r = calculateScore({ testId: "igds", answers: full(9, 5) });
+    expect(r.totalScore).toBe(45);
+    expect(r.maxScore).toBe(45);
+    expect(r.dimensionScores?.endorsed?.score).toBe(9);
+    expect(r.level).toContain("达到网络游戏障碍筛查标准");
+  });
+
+  it("全部「从不」→ 总分 9、认可数 0，未达标准", () => {
+    const r = calculateScore({ testId: "igds", answers: full(9, 1) });
+    expect(r.totalScore).toBe(9);
+    expect(r.dimensionScores?.endorsed?.score).toBe(0);
+    expect(r.level).toContain("未达");
+  });
+
+  it("以「非常频繁」为认可标准：4 项不达、5 项达标", () => {
+    const four = { ...full(9, 1), 1: 5, 2: 5, 3: 5, 4: 5 };
+    expect(calculateScore({ testId: "igds", answers: four }).level).toContain("未达");
+    const five = { ...four, 5: 5 };
+    expect(calculateScore({ testId: "igds", answers: five }).level).toContain("达到");
+  });
+});
+
+describe("EAT-26 进食态度测验", () => {
+  // 作答存的是档位序号：5 总是 / 4 经常 / 3 常常 / 2 有时 / 1 很少 / 0 从不。
+  // value 必须逐题唯一，否则「有时 / 很少 / 从不」三个 0 分档会在作答页同时显示为选中。
+  it("第 1-25 题只有「总是/经常/常常」计分，第 26 题为反向题", () => {
+    // 第 1-25 题都选「从不」(档位 0) 得 0 分；第 26 题反向，档位 0 → 3 分
+    const r = calculateScore({ testId: "eat26", answers: full(26, 0) });
+    expect(r.totalScore).toBe(3);
+    // 第 1-25 题都选「总是」(档位 5) 各得 3 分；第 26 题反向，档位 5 → 0 分
+    const r2 = calculateScore({ testId: "eat26", answers: full(26, 5) });
+    expect(r2.totalScore).toBe(75);
+    expect(r2.level).toContain("筛查阳性");
+  });
+
+  it("三个 0 分档位互相可区分：第 26 题有时/很少/从不 → 1/2/3 分", () => {
+    const at = (band: number) => calculateScore({ testId: "eat26", answers: { ...full(26, 0), 26: band } }).totalScore;
+    expect(at(2)).toBe(1);
+    expect(at(1)).toBe(2);
+    expect(at(0)).toBe(3);
+    // 同一档位在第 1-25 题一律 0 分
+    const first = (band: number) => calculateScore({ testId: "eat26", answers: { ...full(26, 0), 1: band } }).totalScore;
+    expect(first(2)).toBe(3);
+    expect(first(1)).toBe(3);
+    expect(first(0)).toBe(3);
+    // 常常 1 分 / 经常 2 分 / 总是 3 分
+    expect(first(3)).toBe(4);
+    expect(first(4)).toBe(5);
+    expect(first(5)).toBe(6);
+  });
+
+  it("总分 <20 未达筛查阈值，三个分量表各自求和", () => {
+    const r = calculateScore({ testId: "eat26", answers: full(26, 2) });
+    expect(r.totalScore).toBe(1); // 仅第 26 题的「有时」反向 1 分
+    expect(r.maxScore).toBe(78);
+    expect(r.level).toContain("未达");
+    expect(r.dimensionScores?.dieting?.max).toBe(39);
+    expect(r.dimensionScores?.bulimia?.max).toBe(18);
+    expect(r.dimensionScores?.oral?.max).toBe(21);
+  });
+});
+
+describe("SCOFF 进食障碍筛查问卷", () => {
+  it("全部回答「是」→ 5 项阳性", () => {
+    const r = calculateScore({ testId: "scoff", answers: full(5, 1) });
+    expect(r.totalScore).toBe(5);
+    expect(r.maxScore).toBe(5);
+    expect(r.level).toContain("筛查阳性");
+  });
+
+  it("1 项阳性未达阈值，2 项即阳性", () => {
+    expect(calculateScore({ testId: "scoff", answers: { ...full(5, 0), 1: 1 } }).level).toBe("筛查阴性");
+    expect(calculateScore({ testId: "scoff", answers: { ...full(5, 0), 1: 1, 2: 1 } }).level).toContain("筛查阳性");
+  });
+});
+

@@ -478,7 +478,7 @@ const isPersonality = computed(() => {
 // 需要展示维度剖面的量表（除文字外还有维度数据）
 const enrichedScale = computed(() => {
   const id = result.value?.testId
-  return !!id && ['epq', 'epq-rsc', 'temperament', 'bpns', 'ipip-eis', 'sixteenPF', 'sccs', 'pss', 'sds', 'sas', 'rses', 'asrm', 'phq9', 'gad7', 'sioss', 'bis', 'bpaq', 'mid60', 'des2', 'sdq20', 'ybocs', 'ocir', 'ptsd', 'panic', 'social', 'phobia', 'agora', 'sepanx'].includes(id) && hasDimensionScores.value
+  return !!id && ['epq', 'epq-rsc', 'temperament', 'bpns', 'ipip-eis', 'sixteenPF', 'sccs', 'pss', 'sds', 'sas', 'rses', 'asrm', 'phq9', 'gad7', 'sioss', 'bis', 'bpaq', 'mid60', 'des2', 'sdq20', 'ybocs', 'ocir', 'ptsd', 'panic', 'social', 'phobia', 'agora', 'sepanx', 'audit', 'igds', 'eat26', 'scoff', 'asrs', 'ecrr', 'psqi', 'swls'].includes(id) && hasDimensionScores.value
 })
 
 // 显示分数（处理 MBTI 等特殊量表）

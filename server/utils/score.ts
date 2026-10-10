@@ -25,6 +25,14 @@ import { scorePhobia } from "./scoring-rules/scorePhobia";
 import { scoreAgora } from "./scoring-rules/scoreAgora";
 import { scoreSepanx } from "./scoring-rules/scoreSepanx";
 import { scoreMultidim } from "./scoring-rules/scoreMultidim";
+import { scoreAUDIT } from "./scoring-rules/scoreAUDIT";
+import { scoreIGDS } from "./scoring-rules/scoreIGDS";
+import { scoreEAT26 } from "./scoring-rules/scoreEAT26";
+import { scoreASRS } from "./scoring-rules/scoreASRS";
+import { scoreECRR } from "./scoring-rules/scoreECRR";
+import { scorePSQI } from "./scoring-rules/scorePSQI";
+import { scoreSWLS } from "./scoring-rules/scoreSWLS";
+import { scoreSCOFF } from "./scoring-rules/scoreSCOFF";
 /** 作答来源：本人自评 / 他人代答（知情者评估） */
 export type RespondentMode = "self" | "proxy";
 
@@ -254,6 +262,22 @@ export function calculateScore(input: ScoringInput): ScoringResult {
       return scoreAgora(answers);
     case "sepanx":
       return scoreSepanx(answers);
+    case "audit":
+      return scoreAUDIT(answers);
+    case "igds":
+      return scoreIGDS(answers);
+    case "eat26":
+      return scoreEAT26(answers);
+    case "scoff":
+      return scoreSCOFF(answers);
+    case "asrs":
+      return scoreASRS(answers);
+    case "ecrr":
+      return scoreECRR(answers);
+    case "psqi":
+      return scorePSQI(answers);
+    case "swls":
+      return scoreSWLS(answers);
     case "multidim":
       return scoreMultidim(answers, mode, respondent);
     default:

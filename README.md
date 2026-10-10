@@ -64,6 +64,12 @@
 | **特定恐怖症严重度** | 10题 | DSM-5-TR，评估对特定事物/情境的恐惧、躯体反应与回避 |
 | **广场恐怖严重度** | 10题 | DSM-5-TR，评估人群、公共交通、独自外出等情境中的恐惧与回避 |
 | **分离焦虑障碍严重度** | 10题 | DSM-5-TR，评估与重要的人或家分离时的恐惧、担忧与回避 |
+| **酒精使用障碍筛查量表（AUDIT）** | 10题 | 评估饮酒量、依赖症状与有害后果，≥8 为危险或有害饮酒（WHO／Saunders 等 1993） |
+| **网络游戏障碍量表（IGDS9-SF）** | 9题 | 对应 DSM-5 网络游戏障碍 9 条标准，≥5 条「非常频繁」提示相符（Pontes & Griffiths 2015） |
+| **进食态度测验（EAT-26）** | 26题 | 评估节食、贪食与食物关注、口腔控制三个方向，≥20 为筛查阳性线（Garner 等 1982） |
+| **SCOFF 进食障碍筛查问卷** | 5题 | 5 道是/否题快速筛查进食障碍，≥2 项为阳性（Morgan 等 1999） |
+| **成人 ADHD 自评量表（ASRS-v1.1）** | 18题 | WHO 成人 ADHD 工作组编制，Part A 阴影计数 ≥4 提示症状可能与成人 ADHD 相符（仅限 18 岁以上） |
+| **匹兹堡睡眠质量指数（PSQI）** | 18题 | 折算睡眠质量、入睡时间、睡眠时间、睡眠效率等七个成分，总分 >5 提示睡眠质量差（Buysse 等 1989） |
 | **心理健康多维自评量表** | 20-105题 | 覆盖20个核心特征维度，含极简/快速/标准/深度四种模式、回答一致性与效度校验、乱序复测（AnonUsAl 编制） |
 
 ### 人格性格类
@@ -89,6 +95,8 @@
 | **IPIP-EIS 情绪智力量表**     | 64题 | 评估情绪智力的7个维度      |
 | **情绪稳定性测试**            | 30题 | 评估情绪稳定程度和抗压能力 |
 | **SCCS 自我和谐量表**         | 35题 | 评估自我与经验的关系       |
+| **亲密关系经历量表修订版（ECR-R）** | 36题 | 测量成人依恋的焦虑与回避两维度（各 18 题均值，无总分） |
+| **生活满意度量表（SWLS）**    | 5题  | 5 题 7 点评估对整体生活的主观满意度，总分 5-35，分越高越满意 |
 
 ### 📚 量表来源（部分）
 
@@ -128,6 +136,14 @@
 | 气质类型 | 基于四气质学说 | — | — |
 | SCCS 自我和谐 | 王登峰（中文） | — | — |
 | 七美德与七宗罪 | 基于传统七宗罪/美德分类（平台整合） | — | — |
+| 酒精使用障碍筛查（AUDIT） | WHO 协作项目（Saunders 等） | 1989/1993 | https://auditscreen.org/about/scoring-audit |
+| 网络游戏障碍（IGDS9-SF） | Pontes &amp; Griffiths | 2015 | https://www.halleypontes.com/tests/internet-gaming-disorder-scale-short-form/ |
+| 进食态度测验（EAT-26） | Garner, Olmsted, Bohr &amp; Garfinkel | 1982 | https://www.eat-26.com/ |
+| SCOFF 进食障碍筛查 | Morgan, Reid &amp; Lacey | 1999 | https://pubmed.ncbi.nlm.nih.gov/10582927/ |
+| 成人 ADHD 自评（ASRS-v1.1） | WHO 成人 ADHD 工作组（Kessler 等） | 2003/2005 | https://www.hcp.med.harvard.edu/ncs/ftpdir/adhd/18Q_ASRS_English.pdf |
+| 亲密关系经历量表修订版（ECR-R） | Fraley, Waller &amp; Brennan | 2000 | https://labs.psychology.illinois.edu/~rcfraley/measures/ecrritems.htm |
+| 匹兹堡睡眠质量指数（PSQI） | Buysse 等（中文版刘贤臣等） | 1989/1996 | — |
+| 生活满意度量表（SWLS） | Diener, Emmons, Larsen &amp; Griffin | 1985 | https://eddiener.com/scales/7 |
 | 心理年龄 / 情绪稳定性 / 自研量具 | 平台自研或改编 | — | — |
 
 
