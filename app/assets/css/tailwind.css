@@ -85,11 +85,6 @@
     --sev-4-text: #c2410c;
     --sev-5-text: #b91c1c;
 
-    /* ---------- 品牌渐变（首页「外部量表」入口专用；刻意不随 accent 变化） ---------- */
-    --brand-gradient: linear-gradient(90deg, #2dd4bf 0%, #38bdf8 100%);
-    --brand-gradient-strong: linear-gradient(135deg, #2dd4bf 0%, #3b82f6 100%);
-    --brand-on: #0f172a;
-
     /* 阴影 */
     --shadow-sm: 0 1px 3px rgba(58, 53, 64, 0.08);
     --shadow-md: 0 4px 14px rgba(58, 53, 64, 0.1);
@@ -663,26 +658,6 @@ html[data-accent="win11"] .exam-q {
 html[data-accent="win11"][data-theme="dark"] .card,
 html[data-accent="win11"][data-theme="dark"] .exam-q {
   border-color: rgba(255, 255, 255, 0.08);
-}
-
-/* ---- 多维量表入口：特色推荐卡，保留该量表专属的 teal→蓝品牌渐变
-   （与结果页 ResultMultidim 的 --md-grad 同族；不用 accent 蓝，
-   Win11 设置页 hero 横幅也是这种渐变做法）；阴影换 Fluent 层级去彩晕 ---- */
-html[data-accent="win11"] .external-band {
-  background: var(--brand-gradient) !important;
-}
-html[data-accent="win11"] .external-btn {
-  background-image: var(--brand-gradient-strong) !important;
-  background-color: transparent !important;
-  color: var(--brand-on) !important;
-  border: 1px solid transparent;
-  box-shadow: var(--shadow-sm) !important;
-}
-html[data-accent="win11"] .external-scale-card:hover .external-btn {
-  filter: brightness(1.05);
-}
-html[data-accent="win11"] .external-scale-card:active .external-btn {
-  filter: brightness(0.97);
 }
 
 /* ---- 量表卡片操作按钮：分类彩色 → Accent 实心；「重新开始」→ Standard ---- */
@@ -1577,41 +1552,6 @@ html[data-accent="win98"] .internal-modal-overlay {
   background-color: var(--overlay-bg);
 }
 
-/* ---------- 外链量表卡片：覆盖青蓝渐变，收编成灰色经典控件 ---------- */
-html[data-accent="win98"] .external-band {
-  background: #000080 !important;
-}
-html[data-accent="win98"] .external-tag {
-  background-color: #c0c0c0 !important;
-  color: #000000 !important;
-}
-html[data-accent="win98"] .external-btn {
-  background-color: #c0c0c0 !important;
-  /* scoped 样式用 background 简写挂了渐变（属 background-image），必须显式去掉 */
-  background-image: none !important;
-  color: #000000 !important;
-  box-shadow: var(--bevel-raised) !important;
-  border-radius: 0 !important;
-}
-html[data-accent="win98"] .external-scale-card,
-html[data-accent="win98"] .external-scale-card:hover {
-  border: 1px solid #000000;
-  box-shadow: var(--bevel-raised);
-}
-html[data-accent="win98"][data-theme="dark"] .external-band {
-  background: #ffffff !important;
-}
-html[data-accent="win98"][data-theme="dark"] .external-tag,
-html[data-accent="win98"][data-theme="dark"] .external-btn {
-  background-color: #000000 !important;
-  color: #ffffff !important;
-  box-shadow: var(--bevel-raised) !important;
-}
-html[data-accent="win98"][data-theme="dark"] .external-scale-card,
-html[data-accent="win98"][data-theme="dark"] .external-scale-card:hover {
-  border-color: #ffffff;
-}
-
 /* ---------- 选区与原生控件 ---------- */
 html[data-accent="win98"] ::selection {
   background-color: #000080;
@@ -1668,14 +1608,12 @@ html[data-accent="win11"][data-theme="dark"] body {
   color-scheme: dark;
 }
 html[data-accent="win11"] .card,
-html[data-accent="win11"] .exam-q,
-html[data-accent="win11"] .external-scale-card {
+html[data-accent="win11"] .exam-q {
   background-color: var(--card-bg);
   border-color: var(--border);
   box-shadow: var(--shadow-sm);
 }
-html[data-accent="win11"] .card:hover,
-html[data-accent="win11"] .external-scale-card:hover {
+html[data-accent="win11"] .card:hover {
   box-shadow: var(--shadow-md);
 }
 html[data-accent="win11"] nav {
@@ -1716,15 +1654,13 @@ html[data-accent="win98"][data-theme="dark"] body {
   color-scheme: dark;
 }
 html[data-accent="win98"] .card,
-html[data-accent="win98"] .exam-q,
-html[data-accent="win98"] .external-scale-card {
+html[data-accent="win98"] .exam-q {
   background-color: #ffffff !important;
   border: 1px solid #000000 !important;
   box-shadow: var(--bevel-raised) !important;
 }
 html[data-accent="win98"][data-theme="dark"] .card,
-html[data-accent="win98"][data-theme="dark"] .exam-q,
-html[data-accent="win98"][data-theme="dark"] .external-scale-card {
+html[data-accent="win98"][data-theme="dark"] .exam-q {
   background-color: #000000 !important;
   border-color: #ffffff !important;
 }
@@ -1751,52 +1687,6 @@ html[data-accent="win98"][data-theme="dark"] select:disabled {
   color: #808080 !important;
   background-color: #000000 !important;
   box-shadow: inset 1px 1px 0 #808080, inset -1px -1px 0 #404040 !important;
-}
-
-/* ---------- Win98 专属：多维自评量表使用 VGA 紫色作为特殊入口 ---------- */
-html[data-accent="win98"] .external-scale-card {
-  border-color: #800080 !important;
-}
-html[data-accent="win98"] .external-band {
-  background: #800080 !important;
-}
-html[data-accent="win98"] .external-tag {
-  background-color: #e8d6e8 !important;
-  color: #5a005a !important;
-  border: 1px solid #800080;
-}
-html[data-accent="win98"] .external-btn {
-  background-color: #c0c0c0 !important;
-  background-image: none !important;
-  color: #5a005a !important;
-  box-shadow: var(--bevel-raised) !important;
-  border: 1px solid #800080;
-}
-html[data-accent="win98"] .external-scale-card:hover .external-btn {
-  background-color: #d8c0d8 !important;
-  filter: none;
-}
-html[data-accent="win98"] .external-scale-card:active .external-btn {
-  box-shadow: var(--bevel-sunken) !important;
-}
-html[data-accent="win98"][data-theme="dark"] .external-scale-card {
-  border-color: #ff00ff !important;
-}
-html[data-accent="win98"][data-theme="dark"] .external-band {
-  background: #ff00ff !important;
-}
-html[data-accent="win98"][data-theme="dark"] .external-tag {
-  background-color: #241024 !important;
-  color: #ffb0ff !important;
-  border-color: #ff00ff;
-}
-html[data-accent="win98"][data-theme="dark"] .external-btn {
-  background-color: #000000 !important;
-  color: #ffb0ff !important;
-  border-color: #ff00ff;
-}
-html[data-accent="win98"][data-theme="dark"] .external-scale-card:hover .external-btn {
-  background-color: #241024 !important;
 }
 
 /* ---------- Win11 移动端：菜单使用不透明窗口表面，避免内容透出 ---------- */

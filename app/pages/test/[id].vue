@@ -72,6 +72,12 @@
                 <template v-else>⚠️ 请根据您的真实感受作答，共 {{ totalQuestions }} 题</template>
               </p>
             </div>
+            <!-- 作答来源固定为本人自评：代答会高估可观察行为、低估内在体验，
+                 不再提供选择入口，只在开始页做一句提示 -->
+            <div class="mx-6 mt-4 p-3 rounded-lg text-sm"
+              style="background-color: var(--warning-bg); border-left: 4px solid var(--warning-border); color: var(--warning-text);">
+              ⚠️ 请由本人根据真实感受作答；他人代答只能看到外在表现，结果不准确。
+            </div>
 
             <!-- 量表介绍（由来 / 作用 / 适配人群）默认全部展示 -->
             <div v-if="test.intro" class="border-b px-6 pt-4 pb-5 text-sm" style="border-color: var(--primary-light);">
@@ -170,29 +176,6 @@
                       style="background-color: var(--card-bg); color: var(--text-secondary); border: 1px solid var(--border);">切换模式</button>
                   </span>
                 </div>
-                <!-- 作答方式：代答会改变结果的含义，先选清楚再开始 -->
-                <div class="mt-3 p-4 rounded-lg" style="background-color: var(--bg);">
-                  <div class="font-semibold" style="color: var(--text);">🧑‍🤝‍🧑 谁来作答</div>
-                  <p class="text-sm mt-1 mb-3" style="color: var(--text-secondary);">
-                    代答会降低结果可靠性：可被观察到的行为（睡眠、发脾气）容易被高估，
-                    只有本人才知道的内在体验（情绪低落、空虚、自伤念头）容易被低估。
-                  </p>
-                  <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                    <label v-for="opt in respondentOptions" :key="opt.value"
-                      class="flex items-start p-3 rounded-lg cursor-pointer transition-all"
-                      :style="{
-                        backgroundColor: respondent === opt.value ? 'var(--primary-light)' : 'var(--card-bg)',
-                        border: respondent === opt.value ? '1px solid var(--primary)' : '1px solid var(--border)'
-                      }">
-                      <input type="radio" :value="opt.value" v-model="respondent" class="w-4 h-4 mr-3 mt-0.5"
-                        :style="{ accentColor: 'var(--primary)' }">
-                      <div>
-                        <div class="font-medium text-sm" style="color: var(--text);">{{ opt.label }}</div>
-                        <p class="text-xs mt-1" style="color: var(--text-secondary);">{{ opt.desc }}</p>
-                      </div>
-                    </label>
-                  </div>
-                </div>
 
                 <label class="flex items-start p-4 rounded-lg cursor-pointer transition-all mt-3" style="background-color: var(--bg);">
                   <input type="checkbox" v-model="shuffleOrder" class="w-4 h-4 mr-3 mt-0.5" :style="{ accentColor: 'var(--primary)' }">
@@ -216,69 +199,6 @@
                       :aria-pressed="perPageMode === opt.value">
                       <span class="block font-semibold text-sm"
                         :style="{ color: perPageMode === opt.value ? 'var(--primary)' : 'var(--text)' }">
-                        {{ opt.label }}
-                      </span>
-                      <span class="block text-xs mt-0.5" style="color: var(--text-secondary);">{{ opt.desc }}</span>
-                    </button>
-                  </div>
-                </div>
-
-                <!-- 文字大小：答题前可直接放大，全站生效 -->
-                <div class="mt-3 p-4 rounded-lg" style="background-color: var(--bg);">
-                  <div class="font-semibold" style="color: var(--text);">🔤 文字大小</div>
-                  <div class="grid grid-cols-3 gap-2 mt-3">
-                    <button v-for="opt in fontScaleOptions" :key="opt.id" type="button"
-                      @click="setFontScale(opt.id)"
-                      class="px-2 py-2 rounded-lg text-center transition-all"
-                      :style="{
-                        backgroundColor: fontScale === opt.id ? 'var(--primary-light)' : 'var(--card-bg)',
-                        border: fontScale === opt.id ? '2px solid var(--primary)' : '1px solid var(--border)',
-                      }"
-                      :aria-pressed="fontScale === opt.id">
-                      <span class="block font-semibold text-sm"
-                        :style="{ color: fontScale === opt.id ? 'var(--primary)' : 'var(--text)' }">
-                        {{ opt.label }}
-                      </span>
-                      <span class="block text-xs mt-0.5" style="color: var(--text-secondary);">{{ opt.percent }}%</span>
-                    </button>
-                  </div>
-                </div>
-
-                <!-- 字体：答题前可直接更换，全站生效 -->
-                <div class="mt-3 p-4 rounded-lg" style="background-color: var(--bg);">
-                  <div class="font-semibold" style="color: var(--text);">🅰 字体</div>
-                  <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 mt-3">
-                    <button v-for="opt in fontFamilyOptions" :key="opt.id" type="button"
-                      @click="setFontFamily(opt.id)"
-                      class="px-2 py-2 rounded-lg text-center transition-all"
-                      :style="{
-                        backgroundColor: fontFamily === opt.id ? 'var(--primary-light)' : 'var(--card-bg)',
-                        border: fontFamily === opt.id ? '2px solid var(--primary)' : '1px solid var(--border)',
-                      }"
-                      :aria-pressed="fontFamily === opt.id">
-                      <span class="block font-semibold text-sm"
-                        :style="{ fontFamily: 'var(' + opt.stackVar + ')', color: fontFamily === opt.id ? 'var(--primary)' : 'var(--text)' }">
-                        {{ opt.label }}
-                      </span>
-                      <span class="block text-xs mt-0.5" style="color: var(--text-secondary);">{{ opt.desc }}</span>
-                    </button>
-                  </div>
-                </div>
-
-                <!-- 字重：答题前可直接加粗，全站生效 -->
-                <div class="mt-3 p-4 rounded-lg" style="background-color: var(--bg);">
-                  <div class="font-semibold" style="color: var(--text);">🅱 字重</div>
-                  <div class="grid grid-cols-2 gap-2 mt-3">
-                    <button v-for="opt in fontWeightOptions" :key="opt.id" type="button"
-                      @click="setFontWeight(opt.id)"
-                      class="px-2 py-2 rounded-lg text-center transition-all"
-                      :style="{
-                        backgroundColor: fontWeight === opt.id ? 'var(--primary-light)' : 'var(--card-bg)',
-                        border: fontWeight === opt.id ? '2px solid var(--primary)' : '1px solid var(--border)',
-                      }"
-                      :aria-pressed="fontWeight === opt.id">
-                      <span class="block text-sm"
-                        :style="{ fontWeight: opt.id === 'bold' ? 'var(--fw-semibold)' : 'var(--fw-normal)', color: fontWeight === opt.id ? 'var(--primary)' : 'var(--text)' }">
                         {{ opt.label }}
                       </span>
                       <span class="block text-xs mt-0.5" style="color: var(--text-secondary);">{{ opt.desc }}</span>
@@ -318,69 +238,6 @@
                     :aria-pressed="perPageMode === opt.value">
                     <span class="block font-semibold text-sm"
                       :style="{ color: perPageMode === opt.value ? 'var(--primary)' : 'var(--text)' }">
-                      {{ opt.label }}
-                    </span>
-                    <span class="block text-xs mt-0.5" style="color: var(--text-secondary);">{{ opt.desc }}</span>
-                  </button>
-                </div>
-              </div>
-
-              <!-- 文字大小：答题前可直接放大，全站生效 -->
-              <div class="mb-4 p-4 rounded-lg" style="background-color: var(--bg); border: 1px solid var(--border);">
-                <div class="font-semibold" style="color: var(--text);">🔤 文字大小</div>
-                <div class="grid grid-cols-3 gap-2 mt-3">
-                  <button v-for="opt in fontScaleOptions" :key="opt.id" type="button"
-                    @click="setFontScale(opt.id)"
-                    class="px-2 py-2 rounded-lg text-center transition-all"
-                    :style="{
-                      backgroundColor: fontScale === opt.id ? 'var(--primary-light)' : 'var(--card-bg)',
-                      border: fontScale === opt.id ? '2px solid var(--primary)' : '1px solid var(--border)',
-                    }"
-                    :aria-pressed="fontScale === opt.id">
-                    <span class="block font-semibold text-sm"
-                      :style="{ color: fontScale === opt.id ? 'var(--primary)' : 'var(--text)' }">
-                      {{ opt.label }}
-                    </span>
-                    <span class="block text-xs mt-0.5" style="color: var(--text-secondary);">{{ opt.percent }}%</span>
-                  </button>
-                </div>
-              </div>
-
-              <!-- 字体：答题前可直接更换，全站生效 -->
-              <div class="mb-4 p-4 rounded-lg" style="background-color: var(--bg); border: 1px solid var(--border);">
-                <div class="font-semibold" style="color: var(--text);">🅰 字体</div>
-                <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 mt-3">
-                  <button v-for="opt in fontFamilyOptions" :key="opt.id" type="button"
-                    @click="setFontFamily(opt.id)"
-                    class="px-2 py-2 rounded-lg text-center transition-all"
-                    :style="{
-                      backgroundColor: fontFamily === opt.id ? 'var(--primary-light)' : 'var(--card-bg)',
-                      border: fontFamily === opt.id ? '2px solid var(--primary)' : '1px solid var(--border)',
-                    }"
-                    :aria-pressed="fontFamily === opt.id">
-                    <span class="block font-semibold text-sm"
-                      :style="{ fontFamily: 'var(' + opt.stackVar + ')', color: fontFamily === opt.id ? 'var(--primary)' : 'var(--text)' }">
-                      {{ opt.label }}
-                    </span>
-                    <span class="block text-xs mt-0.5" style="color: var(--text-secondary);">{{ opt.desc }}</span>
-                  </button>
-                </div>
-              </div>
-
-              <!-- 字重：答题前可直接加粗，全站生效 -->
-              <div class="mb-4 p-4 rounded-lg" style="background-color: var(--bg); border: 1px solid var(--border);">
-                <div class="font-semibold" style="color: var(--text);">🅱 字重</div>
-                <div class="grid grid-cols-2 gap-2 mt-3">
-                  <button v-for="opt in fontWeightOptions" :key="opt.id" type="button"
-                    @click="setFontWeight(opt.id)"
-                    class="px-2 py-2 rounded-lg text-center transition-all"
-                    :style="{
-                      backgroundColor: fontWeight === opt.id ? 'var(--primary-light)' : 'var(--card-bg)',
-                      border: fontWeight === opt.id ? '2px solid var(--primary)' : '1px solid var(--border)',
-                    }"
-                    :aria-pressed="fontWeight === opt.id">
-                    <span class="block text-sm"
-                      :style="{ fontWeight: opt.id === 'bold' ? 'var(--fw-semibold)' : 'var(--fw-normal)', color: fontWeight === opt.id ? 'var(--primary)' : 'var(--text)' }">
                       {{ opt.label }}
                     </span>
                     <span class="block text-xs mt-0.5" style="color: var(--text-secondary);">{{ opt.desc }}</span>
@@ -501,7 +358,7 @@
             <h1 class="text-2xl font-bold mb-2">{{ test.title }}</h1>
             <p style="color: rgba(255,255,255,0.9);">{{ test.instructions }}</p>
             <p class="text-sm mt-2" style="color: rgba(255,255,255,0.7);">
-              ⚠️ 请根据您的真实感受作答，共 {{ totalQuestions }} 题
+              ⚠️ 请由本人作答（非本人作答结果不准确），共 {{ totalQuestions }} 题
             </p>
           </div>
 
@@ -670,15 +527,6 @@ const perPageMode = ref<PerPageMode>('ten')
 const isOnePerPage = computed(() => perPageMode.value === 'one')
 const questionsPerPage = computed(() => (isOnePerPage.value ? 1 : 10))
 
-// ===== 文字大小：答题前可直接调整（全站生效并记住选择）=====
-const { fontScale, setFontScale, fontScaleOptions } = useFontScale()
-
-// ===== 字体：答题前可直接更换（全站生效并记住选择）=====
-const { fontFamily, setFontFamily, fontFamilyOptions } = useFontFamily()
-
-// ===== 字重：答题前可直接加粗（全站生效并记住选择）=====
-const { fontWeight, setFontWeight, fontWeightOptions } = useFontWeight()
-
 const perPageOptions: { value: PerPageMode; label: string; desc: string }[] = [
   { value: 'ten', label: '每页 10 题', desc: '一次浏览多题' },
   { value: 'one', label: '一页一题', desc: '选完自动下一题' },
@@ -796,13 +644,6 @@ const isSubmitting = ref(false)   // 提交中锁：防止重复提交
 // 幂等键：一次测评一个 id（进入答题时生成），重复提交只结算一次
 const submissionId = `${testId}-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 10)}`
 
-// 作答来源：默认本人自评。他人代答时服务端会把效度与一致性校验标为不适用，
-// 并在报告里显式标注数据来源
-const respondent = ref<'self' | 'proxy'>('self')
-const respondentOptions = [
-  { value: 'self' as const, label: '本人自评', desc: '由当事人自己按最近的真实感受作答，结果按自评口径解读。' },
-  { value: 'proxy' as const, label: '他人代答', desc: '由家属、朋友或长期陪伴者依据观察作答；报告会标注代答，效度与一致性校验不适用。' },
-]
 
 // 多维自评量表不默认乱序：服务端已按「严重议题优先」排好序（自伤 / 幻觉条目排在前面），
 // 默认乱序会把该安全排序完全打掉。需要乱序复测时由用户在开始页勾选。
@@ -1312,7 +1153,6 @@ async function doSubmit() {
     }
     // 幂等键：同一次测评重复提交（双击、超时重试）只结算一次
     submitBody.submissionId = submissionId
-    submitBody.respondent = respondent.value
 
     const result = await $fetch('/api/submit', {
       method: 'POST',

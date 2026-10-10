@@ -131,54 +131,6 @@
 
       <!-- 量表卡片网格 -->
       <div class="cards-grid grid md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-6xl mx-auto">
-        <!-- 心理健康多维自评量表（AnonUsAl 编制）—— 已接入题库框架 -->
-        <NuxtLink to="/test/multidim"
-          class="external-scale-card card rounded-xl transition-all duration-300 hover:transform hover:-translate-y-1 overflow-hidden flex flex-col relative">
-
-          <!-- 卡片顶部色带 -->
-          <div class="external-band h-2"></div>
-
-          <!-- 卡片内容 -->
-          <div class="p-6 flex flex-col flex-grow" :style="{ backgroundColor: 'var(--card-bg)' }">
-            <!-- 分类标签 -->
-            <div class="flex items-start justify-between mb-3">
-              <span class="external-tag category-tag px-3 py-1 rounded-full text-xs font-semibold">
-                症状筛查
-              </span>
-              <span class="external-tag duration-badge px-2 py-1 rounded text-xs font-semibold">
-                约 3-12 分钟
-              </span>
-            </div>
-
-            <h3 class="external-title text-xl font-bold mb-1">心理健康多维自评量表</h3>
-
-            <p class="external-subtitle text-xs mb-3">
-              Multidimensional Mental Health Scale · AnonUsAl 编制 · V2.2
-            </p>
-
-            <p class="text-sm mb-4 leading-relaxed min-h-[60px]" style="color: var(--text-secondary);">
-              覆盖 <strong class="external-num">20</strong> 个核心特征维度，提供极简自测、快速筛查、标准评估、深度评估四种模式（<strong class="external-num">20-105</strong> 题），内置回答一致性与作答效度校验，支持乱序复测。
-            </p>
-
-            <!-- 进行中的进度（多维量表不在下方网格中，进度显示在此卡片） -->
-            <div v-if="unfinishedTests['multidim']" class="mb-3 p-2 rounded-lg text-xs text-center"
-              style="background-color: var(--warning-bg); color: var(--warning-text);">
-              📌 已完成 {{ unfinishedCounts['multidim'] }}/{{ unfinishedTotals['multidim'] ?? 65 }} 题
-            </div>
-
-            <div class="flex items-center mt-auto justify-between mb-4 text-xs" style="color: var(--text-muted);">
-              <span>📝 <strong class="external-num">20-105</strong> 题</span>
-            </div>
-
-            <!-- 按钮区域 -->
-            <div class="flex gap-2 pt-2 min-h-[44px]">
-              <span class="external-btn flex-1 py-2.5 rounded-lg font-semibold transition-all text-sm text-center">
-                {{ unfinishedTests['multidim'] ? '继续测评' : '开始测评' }}
-              </span>
-            </div>
-          </div>
-        </NuxtLink>
-
         <div v-for="test in filteredTests" :key="test.id"
           class="card rounded-xl transition-all duration-300 hover:transform hover:-translate-y-1 overflow-hidden flex flex-col"
           :style="{ boxShadow: 'var(--shadow-md)' }">
@@ -310,11 +262,9 @@ const allTags = computed(() => {
 })
 
 // 筛选后的测评列表（分类 + 标签 + 搜索）
-// 多维自评量表由专属卡片呈现，不再在网格中重复列出
 const filteredTests = computed(() => {
   const q = searchQuery.value.trim().toLowerCase()
   return tests.value.filter((test) => {
-    if (test.id === 'multidim') return false
     const catOk = activeFilter.value === 'all' || test.category === activeFilter.value
     const tagOk = !activeTag.value || test.tags.includes(activeTag.value)
     const searchOk = !q || [test.title, test.englishName, test.description]
@@ -607,58 +557,3 @@ if (error.value) {
   console.error('加载测评列表失败', error.value)
 }
 </script>
-
-<style scoped>
-/* 外链量表卡片：层级克制 —— 标签中性弱化，主按钮为唯一高光焦点
-   文字/底色全部使用主题变量，自动适配明暗模式 */
-.external-scale-card {
-  border: 1px solid var(--border);
-  box-shadow: var(--shadow-sm);
-}
-
-.external-scale-card:hover {
-  border-color: rgba(56, 189, 248, 0.45);
-  box-shadow: 0 10px 28px rgba(59, 130, 246, 0.18);
-}
-
-/* 顶部色带：薄荷 → 天蓝柔和渐变 */
-.external-band {
-  background: var(--brand-gradient);
-}
-
-/* 标签/徽章：中性弱层级（亮色浅米底、暗色深底），无边框无发光 */
-.external-tag {
-  background: var(--bg);
-  border: none;
-  color: var(--text-secondary);
-  box-shadow: none;
-  font-weight: var(--fw-medium);
-}
-
-/* 主标题：最高文本层级（暗色下随变量呈近白色） */
-.external-title {
-  color: var(--text);
-}
-
-/* 英文副标题 */
-.external-subtitle {
-  color: var(--text-secondary);
-}
-
-/* 正文核心数字：加粗 + 主文本色，便于扫视量化信息 */
-.external-num {
-  font-weight: var(--fw-bold);
-  color: var(--text);
-}
-
-/* 唯一视觉焦点：主按钮薄荷 → 天蓝渐变，深色文字在明暗模式下均高对比 */
-.external-btn {
-  background: var(--brand-gradient-strong);
-  color: var(--brand-on);
-  box-shadow: 0 6px 18px rgba(59, 130, 246, 0.28);
-}
-
-.external-scale-card:hover .external-btn {
-  filter: brightness(1.06);
-}
-</style>

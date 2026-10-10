@@ -4,6 +4,17 @@ import { timeFrameOf } from "~~/server/utils/test-timeframe";
 export default defineEventHandler(() => {
   const testList: TestListItem[] = [
     {
+      id: "multidim",
+      title: "心理健康多维自评量表",
+      englishName: "Multidimensional Mental Health Scale",
+      description:
+        "（无论文支撑）由AnonUsAl编制的覆盖20个核心特征维度的综合自评工具，提供极简/快速/标准/深度四种模式（题目数量不同），内置回答一致性与效度校验，支持乱序复测",
+      duration: "约3-12分钟",
+      questionsCount: 65,
+      tags: ["抑郁", "焦虑", "综合评估"],
+      category: "symptom",
+    },
+    {
       id: "phq9",
       title: "PHQ-9 抑郁筛查量表",
       englishName: "Patient Health Questionnaire-9",
@@ -386,17 +397,6 @@ export default defineEventHandler(() => {
       duration: "约2-3分钟",
       questionsCount: 7,
       tags: ["睡眠障碍", "快速"],
-      category: "symptom",
-    },
-    {
-      id: "multidim",
-      title: "心理健康多维自评量表",
-      englishName: "Multidimensional Mental Health Scale",
-      description:
-        "覆盖20个核心特征维度的综合自评工具，提供极简/快速/标准/深度四种模式，内置回答一致性与效度校验，支持乱序复测",
-      duration: "约3-12分钟",
-      questionsCount: 65,
-      tags: [],
       category: "symptom",
     },
   ];
