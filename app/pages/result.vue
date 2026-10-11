@@ -191,6 +191,12 @@
                 @mouseenter="setButtonBg($event, 'var(--bg)')" @mouseleave="setButtonBg($event, 'var(--card-bg)')">
                 {{ exporting === 'pdf' ? '生成中…' : '📄 导出 PDF' }}
               </button>
+              <button v-if="result.testId" @click="viewHistoryTrend"
+                class="flex-1 py-3 rounded-lg font-semibold transition-all"
+                style="background-color: var(--card-bg); color: var(--text-secondary); box-shadow: var(--shadow-sm);"
+                @mouseenter="setButtonBg($event, 'var(--bg)')" @mouseleave="setButtonBg($event, 'var(--card-bg)')">
+                📈 历年趋势
+              </button>
               <button @click="goHome" class="flex-1 py-3 rounded-lg font-semibold transition-all"
                 style="background-color: var(--card-bg); color: var(--text-secondary); box-shadow: var(--shadow-sm);"
                 @mouseenter="setButtonBg($event, 'var(--bg)')" @mouseleave="setButtonBg($event, 'var(--card-bg)')">
@@ -303,6 +309,12 @@ const buildResultSummary = (r: any): string => {
   lines.push('')
   lines.push('> 本结果由心灵驿站（https://pt.cldery.com）自动生成，为自我筛查参考，不能替代专业心理医生的诊断。')
   return lines.join('\n')
+}
+
+// 跳到趋势页并只看这一份量表：同一量表的多次结果在那里连成折线
+const viewHistoryTrend = () => {
+  const id = result.value?.testId
+  router.push(id ? { path: '/trends', query: { test: id } } : '/trends')
 }
 
 // 一键复制结果
