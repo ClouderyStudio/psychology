@@ -1,2 +1,14 @@
 User-Agent: *
 Disallow:
+Allow: /
+
+# 私有页面不收录（需要登录或包含个人数据）
+Disallow: /login
+Disallow: /account
+Disallow: /history
+Disallow: /trends
+Disallow: /result
+Disallow: /admin
+Disallow: /exam
+
+Sitemap: https://pt.cldery.com/sitemap.xml

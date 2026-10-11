@@ -54,6 +54,14 @@
             </li>
             <li>
               <NuxtLink
+                to="/scales"
+                class="footer-link"
+                style="color: var(--text-secondary)"
+                >量表目录</NuxtLink
+              >
+            </li>
+            <li>
+              <NuxtLink
                 to="/resources"
                 class="footer-link"
                 style="color: var(--text-secondary)"

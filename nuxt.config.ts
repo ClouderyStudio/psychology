@@ -51,8 +51,20 @@ export default defineNuxtConfig({
     plugins: [tailwindcss()],
   },
 
+  // 纯静态内容页在构建期预渲染成 HTML：爬虫拿到的是完整静态文档，
+  // 不依赖运行时 SSR，也不受接口抖动影响（量表目录页只读本地量表清单）。
+  routeRules: {
+    '/': { prerender: true },
+    '/scales': { prerender: true },
+    '/about': { prerender: true },
+    '/resources': { prerender: true },
+    '/privacy': { prerender: true },
+  },
+
   runtimeConfig: {
     public: {
+      // SEO 用站点公开地址（canonical / og:url / sitemap 拼接）；换域名时设这个环境变量
+      siteUrl: process.env.NUXT_PUBLIC_SITE_URL || 'https://pt.cldery.com',
       clouderyApiBase: process.env.NUXT_PUBLIC_CLOUDERY_API_BASE || 'https://localhost:7288',
     },
   },
