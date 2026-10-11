@@ -355,10 +355,43 @@ export interface DimensionDelta {
 }
 
 /**
+ * dimensionScores 里不是可比较维度的展示卡：
+ * - highlight：PHQ-9 / GAD-7 的「最明显症状」卡（label + freq；数值是症状严重度，
+ *   不是量表维度）。卡片一旦被当成维度，对比表会被挤成只剩这一行，
+ *   总分兜底反而不显示——两次 18 分 vs 7 分看起来就只差一个 0。
+ * - band / pattern：SWLS 的满意度分档、ECR-R 的依恋倾向标签（score 恒为 0、max 0，
+ *   只有文字档位，没有可变化区间）。
+ */
+const NON_DIMENSION_KEYS = new Set([
+  "highlight",
+  "band",
+  "pattern",
+  // total / mean 是整份量表的汇总（与结果里的 totalScore 同源），
+  // 对比面板已经固定显示「总分」一行，再列一次只是重复
+  "total",
+  "mean",
+]);
+
+/** 一条 dimensionScores 条目能否作为两次测评之间的比较维度 */
+function isComparableDimension(key: string, d: any): boolean {
+  if (key === "type" || NON_DIMENSION_KEYS.has(key)) return false;
+  if (!d || typeof d !== "object" || Array.isArray(d)) return false;
+  const raw = d.value ?? d.score ?? d.tScore ?? d.avg;
+  if (raw === undefined || raw === null) return false;
+  if (!Number.isFinite(Number(raw))) return false;
+  // 上限为 0 的条目没有可变化区间（分档 / 标签卡），不参与对比
+  const max = Number(d.max);
+  return !(Number.isFinite(max) && max <= 0);
+}
+
+/**
  * dimensionScores 在各量表间有两种形态：数组（多数量表）与以特征为键的对象
  * （多维自评量表，含一个 type 标记）。这里统一成同一种结构再比对。
+ *
+ * 导出供趋势页复用：两处都只应把「真正可比较的维度」当维度，
+ * 否则展示卡（PHQ-9 的关键症状卡）会混进趋势与对比。
  */
-function normalizeDimensions(result: any): Map<string, { label: string; value: number }> {
+export function comparableDimensions(result: any): Map<string, { label: string; value: number }> {
   const out = new Map<string, { label: string; value: number }>();
   const src = result?.dimensionScores;
   if (!src || typeof src !== "object") return out;
@@ -376,25 +409,21 @@ function normalizeDimensions(result: any): Map<string, { label: string; value: n
   }
 
   for (const [key, d] of Object.entries<any>(src)) {
-    // 只保留"带数值分数的维度"：dimensionScores 里还混着数组（分档对照表）、
-    // 布尔（安全标记）与纯文案对象（PHQ-9 的关键症状卡），它们不是可比较的维度，
-    // 以前会被当成 value=0 的维度混进对比表。
-    if (key === "type" || !d || typeof d !== "object" || Array.isArray(d)) continue;
-    const raw = d.value ?? d.score ?? d.tScore ?? d.avg;
-    if (raw === undefined || raw === null) continue;
-    const value = Number(raw);
-    if (!Number.isFinite(value)) continue;
+    // 只保留「带数值分数的维度」。dimensionScores 里还混着数组（分档对照表）、
+    // 布尔（安全标记）与展示卡（PHQ-9/GAD-7 的关键症状卡、SWLS 的满意度分档、
+    // ECR-R 的依恋倾向标签），这些都不是可比较的维度。
+    if (!isComparableDimension(key, d)) continue;
     out.set(key, {
       label: String(d.name ?? d.label ?? key),
-      value,
+      value: Number(d.value ?? d.score ?? d.tScore ?? d.avg),
     });
   }
   return out;
 }
 
 export function dimensionDeltas(from: any, to: any): DimensionDelta[] {
-  const prev = normalizeDimensions(from);
-  const next = normalizeDimensions(to);
+  const prev = comparableDimensions(from);
+  const next = comparableDimensions(to);
   const out: DimensionDelta[] = [];
   for (const [trait, cur] of next) {
     const before = prev.get(trait);

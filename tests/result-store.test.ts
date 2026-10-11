@@ -239,5 +239,48 @@ describe("本机测评存档（result-store）", () => {
     // 没有数值分数的维度（如 PHQ-9 的关键症状卡）不进入对比
     const phq = { dimensionScores: { highlight: { label: "情绪低落", freq: "几乎每天" } } };
     expect(dimensionDeltas(phq, phq)).toEqual([]);
+
+    // 回归：真实服务端返回的 PHQ-9 / GAD-7 highlight 是带 value 的展示卡
+    // （value = 最明显症状的严重度 0-3）。它被当成维度时，对比面板会被挤成
+    // 只剩一行「某症状 3 → 3 0」，两次 18 分与 7 分的真实差距反而看不到。
+    const realPhq = (value: number, endorsed: number, label: string) => ({
+      totalScore: 18,
+      dimensionScores: {
+        type: "phq9",
+        highlight: { label, freq: "几乎每天", value, endorsedCount: endorsed },
+        symptoms: { name: "达到阈值的症状数", score: endorsed, max: 9 },
+      },
+    });
+    const phqDeltas = dimensionDeltas(realPhq(3, 5, "动作迟缓或烦躁"), realPhq(1, 2, "动作迟缓或烦躁"));
+    // 展示卡被剔除，只剩真正可比较的「达到阈值的症状数」
+    expect(phqDeltas).toHaveLength(1);
+    expect(phqDeltas[0]!.trait).toBe("symptoms");
+    expect(phqDeltas[0]!.delta).toBe(-3);
+
+    const realGad = (value: number) => ({
+      dimensionScores: {
+        type: "gad7",
+        highlight: { label: "难以放松", freq: "超过一半天数", value, endorsedCount: 4 },
+      },
+    });
+    expect(dimensionDeltas(realGad(3), realGad(1))).toEqual([]);
+
+    // 分档 / 标签卡（score 恒为 0、max 0）只有文字档位，也不参与对比
+    const swls = { dimensionScores: { band: { name: "满意度分档", score: 0, max: 0, level: "满意" } } };
+    expect(dimensionDeltas(swls, swls)).toEqual([]);
+    const ecrr = { dimensionScores: { pattern: { name: "依恋倾向", score: 0, max: 0, level: "安全型倾向" } } };
+    expect(dimensionDeltas(ecrr, ecrr)).toEqual([]);
+
+    // total / mean 是整表汇总，与总分行重复，不再作为维度列出
+    const ptsd = { dimensionScores: { type: "ptsd", total: { name: "总分", score: 20, max: 36 } } };
+    expect(dimensionDeltas(ptsd, ptsd)).toEqual([]);
+    const hspr = {
+      dimensionScores: {
+        type: "hspr",
+        total: { name: "总体敏感度（平均分）", score: 4.5, max: 7 },
+        details: { name: "细节敏感", score: 5, max: 7 },
+      },
+    };
+    expect(dimensionDeltas(hspr, hspr).map((d) => d.trait)).toEqual(["details"]);
   });
 });

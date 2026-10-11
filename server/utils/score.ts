@@ -350,6 +350,14 @@ function scorePHQ9(answers: Record<number, number>): ScoringResult {
         value: phqTopVal,
         endorsedCount: phqEndorsed,
       },
+      // 达到阈值的症状条数（≥2 分）：反复测量之间可直接比较的变化量，
+      // 补足「只有总分」的对比视角（highlight 是展示卡，不参与对比）
+      symptoms: {
+        name: "达到阈值的症状数",
+        score: phqEndorsed,
+        max: 9,
+        desc: "9 个症状中评分 ≥2（超过一半天数及以上）的条数。",
+      },
     },
   };
 }
@@ -402,6 +410,13 @@ function scoreGAD7(answers: Record<number, number>): ScoringResult {
         freq: gadFreq[Math.min(gadTopVal, 3)] as string,
         value: gadTopVal,
         endorsedCount: gadEndorsed,
+      },
+      // 达到阈值的症状条数（≥2 分）：两次测量之间可直接比较的变化量
+      symptoms: {
+        name: "达到阈值的症状数",
+        score: gadEndorsed,
+        max: 7,
+        desc: "7 个症状中评分 ≥2（超过一半天数及以上）的条数。",
       },
     },
   };

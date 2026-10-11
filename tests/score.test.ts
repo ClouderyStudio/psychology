@@ -42,6 +42,19 @@ describe("calculateScore 基础评分", () => {
     const r = calculateScore({ testId: "phq9", answers: full(9, 3) });
     expect(r.totalScore).toBe(27);
     expect(r.level).toBe("重度抑郁");
+    // highlight 是展示卡，symptoms 才是两次测评之间可比较的变化量
+    expect(r.dimensionScores?.highlight?.label).toBe("兴趣减退");
+    expect(r.dimensionScores?.symptoms?.score).toBe(9);
+    expect(r.dimensionScores?.symptoms?.max).toBe(9);
+  });
+
+  it("PHQ-9：只有部分症状达到阈值时「达到阈值的症状数」只计 ≥2 分的题", () => {
+    // 1-3 题 2 分（达到阈值）、4-9 题 1 分（未达到）
+    const answers: Record<number, number> = {};
+    for (let i = 1; i <= 9; i++) answers[i] = i <= 3 ? 2 : 1;
+    const r = calculateScore({ testId: "phq9", answers });
+    expect(r.totalScore).toBe(12);
+    expect(r.dimensionScores?.symptoms?.score).toBe(3);
   });
 
   it("PHQ-9：全选最低分 → 无显著抑郁症状", () => {
@@ -54,6 +67,8 @@ describe("calculateScore 基础评分", () => {
     const r = calculateScore({ testId: "gad7", answers: full(7, 3) });
     expect(r.totalScore).toBe(21);
     expect(r.level).toBe("重度焦虑");
+    expect(r.dimensionScores?.symptoms?.score).toBe(7);
+    expect(r.dimensionScores?.symptoms?.max).toBe(7);
   });
 
   // 回归：这四档曾整体错位一档（0~4 分被标成「轻度焦虑」，而同一条结果的建议却写「正常范围」）

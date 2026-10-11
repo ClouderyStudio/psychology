@@ -59,15 +59,48 @@
 
         <!-- 历史列表 -->
         <div v-else class="space-y-4">
-          <div class="flex justify-between items-center mb-2">
-            <span class="text-sm" style="color: var(--text-muted);">共 {{ historyList.length }} 条记录</span>
+          <div class="flex justify-between items-center mb-2 flex-wrap gap-2">
+            <span class="text-sm" style="color: var(--text-muted);">
+              共 {{ visibleHistory.length }} 条记录<template v-if="filterTestId">（全部 {{ historyList.length }} 条）</template>
+            </span>
             <button @click="clearAllHistory" class="text-xs px-3 py-1.5 rounded-lg transition-colors"
               style="background-color: var(--warning-bg); color: var(--warning-text);">
               清空全部
             </button>
           </div>
 
-          <div v-for="item in historyList" :key="item.key"
+          <!-- 筛选 / 排序 / 导出：记录多起来以后，只靠时间倒序列表找一条很费劲 -->
+          <div class="flex flex-wrap items-center gap-2 text-sm mb-2">
+            <label class="sr-only" for="history-filter">按量表筛选</label>
+            <select id="history-filter" v-model="filterTestId"
+              class="px-3 py-1.5 rounded-lg text-sm"
+              style="background-color: var(--card-bg); color: var(--text); box-shadow: var(--shadow-sm);">
+              <option value="">全部量表</option>
+              <option v-for="opt in testOptions" :key="opt.id" :value="opt.id">{{ opt.title }}</option>
+            </select>
+            <button @click="sortOrder = sortOrder === 'desc' ? 'asc' : 'desc'"
+              class="px-3 py-1.5 rounded-lg text-sm"
+              style="background-color: var(--card-bg); color: var(--text-secondary); box-shadow: var(--shadow-sm);">
+              {{ sortOrder === 'desc' ? '↓ 最新在前' : '↑ 最早在前' }}
+            </button>
+            <span class="flex-1"></span>
+            <button @click="exportCsv" class="px-3 py-1.5 rounded-lg text-sm"
+              style="background-color: var(--card-bg); color: var(--text-secondary); box-shadow: var(--shadow-sm);">
+              ⬇️ 导出 CSV
+            </button>
+            <button @click="exportJson" class="px-3 py-1.5 rounded-lg text-sm"
+              style="background-color: var(--card-bg); color: var(--text-secondary); box-shadow: var(--shadow-sm);">
+              ⬇️ 导出 JSON
+            </button>
+            <!-- 趋势入口：完整折线在 /trends 页面，这里只做跳转并把当前筛选的量表带过去 -->
+            <NuxtLink v-if="hasTrends" :to="trendTarget"
+              class="px-3 py-1.5 rounded-lg text-sm"
+              style="background-color: var(--primary-light); color: var(--primary);">
+              📈 分数趋势
+            </NuxtLink>
+          </div>
+
+          <div v-for="item in visibleHistory" :key="item.key"
             class="rounded-xl overflow-hidden transition-all duration-300 hover:transform hover:-translate-y-0.5"
             style="background-color: var(--card-bg); box-shadow: var(--shadow-sm);">
             <div class="p-5">
@@ -128,7 +161,20 @@
                   {{ formatTime(compareRows.cur.timestamp) }}
                 </p>
 
-                <div v-if="compareRows.deltas.length" class="space-y-2">
+                <!-- 有总分的量表先给出总分：PHQ-9 / GAD-7 等只有展示卡、没有可比较维度，
+                     若只渲染维度差值，面板会只剩一行甚至空白，看不出真实变化 -->
+                <div v-if="hasTotalRow(compareRows)" class="flex items-center gap-3 text-sm font-medium">
+                  <span class="flex-1 truncate" style="color: var(--text-secondary);">总分</span>
+                  <span class="tabular-nums text-xs" style="color: var(--text-muted);">
+                    {{ formatValue(Number(compareRows.prev.raw?.totalScore ?? 0)) }} → {{ formatValue(Number(compareRows.cur.raw?.totalScore ?? 0)) }}
+                  </span>
+                  <span class="tabular-nums w-16 text-right font-medium"
+                    :style="{ color: deltaColor(totalDelta) }">
+                    {{ formatDelta(totalDelta) }}
+                  </span>
+                </div>
+
+                <div v-if="compareRows.deltas.length" class="space-y-2 mt-2">
                   <div v-for="row in compareRows.deltas" :key="row.trait"
                     class="flex items-center gap-3 text-sm">
                     <span class="flex-1 truncate" style="color: var(--text-secondary);">{{ row.label }}</span>
@@ -141,11 +187,11 @@
                     </span>
                   </div>
                 </div>
+                <p v-else-if="hasTotalRow(compareRows)" class="text-xs mt-2" style="color: var(--text-muted);">
+                  本量表没有可逐项比较的维度，只对比总分。
+                </p>
                 <p v-else class="text-sm" style="color: var(--text-secondary);">
-                  两次总分：{{ item.raw?.totalScore ?? '—' }} → {{ compareRows.cur.raw?.totalScore ?? '—' }}
-                  <span class="ml-2 font-medium" :style="{ color: deltaColor(totalDelta) }">
-                    {{ formatDelta(totalDelta) }}
-                  </span>
+                  这份量表按类型 / 等级展示，两次结果之间没有可比较的数值。
                 </p>
 
                 <p class="text-xs mt-3 leading-relaxed" style="color: var(--text-muted);">
@@ -173,8 +219,11 @@
 
 <script setup lang="ts">
 import { useAnswerStore } from '~/stores/answer'
+import { buildTrendGroups, formatDelta, formatTrendValue } from '~/utils/trends'
+import { formatResultScore, isTypeOnlyTest } from '~/utils/test-display'
 
 const router = useRouter()
+const route = useRoute()
 const { $toast, $confirm } = useNuxtApp()
 const answerStore = useAnswerStore()
 // 云端存档状态：未登录时下面是引导，登录后是同步入口（见 plugins/cloud-sync.client.ts）
@@ -243,7 +292,124 @@ const loadHistory = () => {
   isLoading.value = false
 }
 
+/* ===== 筛选 / 排序 ===== */
+
+const filterTestId = ref('')
+const sortOrder = ref<'desc' | 'asc'>('desc')
+
+// 每个量表的第 N 次编号（attempt）始终按时间正序算好，不随筛选/排序变化
+const testOptions = computed(() => {
+  const map = new Map<string, string>()
+  for (const item of historyList.value) {
+    if (!map.has(item.testId)) map.set(item.testId, item.testTitle || item.testId)
+  }
+  return [...map.entries()]
+    .map(([id, title]) => ({ id, title }))
+    .sort((a, b) => a.title.localeCompare(b.title, 'zh'))
+})
+
+const visibleHistory = computed(() => {
+  const list = filterTestId.value
+    ? historyList.value.filter((i) => i.testId === filterTestId.value)
+    : historyList.value
+  if (sortOrder.value === 'asc') return [...list].reverse()
+  return list
+})
+
+/* ===== 分数趋势入口 ===== */
+
+// 只判断「有没有值得看趋势的量表」，折线本身在 /trends 页面。
+// 分组逻辑放在 app/utils/trends.ts（纯函数，可直接单测）。
+const hasTrends = computed(
+  () =>
+    buildTrendGroups(listResultRecords(), {
+      isTypeOnly: isTypeOnlyTest,
+      formatScore: formatResultScore,
+    }).length > 0,
+)
+
+// 带当前筛选过去：从历史页点进去时不该又看到全部量表
+const trendTarget = computed(() =>
+  filterTestId.value ? { path: '/trends', query: { test: filterTestId.value } } : '/trends',
+)
+
+/* ===== 导出 ===== */
+
+// CSV 里的字段可能含逗号、引号或换行，统一按 RFC 4180 转义
+const csvCell = (v: unknown) => `"${String(v ?? '').replace(/"/g, '""')}"`
+
+const exportRows = () => visibleHistory.value.map((i) => ({
+  testTitle: i.testTitle,
+  testId: i.testId,
+  attempt: i.attempt,
+  time: i.timestamp ? new Date(i.timestamp).toLocaleString('zh-CN') : '',
+  score: i.displayScore,
+  totalScore: i.raw?.totalScore ?? '',
+  maxScore: i.raw?.maxScore ?? '',
+  level: i.level,
+  severity: i.raw?.severity ?? ''
+}))
+
+const downloadFile = (filename: string, content: string, mime: string) => {
+  const blob = new Blob(['﻿' + content], { type: `${mime};charset=utf-8` })
+  const url = URL.createObjectURL(blob)
+  const a = document.createElement('a')
+  a.href = url
+  a.download = filename
+  document.body.appendChild(a)
+  a.click()
+  document.body.removeChild(a)
+  // 交给浏览器读完之后再撤销，立刻撤销在部分浏览器会取消下载
+  setTimeout(() => URL.revokeObjectURL(url), 1000)
+}
+
+const stamp = () => new Date().toISOString().slice(0, 10)
+
+const exportCsv = () => {
+  const rows = exportRows()
+  if (!rows.length) {
+    $toast.warning('当前筛选下没有可导出的记录', '提示')
+    return
+  }
+  const head = ['量表', '量表标识', '第几次', '完成时间', '分数', '总分', '满分', '等级', '严重程度']
+  const body = rows.map((r) => [r.testTitle, r.testId, r.attempt, r.time, r.score, r.totalScore, r.maxScore, r.level, r.severity].map(csvCell).join(','))
+  downloadFile(`测评历史_${stamp()}.csv`, [head.join(','), ...body].join('\r\n'), 'text/csv')
+  $toast.success(`已导出 ${rows.length} 条记录`, '完成')
+}
+
+// JSON 保留完整结果对象（含维度分与建议），便于长期归档或二次分析
+const exportJson = () => {
+  const items = visibleHistory.value
+  if (!items.length) {
+    $toast.warning('当前筛选下没有可导出的记录', '提示')
+    return
+  }
+  const payload = {
+    exportedAt: new Date().toISOString(),
+    count: items.length,
+    records: items.map((i) => ({
+      resultKey: i.key,
+      testId: i.testId,
+      testTitle: i.testTitle,
+      attempt: i.attempt,
+      timestamp: i.timestamp,
+      ...i.raw
+    }))
+  }
+  downloadFile(`测评历史_${stamp()}.json`, JSON.stringify(payload, null, 2), 'application/json')
+  $toast.success(`已导出 ${items.length} 条记录`, '完成')
+}
+
 /* ===== 两次测评对比 ===== */
+
+// 类型型量表（MBTI / 多维自评 / ECR-R 等）的 totalScore 不是分数，对比总分是误导；
+// maxScore 为 0 时同样没有可比区间，此时对比面板只列维度差异
+const hasTotalRow = (rows: { prev: HistoryItem; cur: HistoryItem }) => {
+  const cur = rows.cur
+  if (isTypeOnlyTest(cur.testId)) return false
+  const max = Number(cur.raw?.maxScore ?? 0)
+  return Number.isFinite(max) && max > 0
+}
 
 const compareKey = ref<string | null>(null)
 
@@ -277,11 +443,10 @@ const totalDelta = computed(() => {
   return Math.round((b - a) * 100) / 100
 })
 
-const formatValue = (v: number) => (v > 0 && v < 1 ? v.toFixed(2) : String(Math.round(v * 100) / 100))
-const formatDelta = (v: number) => (v > 0 ? `+${formatValue(v)}` : formatValue(v))
-// 「变好」不总是数值下降（自尊、睡眠质量类量表越高越好），因此只标方向、不下好坏结论
-const deltaColor = (v: number) =>
-  v > 0 ? 'var(--primary)' : v < 0 ? 'var(--text-secondary)' : 'var(--text-muted)'
+// 与趋势页共用同一套收敛规则（最多两位小数）：多维自评量表的维度值是归一化浮点，
+// 本地各写一份容易漂移，这里直接复用 formatTrendValue；formatDelta / deltaColor
+// 同样来自 ~/utils/trends，两页行为一致。
+const formatValue = formatTrendValue
 
 const formatTime = (ts: string) => {
   if (!ts) return '未知时间'
@@ -352,6 +517,9 @@ async function syncCloud(): Promise<void> {
 
 onMounted(async () => {
   cloud.init()
+  // 从结果页「历年趋势」跳来时，预先筛出该量表
+  const q = route.query.test
+  if (typeof q === 'string' && q) filterTestId.value = q
   loadHistory()
 
   // 登录状态下先把云端记录补齐（换设备后第一次打开就能看到全部历史），再重新渲染列表
