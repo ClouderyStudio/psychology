@@ -1,8 +1,12 @@
 <template>
   <Teleport to="body">
-    <TransitionGroup name="toast" tag="div" class="toast-container">
-      <div v-for="toast in toasts" :key="toast.id" class="toast-item" :class="toast.type">
-        <div class="toast-icon">
+    <!-- 无障碍：容器声明为通知区，屏读器会朗读新增/变化的提示；
+         错误与警告用 role="alert"（打断式），其余用礼貌式 -->
+    <TransitionGroup name="toast" tag="div" class="toast-container"
+      role="region" aria-label="通知" aria-live="polite">
+      <div v-for="toast in toasts" :key="toast.id" class="toast-item" :class="toast.type"
+        :role="toast.type === 'error' || toast.type === 'warning' ? 'alert' : 'status'">
+        <div class="toast-icon" aria-hidden="true">
           <span v-if="toast.type === 'success'">✅</span>
           <span v-else-if="toast.type === 'error'">❌</span>
           <span v-else-if="toast.type === 'warning'">⚠️</span>
@@ -12,7 +16,7 @@
           <div class="toast-title">{{ toast.title }}</div>
           <div class="toast-message">{{ toast.message }}</div>
         </div>
-        <button class="toast-close" @click="removeToast(toast.id)">✕</button>
+        <button class="toast-close" aria-label="关闭通知" @click="removeToast(toast.id)">✕</button>
         <div class="toast-progress" :style="{ width: progressWidth(toast) + '%' }"></div>
       </div>
     </TransitionGroup>

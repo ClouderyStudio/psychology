@@ -2826,3 +2826,31 @@ html {
   color: var(--danger);
   text-decoration: underline;
 }
+
+/* ===== 无障碍：减少动态效果 =====
+   前庭功能敏感的用户会被页面过渡、自动滚动与闪烁动画触发不适。
+   「偏好设置 → 无障碍 · 减少动态效果」是三档（见 composables/useA11yPrefs.ts），
+   分档在 html 的 data-reduced-motion 上体现：
+     auto          → 跟随系统，交给下面的媒体查询
+     reduce        → 始终减少，无条件生效
+     no-preference → 始终不减少，用 :not() 把系统媒体查询挡掉（否则系统设为减少时无法关闭）
+   统一把动画时长压到接近瞬时（保留 0.01ms 而不是 0，避免依赖 transitionend 的逻辑永不触发）。 */
+@media (prefers-reduced-motion: reduce) {
+  html:not([data-reduced-motion='no-preference']) *,
+  html:not([data-reduced-motion='no-preference']) *::before,
+  html:not([data-reduced-motion='no-preference']) *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+html[data-reduced-motion='reduce'] *,
+html[data-reduced-motion='reduce'] *::before,
+html[data-reduced-motion='reduce'] *::after {
+  animation-duration: 0.01ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 0.01ms !important;
+  scroll-behavior: auto !important;
+}

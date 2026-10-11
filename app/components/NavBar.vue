@@ -29,73 +29,66 @@
             心理资源
           </NuxtLink>
 
-          <!-- 主题切换按钮 -->
-          <button @click="toggleTheme"
-            class="w-8 h-8 rounded-full flex items-center justify-center transition-all"
-            style="color: var(--text-secondary);"
-            :title="isDark ? '切换到浅色模式' : '切换到深色模式'"
-            @mouseenter="elStyle($event, { backgroundColor: 'var(--primary-light)', color: 'var(--primary)' })"
-            @mouseleave="elStyle($event, { backgroundColor: 'transparent', color: 'var(--text-secondary)' })">
-            <svg v-if="isDark" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
-            </svg>
-            <svg v-else class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
-            </svg>
-          </button>
-
-          <!-- 主题配色选择 -->
-          <div ref="accentWrap" class="relative z-40">
-            <button @click="toggleAccentPanel"
+          <!-- 偏好设置入口（外观 / 主题配色 / 阅读偏好 / 无障碍 合并为一个面板） -->
+          <div ref="prefWrap" class="relative z-40">
+            <button @click="togglePrefPanel"
               class="w-8 h-8 rounded-full flex items-center justify-center transition-all"
               :style="{ backgroundColor: 'var(--primary-light)' }"
-              :title="'切换主题配色（当前：' + currentAccentLabel + '）'"
+              :title="'偏好设置（' + appearanceLabel + ' · 配色：' + currentAccentLabel + ' · 字号：' + currentFontScaleLabel + '）'"
+              aria-haspopup="true"
+              :aria-expanded="prefOpen"
               @mouseenter="elStyle($event, { boxShadow: '0 0 0 2px ' + currentAccentColor })"
               @mouseleave="elStyle($event, { boxShadow: 'none' })">
-              <span class="w-4 h-4 rounded-full inline-block" :style="{ backgroundColor: currentAccentColor }"></span>
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="color: var(--primary);">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+              </svg>
             </button>
-            <div v-if="accentOpen" class="absolute right-0 top-full mt-2 w-48 rounded-xl p-3"
+            <div v-if="prefOpen" class="absolute right-0 top-full mt-2 w-64 rounded-xl p-3 max-h-[75vh] overflow-y-auto"
               style="background-color: var(--card-bg); box-shadow: var(--shadow-lg);">
-              <div class="text-xs font-medium mb-2" style="color: var(--text-secondary);">主题配色（亮/暗适配）</div>
+              <!-- 外观：亮/暗/跟随系统 -->
+              <div class="text-xs font-medium mb-2" style="color: var(--text-secondary);">外观</div>
+              <div class="flex items-center gap-2">
+                <button v-for="opt in themeModeOptions" :key="opt.id" type="button" @click="setThemeMode(opt.id)"
+                  class="flex-1 px-2 py-1.5 rounded-lg text-xs font-semibold transition-all"
+                  :style="{
+                    backgroundColor: themeMode === opt.id ? 'var(--primary-light)' : 'var(--bg)',
+                    border: themeMode === opt.id ? '1px solid var(--primary)' : '1px solid var(--border)',
+                    color: themeMode === opt.id ? 'var(--primary)' : 'var(--text)',
+                  }"
+                  :title="opt.desc"
+                  :aria-pressed="themeMode === opt.id">
+                  {{ opt.label }}
+                </button>
+              </div>
+
+              <!-- 主题配色 -->
+              <div class="text-xs font-medium mt-3 mb-2 pt-2" style="color: var(--text-secondary);"
+                :style="{ borderTop: '1px solid var(--border)' }">主题配色（亮/暗适配）</div>
               <div class="grid grid-cols-3 gap-2">
                 <button v-for="opt in accentOptions" :key="opt.id"
                   class="flex flex-col items-center gap-1 rounded-lg p-2 transition-all"
                   :style="{ backgroundColor: 'var(--bg)' }"
-                  @click="setAccent(opt.id); accentOpen = false">
+                  @click="setAccent(opt.id)">
                   <span class="w-6 h-6 rounded-full inline-block border"
                     :style="{ backgroundColor: opt.color, borderColor: 'var(--border)', boxShadow: accent === opt.id ? '0 0 0 2px ' + opt.color : 'none' }"></span>
                   <span class="text-[0.6875rem] leading-tight text-center" style="color: var(--text);">{{ accentLabel(opt) }}</span>
                 </button>
               </div>
-            </div>
-          </div>
 
-          <!-- 阅读偏好（文字大小 + 字体 + 字重 + 字形） -->
-          <div ref="fontWrap" class="relative z-40">
-            <button @click="toggleFontPanel"
-              class="w-8 h-8 rounded-full flex items-center justify-center gap-0.5 transition-all"
-              :style="{ backgroundColor: 'var(--primary-light)', color: 'var(--primary)' }"
-              :title="'阅读偏好（字号：' + currentFontScaleLabel + ' · 字体：' + currentFontFamilyLabel + ' · 字重：' + currentFontWeightLabel + ' · 字形：' + currentHanVariantLabel + '）'"
-              @mouseenter="elStyle($event, { boxShadow: '0 0 0 2px ' + currentAccentColor })"
-              @mouseleave="elStyle($event, { boxShadow: 'none' })">
-              <span class="font-semibold leading-none" style="font-size: 0.6875rem;">A</span>
-              <span class="font-semibold leading-none" style="font-size: 1rem;">A</span>
-            </button>
-            <div v-if="fontOpen" class="absolute right-0 top-full mt-2 w-60 rounded-xl p-3"
-              style="background-color: var(--card-bg); box-shadow: var(--shadow-lg);">
-              <div class="text-xs font-medium mb-2" style="color: var(--text-secondary);">文字大小</div>
+              <!-- 阅读偏好 -->
+              <div class="text-xs font-medium mt-3 mb-2 pt-2" style="color: var(--text-secondary);"
+                :style="{ borderTop: '1px solid var(--border)' }">文字大小</div>
               <div class="flex flex-col gap-1">
-                <button v-for="opt in fontScaleOptions" :key="opt.id" type="button"
-                  @click="setFontScale(opt.id)"
+                <button v-for="opt in fontScaleOptions" :key="opt.id" type="button" @click="setFontScale(opt.id)"
                   class="flex items-center justify-between px-3 py-1.5 rounded-lg transition-all text-left"
                   :style="{
                     backgroundColor: fontScale === opt.id ? 'var(--primary-light)' : 'transparent',
                     color: fontScale === opt.id ? 'var(--primary)' : 'var(--text)',
                   }"
                   :aria-pressed="fontScale === opt.id">
-                  <span class="font-semibold text-sm">{{ opt.label }}</span>
+                  <span class="text-xs">{{ opt.label }}</span>
                   <span class="text-xs" style="color: var(--text-secondary);">{{ opt.desc }}</span>
                 </button>
               </div>
@@ -103,17 +96,14 @@
               <div class="text-xs font-medium mt-3 mb-2 pt-2" style="color: var(--text-secondary);"
                 :style="{ borderTop: '1px solid var(--border)' }">字体</div>
               <div class="flex flex-col gap-1">
-                <button v-for="opt in fontFamilyOptions" :key="opt.id" type="button"
-                  @click="setFontFamily(opt.id)"
-                  class="flex items-center justify-between gap-2 px-3 py-1.5 rounded-lg transition-all text-left"
+                <button v-for="opt in fontFamilyOptions" :key="opt.id" type="button" @click="setFontFamily(opt.id)"
+                  class="flex items-center justify-between px-3 py-1.5 rounded-lg transition-all text-left"
                   :style="{
                     backgroundColor: fontFamily === opt.id ? 'var(--primary-light)' : 'transparent',
+                    color: fontFamily === opt.id ? 'var(--primary)' : 'var(--text)',
                   }"
                   :aria-pressed="fontFamily === opt.id">
-                  <span class="font-semibold text-sm"
-                    :style="{ fontFamily: 'var(' + opt.stackVar + ')', color: fontFamily === opt.id ? 'var(--primary)' : 'var(--text)' }">
-                    {{ opt.label }}
-                  </span>
+                  <span class="text-xs" :style="{ fontFamily: 'var(' + opt.stackVar + ')' }">{{ opt.label }}</span>
                   <span class="text-xs text-right" style="color: var(--text-secondary);">{{ opt.desc }}</span>
                 </button>
               </div>
@@ -121,15 +111,15 @@
               <div class="text-xs font-medium mt-3 mb-2 pt-2" style="color: var(--text-secondary);"
                 :style="{ borderTop: '1px solid var(--border)' }">字重</div>
               <div class="flex flex-col gap-1">
-                <button v-for="opt in fontWeightOptions" :key="opt.id" type="button"
-                  @click="setFontWeight(opt.id)"
+                <button v-for="opt in fontWeightOptions" :key="opt.id" type="button" @click="setFontWeight(opt.id)"
                   class="flex items-center justify-between px-3 py-1.5 rounded-lg transition-all text-left"
                   :style="{
                     backgroundColor: fontWeight === opt.id ? 'var(--primary-light)' : 'transparent',
                     color: fontWeight === opt.id ? 'var(--primary)' : 'var(--text)',
                   }"
                   :aria-pressed="fontWeight === opt.id">
-                  <span class="text-sm" :style="{ fontWeight: opt.id === 'bold' ? 'var(--fw-semibold)' : 'var(--fw-normal)' }">{{ opt.label }}</span>
+                  <span class="text-xs"
+                    :style="{ fontWeight: opt.id === 'bold' ? 'var(--fw-semibold)' : 'var(--fw-normal)' }">{{ opt.label }}</span>
                   <span class="text-xs" style="color: var(--text-secondary);">{{ opt.desc }}</span>
                 </button>
               </div>
@@ -137,18 +127,37 @@
               <div class="text-xs font-medium mt-3 mb-2 pt-2" style="color: var(--text-secondary);"
                 :style="{ borderTop: '1px solid var(--border)' }">字形</div>
               <div class="flex flex-col gap-1">
-                <button v-for="opt in hanVariantOptions" :key="opt.id" type="button"
-                  @click="setHanVariant(opt.id)"
+                <button v-for="opt in hanVariantOptions" :key="opt.id" type="button" @click="setHanVariant(opt.id)"
                   class="flex items-center justify-between px-3 py-1.5 rounded-lg transition-all text-left"
                   :style="{
                     backgroundColor: hanVariant === opt.id ? 'var(--primary-light)' : 'transparent',
                     color: hanVariant === opt.id ? 'var(--primary)' : 'var(--text)',
                   }"
                   :aria-pressed="hanVariant === opt.id">
-                  <span class="font-semibold text-sm">{{ opt.label }}</span>
+                  <span class="text-xs">{{ opt.label }}</span>
                   <span class="text-xs" style="color: var(--text-secondary);">{{ opt.desc }}</span>
                 </button>
               </div>
+
+              <!-- 无障碍：与「外观」一样是三档，默认跟随系统 -->
+              <div class="text-xs font-medium mt-3 mb-2 pt-2" style="color: var(--text-secondary);"
+                :style="{ borderTop: '1px solid var(--border)' }">无障碍 · 减少动态效果</div>
+              <div class="flex items-center gap-2">
+                <button v-for="opt in motionModeOptions" :key="opt.id" type="button" @click="setMotionMode(opt.id)"
+                  class="flex-1 px-2 py-1.5 rounded-lg text-xs font-semibold transition-all"
+                  :style="{
+                    backgroundColor: motionMode === opt.id ? 'var(--primary-light)' : 'var(--bg)',
+                    border: motionMode === opt.id ? '1px solid var(--primary)' : '1px solid var(--border)',
+                    color: motionMode === opt.id ? 'var(--primary)' : 'var(--text)',
+                  }"
+                  :title="opt.desc"
+                  :aria-pressed="motionMode === opt.id">
+                  {{ opt.label }}
+                </button>
+              </div>
+              <p class="text-[0.6875rem] leading-snug mt-1" style="color: var(--text-muted);">
+                跟随系统时按系统的「减少动态效果」设置执行；选「减少动态」会关闭页面过渡、自动前进与平滑滚动。
+              </p>
             </div>
           </div>
 
@@ -274,22 +283,22 @@
           🔐 内部测试
         </button>
 
-        <!-- 移动端主题切换 -->
-        <button @click="toggleTheme"
-          class="mobile-nav-link flex items-center gap-2 px-3 py-2 rounded-lg transition-colors w-full text-left"
-          style="color: var(--text);"
-          @mouseenter="elStyle($event, { backgroundColor: 'var(--primary-light)' })"
-          @mouseleave="elStyle($event, { backgroundColor: 'transparent' })">
-          <svg v-if="isDark" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-              d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
-          </svg>
-          <svg v-else class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-              d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
-          </svg>
-          <span class="text-sm">{{ isDark ? '浅色模式' : '深色模式' }}</span>
-        </button>
+        <!-- 移动端偏好设置（外观 / 主题配色 / 阅读偏好 / 无障碍） -->
+        <div class="pt-2 mt-1 space-y-1.5">
+          <div class="text-xs font-medium" style="color: var(--text-secondary);">外观</div>
+          <div class="flex items-center gap-2">
+            <button v-for="opt in themeModeOptions" :key="opt.id" type="button" @click="setThemeMode(opt.id)"
+              class="flex-1 px-2 py-1.5 rounded-lg text-xs font-semibold transition-all"
+              :style="{
+                backgroundColor: themeMode === opt.id ? 'var(--primary-light)' : 'var(--bg)',
+                border: themeMode === opt.id ? '1px solid var(--primary)' : '1px solid var(--border)',
+                color: themeMode === opt.id ? 'var(--primary)' : 'var(--text)',
+              }"
+              :title="opt.desc" :aria-pressed="themeMode === opt.id">
+              {{ opt.label }}
+            </button>
+          </div>
+        </div>
 
         <!-- 移动端主题配色 -->
         <div class="pt-2 mt-1 space-y-1.5">
@@ -375,6 +384,23 @@
           </div>
         </div>
 
+        <!-- 移动端无障碍 -->
+        <div class="pt-2 mt-1 space-y-1.5">
+          <div class="text-xs font-medium" style="color: var(--text-secondary);">无障碍 · 减少动态效果</div>
+          <div class="flex items-center gap-2">
+            <button v-for="opt in motionModeOptions" :key="opt.id" type="button" @click="setMotionMode(opt.id)"
+              class="flex-1 px-2 py-1.5 rounded-lg text-xs font-semibold transition-all"
+              :style="{
+                backgroundColor: motionMode === opt.id ? 'var(--primary-light)' : 'var(--bg)',
+                border: motionMode === opt.id ? '1px solid var(--primary)' : '1px solid var(--border)',
+                color: motionMode === opt.id ? 'var(--primary)' : 'var(--text)',
+              }"
+              :title="opt.desc" :aria-pressed="motionMode === opt.id">
+              {{ opt.label }}
+            </button>
+          </div>
+        </div>
+
         <!-- 移动端进度显示 -->
         <ClientOnly>
           <div v-if="hasUnfinishedTests" class="pt-2 mt-2 border-t" style="border-color: var(--primary-light);">
@@ -428,11 +454,12 @@
 const router = useRouter()
 const route = useRoute()
 const { $toast, $confirm } = useNuxtApp()
-const { isDark, toggle: toggleTheme, accent, setAccent, accentOptions } = useTheme()
+const { themeMode, setThemeMode, themeModeOptions, accent, setAccent, accentOptions } = useTheme()
 const { fontScale, setFontScale, fontScaleOptions } = useFontScale()
 const { fontFamily, setFontFamily, fontFamilyOptions } = useFontFamily()
 const { fontWeight, setFontWeight, fontWeightOptions } = useFontWeight()
-const { hanVariant, setHanVariant, hanVariantOptions, findHanVariant } = useHanVariant()
+const { hanVariant, setHanVariant, hanVariantOptions } = useHanVariant()
+const { motionMode, setMotionMode, motionModeOptions } = useA11yPrefs()
 
 // 账号入口：登录状态由 plugins/cloud-sync.client.ts 在客户端刷新，
 // 服务端首屏固定显示「登录」，避免 hydration 前后文案不一致
@@ -462,37 +489,25 @@ const internalPassword = ref('')
 const passwordError = ref(false)
 const passwordInput = ref<HTMLInputElement | null>(null)
 const internalAuthSubmitting = ref(false)
-// 主题配色下拉状态
-const accentOpen = ref(false)
-const accentWrap = ref<HTMLElement | null>(null)
+// 偏好设置下拉状态（外观 + 主题配色 + 阅读偏好 + 无障碍合并为一个面板）
+const prefOpen = ref(false)
+const prefWrap = ref<HTMLElement | null>(null)
 const accentLabel = (o: { label: string }) => (o.label.split(' · ')[0] as string) || o.label
 const currentAccentColor = computed(() => accentOptions.find((o) => o.id === accent.value)?.color || '#5b8c9e')
 const currentAccentLabel = computed(() => accentLabel(accentOptions.find((o) => o.id === accent.value) || { label: '天青' }))
-
-// 阅读偏好（文字大小 + 字体 + 字重 + 字形）下拉状态
-const fontOpen = ref(false)
-const fontWrap = ref<HTMLElement | null>(null)
+const appearanceLabel = computed(
+  () => themeModeOptions.find((o) => o.id === themeMode.value)?.label || '跟随系统',
+)
 const currentFontScaleLabel = computed(
   () => fontScaleOptions.find((o) => o.id === fontScale.value)?.label || '标准',
 )
-const currentFontFamilyLabel = computed(
-  () => fontFamilyOptions.find((o) => o.id === fontFamily.value)?.label || '默认',
-)
-const currentFontWeightLabel = computed(
-  () => fontWeightOptions.find((o) => o.id === fontWeight.value)?.label || '标准',
-)
-const currentHanVariantLabel = computed(
-  () => findHanVariant(hanVariant.value).desc,
-)
 
-// 配色与字号两个下拉互斥，避免同时展开重叠
-const toggleFontPanel = () => {
-  fontOpen.value = !fontOpen.value
-  if (fontOpen.value) accentOpen.value = false
-}
-const toggleAccentPanel = () => {
-  accentOpen.value = !accentOpen.value
-  if (accentOpen.value) fontOpen.value = false
+const togglePrefPanel = () => {
+  prefOpen.value = !prefOpen.value
+  if (prefOpen.value) {
+    showProgressPanel.value = false
+    mobileMenuOpen.value = false
+  }
 }
 
 // 打开内部测试弹窗
@@ -557,6 +572,7 @@ const toggleMobileMenu = () => {
   mobileMenuOpen.value = !mobileMenuOpen.value
   if (mobileMenuOpen.value) {
     showProgressPanel.value = false
+    prefOpen.value = false
   }
 }
 
@@ -674,11 +690,8 @@ onMounted(() => {
     if (!target.closest('.relative') && !target.closest('.md\\:hidden')) {
       showProgressPanel.value = false
     }
-    if (accentWrap.value && !accentWrap.value.contains(target)) {
-      accentOpen.value = false
-    }
-    if (fontWrap.value && !fontWrap.value.contains(target)) {
-      fontOpen.value = false
+    if (prefWrap.value && !prefWrap.value.contains(target)) {
+      prefOpen.value = false
     }
   }
   document.addEventListener('click', handleClickOutside)
@@ -696,8 +709,7 @@ onMounted(() => {
 watch(() => route.path, () => {
   mobileMenuOpen.value = false
   showProgressPanel.value = false
-  fontOpen.value = false
-  accentOpen.value = false
+  prefOpen.value = false
   // 路由变化时刷新进度
   loadUnfinishedTests()
 })

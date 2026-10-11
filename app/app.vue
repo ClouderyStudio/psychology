@@ -16,6 +16,7 @@ const { init: initFontScale } = useFontScale()
 const { init: initFontFamily } = useFontFamily()
 const { init: initFontWeight } = useFontWeight()
 const { init: initHanVariant } = useHanVariant()
+const { init: initA11yPrefs } = useA11yPrefs()
 
 useHead({
   title: '心灵驿站 | 心理测评中心',
@@ -25,7 +26,7 @@ useHead({
   ]
 })
 
-// 尽早初始化主题、字号、字体、字重与字形，避免闪烁
+// 尽早初始化主题、字号、字体、字重、字形与无障碍偏好，避免闪烁
 // （首屏更早的一次由 nuxt.config.ts 的内联脚本完成，这里负责同步响应式状态；
 //   繁体的文本替换另由 plugins/han-variant.client.ts 在挂载后执行）
 init()
@@ -33,4 +34,5 @@ initFontScale()
 initFontFamily()
 initFontWeight()
 initHanVariant()
+initA11yPrefs()
 </script>

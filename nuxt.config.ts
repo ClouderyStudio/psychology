@@ -13,10 +13,10 @@ export default defineNuxtConfig({
       htmlAttrs: { lang: 'zh-Hans' },
       script: [
         {
-          // 首屏内联脚本：在首次绘制前从 localStorage 恢复主题、字号、字体、字重与字形，
+          // 首屏内联脚本：在首次绘制前从 localStorage 恢复主题、字号、字体、字重、字形与无障碍偏好，
           // 避免刷新时先亮后暗、先小后大、先默认字体再换字体、先细后粗、先简体再繁体的闪烁
-          // （hydration 后由 useTheme / useFontScale / useFontFamily / useFontWeight / useHanVariant 接管）。
-          // 注意：这里的 storage key 必须与五个 composable 保持一致。
+          // （hydration 后由 useTheme / useFontScale / useFontFamily / useFontWeight / useHanVariant / useA11yPrefs 接管）。
+          // 注意：这里的 storage key 必须与六个 composable 保持一致。
           // 字形的文本替换要等挂载后才能做（否则破坏 hydration），此处只负责提前切字体栈与 lang。
           innerHTML: [
             '(function(){try{',
@@ -27,6 +27,7 @@ export default defineNuxtConfig({
             "var ff=localStorage.getItem('psychology-font-family');",
             "var fw=localStorage.getItem('psychology-font-weight');",
             "var hv=localStorage.getItem('psychology-variant');",
+            "var rm=localStorage.getItem('psychology-reduced-motion');",
             "var dark=t==='dark'||(t!=='light'&&window.matchMedia('(prefers-color-scheme: dark)').matches);",
             "d.setAttribute('data-theme',dark?'dark':'light');",
             "d.setAttribute('data-accent',a||'default');",
@@ -36,6 +37,8 @@ export default defineNuxtConfig({
             // 取值必须与 composables/useHanVariant.ts 的 hanVariantOptions 保持一致
             "d.setAttribute('data-variant',(hv==='hant-tw'||hv==='hant-hk')?'hant':'hans');",
             "d.lang=hv==='hant-tw'?'zh-Hant-TW':(hv==='hant-hk'?'zh-Hant-HK':'zh-Hans');",
+            // 与 composables/useA11yPrefs.ts 的 A11Y_MOTION_KEY 保持一致
+            "d.setAttribute('data-reduced-motion',(rm==='reduce'||rm==='no-preference')?rm:'auto');",
             '}catch(e){}})();',
           ].join(''),
           tagPriority: 'critical',

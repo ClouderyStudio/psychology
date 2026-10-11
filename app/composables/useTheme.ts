@@ -1,6 +1,7 @@
 /**
- * 主题管理 composable — 提供 isDark ref、accent ref、toggle、setAccent 和 init。
+ * 主题管理 composable — 提供 themeMode / isDark ref、accent ref、setThemeMode、toggle、setAccent 和 init。
  * 亮/暗模式与主题配色均持久化到 localStorage，初始时从存储恢复。
+ * 「跟随系统」档不写 localStorage（清除已有键），init 时按 prefers-color-scheme 取值。
  */
 const THEME_KEY = 'psychology-theme'
 const THEME_ACCENT_KEY = 'psychology-theme-accent'
@@ -23,8 +24,23 @@ export const accentOptions: { id: string; label: string; color: string }[] = [
   { id: 'win98', label: '经典 · Win98', color: '#000080' },
 ]
 
+// 亮/暗模式三档：浅色 / 深色 / 跟随系统
+export type ThemeMode = 'light' | 'dark' | 'auto'
+
+export const themeModeOptions: { id: ThemeMode; label: string; desc: string }[] = [
+  { id: 'light', label: '浅色', desc: '始终使用亮色界面' },
+  { id: 'dark', label: '深色', desc: '始终使用暗色界面' },
+  { id: 'auto', label: '跟随系统', desc: '跟随系统的深浅色设置' },
+]
+
+const themeMode = ref<ThemeMode>('auto')
 const isDark = ref(false)
 const accent = ref('default')
+
+function systemPrefersDark(): boolean {
+  if (import.meta.server) return false
+  return window.matchMedia('(prefers-color-scheme: dark)').matches
+}
 
 function applyTheme(dark: boolean, acc: string = accent.value) {
   if (import.meta.server) return
@@ -32,14 +48,21 @@ function applyTheme(dark: boolean, acc: string = accent.value) {
   document.documentElement.setAttribute('data-accent', acc || 'default')
 }
 
-function toggle() {
-  isDark.value = !isDark.value
+function setThemeMode(mode: ThemeMode) {
+  themeMode.value = mode === 'light' || mode === 'dark' ? mode : 'auto'
+  isDark.value = themeMode.value === 'auto' ? systemPrefersDark() : themeMode.value === 'dark'
   applyTheme(isDark.value)
   try {
-    localStorage.setItem(THEME_KEY, isDark.value ? 'dark' : 'light')
+    if (themeMode.value === 'auto') localStorage.removeItem(THEME_KEY)
+    else localStorage.setItem(THEME_KEY, themeMode.value)
   } catch {
     // localStorage 不可用时静默忽略
   }
+}
+
+// 保留旧接口：在浅色与深色之间来回切换（不进入「跟随系统」）
+function toggle() {
+  setThemeMode(isDark.value ? 'light' : 'dark')
 }
 
 function setAccent(a: string) {
@@ -58,11 +81,14 @@ function init() {
   let stored: string | null = null
   try { stored = localStorage.getItem(THEME_KEY) } catch {}
   if (stored === 'dark') {
+    themeMode.value = 'dark'
     isDark.value = true
   } else if (stored === 'light') {
+    themeMode.value = 'light'
     isDark.value = false
   } else {
-    isDark.value = window.matchMedia('(prefers-color-scheme: dark)').matches
+    themeMode.value = 'auto'
+    isDark.value = systemPrefersDark()
   }
   // 主题配色
   let storedAcc: string | null = null
@@ -72,5 +98,15 @@ function init() {
 }
 
 export function useTheme() {
-  return { isDark, toggle, init, accent, setAccent, accentOptions }
+  return {
+    themeMode,
+    setThemeMode,
+    themeModeOptions,
+    isDark,
+    toggle,
+    init,
+    accent,
+    setAccent,
+    accentOptions,
+  }
 }
