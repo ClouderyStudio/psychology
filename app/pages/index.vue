@@ -94,7 +94,8 @@
       <div class="search-section max-w-4xl mx-auto mb-6">
         <div class="relative">
           <span class="absolute left-4 top-1/2 -translate-y-1/2 text-lg" style="color: var(--text-muted);">🔍</span>
-          <input v-model="searchQuery" type="text" placeholder="搜索量表名称、英文名或描述…"
+          <input v-model="searchQuery" type="text" placeholder="搜索量表名称、英文名、描述或标签…"
+            aria-label="搜索量表"
             class="w-full pl-12 pr-12 py-3 rounded-xl text-sm focus:outline-none"
             style="background-color: var(--card-bg); color: var(--text); box-shadow: var(--shadow-sm); border: 1px solid transparent;"
             @focus="onSearchFocus" @blur="onSearchBlur" />
@@ -102,6 +103,19 @@
             class="absolute right-3 top-1/2 -translate-y-1/2 w-7 h-7 rounded-full flex items-center justify-center text-sm"
             style="color: var(--text-muted);" title="清空搜索">✕</button>
         </div>
+      </div>
+
+      <!-- 排序 -->
+      <div class="max-w-4xl mx-auto mb-6 flex flex-wrap items-center justify-center gap-2 text-sm">
+        <span style="color: var(--text-muted);">排序</span>
+        <button v-for="opt in sortOptions" :key="opt.id" @click="sortKey = opt.id"
+          class="px-3 py-1.5 rounded-full transition-all duration-200"
+          :aria-pressed="sortKey === opt.id"
+          :style="sortKey === opt.id
+            ? { backgroundColor: 'var(--primary-dark)', color: 'white' }
+            : { backgroundColor: 'var(--card-bg)', color: 'var(--text-secondary)', boxShadow: 'var(--shadow-sm)' }">
+          {{ opt.name }}
+        </button>
       </div>
 
       <!-- 标签筛选 -->
@@ -202,11 +216,37 @@
         </div>
       </div>
 
+      <!-- 加载中骨架：首屏不再先闪一次「未找到匹配的量表」 -->
+      <div v-if="pending" class="grid md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-6xl mx-auto"
+        role="status" aria-live="polite" aria-label="正在加载量表列表">
+        <div v-for="i in 6" :key="i" class="rounded-xl overflow-hidden animate-pulse"
+          style="background-color: var(--card-bg); box-shadow: var(--shadow-sm);">
+          <div class="h-2" style="background-color: var(--border);"></div>
+          <div class="p-6 space-y-3">
+            <div class="h-4 w-20 rounded-full" style="background-color: var(--bg);"></div>
+            <div class="h-6 w-3/4 rounded" style="background-color: var(--bg);"></div>
+            <div class="h-3 w-1/2 rounded" style="background-color: var(--bg);"></div>
+            <div class="h-16 w-full rounded" style="background-color: var(--bg);"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 加载失败：给出重试入口，而不是伪装成「没有匹配结果」 -->
+      <div v-else-if="loadFailed" class="no-results text-center py-12" role="alert">
+        <div class="no-results-emoji text-6xl mb-4">😵</div>
+        <p style="color: var(--text-secondary);">加载量表列表失败，请检查网络后重试</p>
+        <button @click="reloadTests"
+          class="mt-4 px-4 py-2 rounded-lg text-sm"
+          style="background-color: var(--primary); color: white;">
+          重新加载
+        </button>
+      </div>
+
       <!-- 无结果提示 -->
-      <div v-if="filteredTests.length === 0" class="no-results text-center py-12">
+      <div v-else-if="filteredTests.length === 0" class="no-results text-center py-12">
         <div class="no-results-emoji text-6xl mb-4">🔍</div>
         <p style="color: var(--text-secondary);">未找到匹配的量表，试试调整分类、标签或搜索关键词</p>
-        <button v-if="activeTag || searchQuery || activeFilter !== 'all'" @click="resetFilters"
+        <button v-if="activeTag || searchQuery || activeFilter !== 'all' || sortKey !== 'default'" @click="resetFilters"
           class="mt-4 px-4 py-2 rounded-lg text-sm transition-colors"
           style="background-color: var(--card-bg); color: var(--text-secondary); box-shadow: var(--shadow-sm);">
           清除筛选条件
@@ -233,9 +273,12 @@ const router = useRouter()
 const answerStore = useAnswerStore()
 const { $toast, $confirm } = useNuxtApp()
 
-// 获取测评列表
-const { data: response, error } = await useFetch('/api/tests/list')
-const tests = ref<TestListItem[]>((response.value?.data as TestListItem[]) || [])
+// 获取测评列表：tests 做成 computed，useFetch 重试后列表才会刷新
+// （原来复制到 ref 只执行一次，失败或重试都看不到变化）
+const { data: response, error, pending, refresh } = await useFetch('/api/tests/list')
+const tests = computed<TestListItem[]>(() => (response.value?.data as TestListItem[]) || [])
+const loadFailed = computed(() => !!error.value)
+const reloadTests = () => refresh()
 
 // 分类定义
 const categories = [
@@ -254,6 +297,14 @@ const searchQuery = ref('')
 // 当前标签筛选
 const activeTag = ref('')
 
+// 排序方式：默认按列表原始顺序（接口已按推荐优先级排好）
+const sortKey = ref<'default' | 'name' | 'questions'>('default')
+const sortOptions = [
+  { id: 'default', name: '默认排序' },
+  { id: 'name', name: '按名称' },
+  { id: 'questions', name: '按题数（少→多）' }
+] as const
+
 // 全部标签（去重、排序，来自所有量表）
 const allTags = computed(() => {
   const set = new Set<string>()
@@ -261,16 +312,25 @@ const allTags = computed(() => {
   return [...set].sort((a, b) => a.localeCompare(b, 'zh'))
 })
 
-// 筛选后的测评列表（分类 + 标签 + 搜索）
+// 筛选后的测评列表（分类 + 标签 + 搜索 + 排序）
 const filteredTests = computed(() => {
   const q = searchQuery.value.trim().toLowerCase()
-  return tests.value.filter((test) => {
+  const list = tests.value.filter((test) => {
     const catOk = activeFilter.value === 'all' || test.category === activeFilter.value
     const tagOk = !activeTag.value || test.tags.includes(activeTag.value)
-    const searchOk = !q || [test.title, test.englishName, test.description]
+    // 搜索覆盖中文名、英文名、描述、标签与量表 id
+    // （原先不含标签，"成瘾"这类只在 tags 里出现的词搜不到）
+    const searchOk = !q || [test.title, test.englishName, test.description, test.id, ...(test.tags || [])]
       .some((f) => (f || '').toLowerCase().includes(q))
     return catOk && tagOk && searchOk
   })
+  if (sortKey.value === 'name') {
+    return [...list].sort((a, b) => (a.title || '').localeCompare(b.title || '', 'zh'))
+  }
+  if (sortKey.value === 'questions') {
+    return [...list].sort((a, b) => (a.questionsCount || 0) - (b.questionsCount || 0))
+  }
+  return list
 })
 
 // 标签筛选按钮样式
@@ -286,6 +346,7 @@ const resetFilters = () => {
   activeFilter.value = 'all'
   activeTag.value = ''
   searchQuery.value = ''
+  sortKey.value = 'default'
 }
 
 // 搜索框聚焦/失焦时边框高亮

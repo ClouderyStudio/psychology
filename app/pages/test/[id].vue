@@ -274,7 +274,10 @@
             <span>答题进度</span>
             <span>{{ answeredCount }} / {{ requiredCount }}</span>
           </div>
-          <div class="w-full rounded-full h-2" style="background-color: var(--primary-light);">
+          <div class="w-full rounded-full h-2" style="background-color: var(--primary-light);"
+            role="progressbar" aria-label="答题进度" :aria-valuenow="answeredCount"
+            aria-valuemin="0" :aria-valuemax="requiredCount"
+            :aria-valuetext="`已完成 ${answeredCount} / ${requiredCount} 题`">
             <div class="rounded-full h-2 transition-all duration-300"
               :style="{ width: `${progress}%`, backgroundColor: 'var(--primary)' }"></div>
           </div>
@@ -385,11 +388,18 @@
             </div>
           </div>
 
+          <p class="hidden md:block px-6 pt-4 text-xs" style="color: var(--text-muted);">
+            ⌨️ 键盘作答：数字键 1-9 直接选择对应选项，← → 在题目之间移动
+          </p>
+
           <!-- 题目列表（当前页） -->
           <div class="p-6 space-y-8">
             <div v-for="(question, index) in currentPageQuestions" :key="question.id"
+              :data-qid="question.id" tabindex="-1"
+              @keydown="onQuestionKeydown($event, question, index)"
               :class="[isFormalTest && SIOSS_DANGER_ITEMS.has(question.id) ? 'formal-question formal-question-danger' : '']"
-              class="border-b last:border-0 pb-6 last:pb-0" style="border-color: var(--primary-light);">
+              class="border-b last:border-0 pb-6 last:pb-0 outline-none focus-visible:ring-2 rounded"
+              style="border-color: var(--primary-light);">
               <p class="text-lg font-semibold mb-4" style="color: var(--text);">
                 {{ getGlobalQuestionNumber(question.id) }}. {{ question.text }}
                 <span v-if="isFormalTest && SIOSS_DANGER_ITEMS.has(question.id)"
@@ -447,8 +457,10 @@
             </div>
           </div>
 
-          <!-- 分页导航按钮 -->
-          <div class="p-6 flex justify-between gap-4" style="background-color: var(--bg);">
+          <!-- 分页导航按钮：移动端吸附在视口底部，长量表（如 SCL-90 的 90 题）
+               滚动到一半也能直接提交，不必翻到最后 -->
+          <div class="p-4 sm:p-6 flex justify-between gap-4 sticky bottom-0 z-20 md:static border-t"
+            style="background-color: var(--card-bg); border-color: var(--primary-light); padding-bottom: calc(1rem + env(safe-area-inset-bottom));">
             <button @click="prevPage"
               class="px-6 py-3 rounded-lg font-semibold transition-all disabled:opacity-40 disabled:cursor-not-allowed"
               :style="{
@@ -459,10 +471,12 @@
               {{ currentPage === 1 ? '返回主页' : '← 上一页' }}
             </button>
 
-            <button v-if="!isLastPage" @click="nextPage"
+            <button v-if="!isLastPage" @click="nextPage" :disabled="!isCurrentPageComplete"
               class="px-6 py-3 rounded-lg font-semibold transition-all disabled:opacity-40 disabled:cursor-not-allowed"
+              :title="isCurrentPageComplete ? '' : '请先完成本页题目'"
+              :aria-disabled="!isCurrentPageComplete"
               :style="{
-                backgroundColor: 'var(--primary)',
+                backgroundColor: isCurrentPageComplete ? 'var(--primary)' : 'var(--text-muted)',
                 color: 'white',
                 boxShadow: 'var(--shadow-sm)'
               }">
@@ -519,6 +533,16 @@ const SIOSS_DANGER_ITEMS = new Set<number>([11, 17, 22, 26])
 
 // 客户端标志
 const isClient = ref(false)
+
+// 无障碍偏好：站内「减少动态效果」三档（跟随系统 / 减少动态 / 常规动态）
+const { prefersReducedMotion } = useA11yPrefs()
+
+// 滚动到页首：尊重「减少动态效果」（站内显式档位优先，跟随系统时看系统偏好）
+// （前庭敏感用户在自动前进 + 平滑滚动下容易不适，这是无障碍硬要求）
+function scrollToTop() {
+  if (typeof window === 'undefined') return
+  window.scrollTo({ top: 0, behavior: prefersReducedMotion() ? 'auto' : 'smooth' })
+}
 
 // ===== 答题方式：每页 10 题（默认）/ 一页一题 =====
 type PerPageMode = 'ten' | 'one'
@@ -725,7 +749,7 @@ function startTest() {
   const saved = answerStore.getAnswers()
   const hasSaved = saved && Object.keys(saved).length > 0
   if (!hasSaved) currentPage.value = 1
-  if (typeof window !== "undefined") window.scrollTo({ top: 0, behavior: "smooth" })
+  scrollToTop()
 }
 const totalQuestions = computed(() => allQuestions.value.length)
 const totalPages = computed(() =>
@@ -981,16 +1005,75 @@ function cancelAutoAdvance() {
 // 作答后自动跳到下一题（仅一页一题模式；最后一题停留等待提交）
 function scheduleAutoAdvance(delay = 320) {
   if (!isOnePerPage.value || !started.value) return
+  // 系统或站内开关要求减少动态效果时不做延时自动跳页，交给用户主动翻页
+  if (prefersReducedMotion()) return
   cancelAutoAdvance()
   autoAdvanceTimer = setTimeout(() => {
     autoAdvanceTimer = null
     if (!isOnePerPage.value || !started.value || isLastPage.value) return
     currentPage.value++
-    if (typeof window !== 'undefined') window.scrollTo({ top: 0, behavior: 'smooth' })
+    scrollToTop()
   }, delay)
 }
 
-onUnmounted(cancelAutoAdvance)
+onUnmounted(() => {
+  cancelAutoAdvance()
+})
+
+// ===== 键盘作答：数字键选选项，方向键在题目间移动 =====
+// 选项本身是原生 radio，Tab + 方向键本来就能用；这里补的是熟悉键盘流的人的快捷路径。
+function focusQuestionEl(questionId: number) {
+  if (typeof document === 'undefined') return
+  const el = document.querySelector(`[data-qid="${questionId}"]`) as HTMLElement | null
+  el?.focus()
+}
+
+function focusFirstOnPage() {
+  nextTick(() => {
+    const first = currentPageQuestions.value[0]
+    if (first) focusQuestionEl(first.id)
+  })
+}
+
+// 在题目之间移动焦点；越过本页边界时翻页并落在新页首题
+function moveQuestionFocus(delta: number, index: number) {
+  const list = currentPageQuestions.value
+  const next = index + delta
+  if (next >= 0 && next < list.length) {
+    focusQuestionEl(list[next].id)
+    return
+  }
+  if (delta > 0) {
+    if (!isCurrentPageComplete.value || currentPage.value >= totalPages.value) return
+    currentPage.value++
+    focusFirstOnPage()
+  } else if (currentPage.value > 1) {
+    currentPage.value--
+    focusFirstOnPage()
+  }
+}
+
+function onQuestionKeydown(e: KeyboardEvent, question: any, index: number) {
+  // 焦点还在内部输入控件（radio / input）时让浏览器原生行为处理
+  if (e.target !== e.currentTarget) return
+  const opts = question?.options
+  if (Array.isArray(opts) && opts.length && /^[1-9]$/.test(e.key)) {
+    const picked = opts[Number(e.key) - 1]
+    if (picked) {
+      e.preventDefault()
+      answers.value[question.id] = picked.value
+      scheduleAutoAdvance()
+      return
+    }
+  }
+  if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') {
+    e.preventDefault()
+    moveQuestionFocus(-1, index)
+  } else if (e.key === 'ArrowRight' || e.key === 'ArrowDown') {
+    e.preventDefault()
+    moveQuestionFocus(1, index)
+  }
+}
 
 // 定位到第一道未作答的必答题（一页一题模式下用于找回漏答的题）
 function goToFirstUnanswered(): boolean {
@@ -999,7 +1082,7 @@ function goToFirstUnanswered(): boolean {
   )
   if (idx === -1) return false
   currentPage.value = Math.floor(idx / questionsPerPage.value) + 1
-  if (typeof window !== 'undefined') window.scrollTo({ top: 0, behavior: 'smooth' })
+  scrollToTop()
   $toast.info(`已定位到第 ${idx + 1} 题（尚未作答）`, '还有题目未完成')
   return true
 }
@@ -1027,11 +1110,15 @@ function onSubmitClick() {
 // 分页导航函数
 function nextPage() {
   cancelAutoAdvance()
+  // 先校验本页，再前进：原实现把校验放在 else 分支里，
+  // 而按钮只在本页不是最后一页时出现，导致提示永远不会触发
+  if (!isCurrentPageComplete.value) {
+    $toast.warning(`请先完成当前页的所有题目（第${currentPage.value}页）再继续`, '提示')
+    return
+  }
   if (currentPage.value < totalPages.value) {
     currentPage.value++
-    window.scrollTo({ top: 0, behavior: 'smooth' })
-  } else if (!isCurrentPageComplete.value) {
-    $toast.warning(`请先完成当前页的所有题目（第${currentPage.value}页）再继续`, '提示')
+    scrollToTop()
   }
 }
 
@@ -1039,7 +1126,7 @@ function prevPage() {
   cancelAutoAdvance()
   if (currentPage.value > 1) {
     currentPage.value--
-    window.scrollTo({ top: 0, behavior: 'smooth' })
+    scrollToTop()
   } else {
     goBack()
   }
@@ -1063,7 +1150,7 @@ const jumpToPage = () => {
   // 执行跳转
   currentPage.value = targetPage
   jumpPage.value = targetPage
-  window.scrollTo({ top: 0, behavior: 'smooth' })
+  scrollToTop()
 }
 
 const goToPage = (page: number) => {
@@ -1073,7 +1160,7 @@ const goToPage = (page: number) => {
   cancelAutoAdvance()
   currentPage.value = page
   jumpPage.value = page
-  window.scrollTo({ top: 0, behavior: 'smooth' })
+  scrollToTop()
 }
 
 // 监听当前页变化，同步 jumpPage
