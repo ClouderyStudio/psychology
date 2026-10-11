@@ -6,6 +6,7 @@ import { DES2_SUBSCALES } from "../server/utils/scoring-rules/scoreDES2";
 import { des2Questions } from "../server/utils/questions/des2-questions";
 import { bisQuestions } from "../server/utils/questions/bis-questions";
 import { HSPR_SUBSCALES, HSPR_THRESHOLD } from "../server/utils/scoring-rules/scoreHSPR";
+import { SPNQ_SUBSCALES } from "../server/utils/scoring-rules/scoreSpNQ";
 import {
   MULTIDIM_BASE_MAINS,
   MULTIDIM_QUESTION_WINDOWS,
@@ -1872,3 +1873,54 @@ describe("HSP-R 高敏感特质量表（修订版）", () => {
   });
 });
 
+describe("SpNQ-20 精神需求量表", () => {
+  it("全选 3 → 四因子各达满分，合计 60、均值 3", () => {
+    const r = calculateScore({ testId: "spnq", answers: full(20, 3) });
+    expect(r.totalScore).toBe(60);
+    expect(r.maxScore).toBe(60);
+    expect(r.dimensionScores?.mean?.score).toBe(3);
+    expect(r.dimensionScores?.ipn?.score).toBe(12);
+    expect(r.dimensionScores?.exn?.score).toBe(18);
+    expect(r.dimensionScores?.ggn?.score).toBe(12);
+    expect(r.dimensionScores?.rn?.score).toBe(18);
+    expect(r.level).toContain("相对突出的需求");
+  });
+
+  it("全选 0 → 合计 0，给出中性的描述性结论", () => {
+    const r = calculateScore({ testId: "spnq", answers: full(20, 0) });
+    expect(r.totalScore).toBe(0);
+    expect(r.level).toBe("暂未报告明显的精神需求");
+    expect(r.dimensionScores?.mean?.score).toBe(0);
+  });
+
+  it("按官方四因子求和，题号并集恰为 1-20", () => {
+    expect(SPNQ_SUBSCALES).toHaveLength(4);
+    const all: number[] = [];
+    for (const sub of SPNQ_SUBSCALES) {
+      const expected = sub.key === "exn" || sub.key === "rn" ? 6 : 4;
+      expect(sub.items).toHaveLength(expected);
+      all.push(...sub.items);
+    }
+    expect([...all].sort((a, b) => a - b)).toEqual(
+      Array.from({ length: 20 }, (_, i) => i + 1),
+    );
+  });
+
+  it("只做描述、不做阳性判定：结果里不出现阳性/阴性/轻中重字样", () => {
+    const r = calculateScore({ testId: "spnq", answers: full(20, 2) });
+    const text = JSON.stringify(r);
+    for (const word of ["阳性", "阴性", "轻度", "中度", "重度", "障碍"]) {
+      expect(text).not.toContain(word);
+    }
+    expect(r.totalScore).toBe(40);
+  });
+
+  it("单题升高只影响它所属的因子", () => {
+    // 第 1 题属「内在平静需求」，其余全选 0
+    const r = calculateScore({ testId: "spnq", answers: { ...full(20, 0), 1: 3 } });
+    expect(r.dimensionScores?.ipn?.score).toBe(3);
+    expect(r.dimensionScores?.exn?.score).toBe(0);
+    expect(r.totalScore).toBe(3);
+    expect(r.level).toContain("内在平静需求");
+  });
+});

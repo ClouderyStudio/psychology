@@ -278,6 +278,17 @@ export default defineEventHandler(() => {
       category: "personality",
     },
     {
+      id: "spnq",
+      title: "精神需求量表（SpNQ-20）",
+      englishName: "Spiritual Needs Questionnaire (SpNQ-20)",
+      description:
+        "Büssing 编制，从内在平静、存在意义、给予他人、宗教信仰四个方面评估当前的精神需求强度；按四因子分别报告，官方无总分切点、不判定好坏",
+      duration: "约3-5分钟",
+      questionsCount: 20,
+      tags: ["精神需求", "生命意义"],
+      category: "personality",
+    },
+    {
       id: "ymrs",
       title: "杨氏躁狂评定量表",
       englishName: "Young Mania Rating Scale (YMRS)",

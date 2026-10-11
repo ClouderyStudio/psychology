@@ -94,6 +94,7 @@ const TRAIT_SCALES = new Set([
   "bis",
   "bpaq",
   "hspr",
+  "spnq",
 ]);
 
 function toNumber(value: unknown): number | undefined {

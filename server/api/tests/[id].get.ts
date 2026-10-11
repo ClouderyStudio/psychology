@@ -132,6 +132,7 @@ import {
 } from "~~/server/utils/questions/psqi-questions";
 import { swlsOptions, swlsQuestions } from "~~/server/utils/questions/swls-questions";
 import { hsprOptions, hsprQuestions } from "~~/server/utils/questions/hspr-questions";
+import { spnqOptions, spnqQuestions } from "~~/server/utils/questions/spnq-questions";
 import {
   buildMultidimQuestions,
   isMultidimMode,
@@ -973,6 +974,23 @@ export default defineEventHandler(async (event) => {
       })),
       scoringRules: {
         type: "hspr",
+      },
+    },
+    spnq: {
+      id: "spnq",
+      title: "精神需求量表（SpNQ-20）",
+      description:
+        "Büssing 编制的精神需求量表定型版（20 题），从内在平静、存在、给予、宗教四个方面评估当前的精神需求强度，只做描述、不判定好坏。",
+      instructions:
+        "下面这些是其他人表达过的具体需求。请按你当前的处境，判断这些需求在你身上有多强，每题从 0=完全没有 到 3=非常强。本量表问的不是你的精神生活好不好，有需求也不等于有问题；四个方面的得分只说明哪一类需求相对更强，官方没有总分切点，也不做达标与否的判定。结果用于自我了解与沟通参考，不构成医学诊断。",
+      questions: spnqQuestions.map((q) => ({
+        id: q.id,
+        text: q.text,
+        type: "likert",
+        options: spnqOptions,
+      })),
+      scoringRules: {
+        type: "spnq",
       },
     },
     multidim: {

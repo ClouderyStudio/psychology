@@ -53,6 +53,8 @@ export const TEST_TIME_FRAME: Record<string, string> = {
   swls: "对整体人生的总体判断（无固定窗口）",
   // HSP-R 问的是"你作为一个人一贯的样子"，官方指导语本身就没有回忆期
   hspr: "你作为一个人的整体情况（无固定窗口）",
+  // SpNQ 的官方指导语是「最近这段时间（during the last time）」，没有硬性窗口
+  spnq: "当前处境下的需求（无固定窗口）",
 };
 
 /**

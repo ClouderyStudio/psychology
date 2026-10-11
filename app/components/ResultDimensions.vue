@@ -766,6 +766,43 @@ const config = computed(() => {
     })
   }
 
+  else if (props.testId === 'spnq') {
+    title = 'SpNQ-20 · 精神需求'
+    icon = '🕯️'
+    color = 'var(--personality)'
+    hint = 'Spiritual Needs Questionnaire（Büssing 编制，20 题 0-3）：只按四个因子分别求和，说明哪一类精神需求目前更强，官方没有总分切点，也不做高低判定。'
+    const mean = (s.mean || {}) as any
+    const mv = Number(mean.score) || 0
+    items.push({
+      key: 'mean',
+      name: (mean.name as string) || '总均值',
+      value: clamp((mv / (mean.max || 3)) * 100),
+      display: Number(mv).toFixed(2) + '/3',
+      desc: (mean.desc as string) || '',
+    })
+    const total = (s.total || {}) as any
+    const tv = Number(total.score) || 0
+    items.push({
+      key: 'total',
+      name: (total.name as string) || '需求合计',
+      value: clamp((tv / (total.max || 60)) * 100),
+      display: String(tv) + '/' + total.max,
+      desc: (total.desc as string) || '',
+    })
+    ;['ipn', 'exn', 'ggn', 'rn'].forEach((k) => {
+      const d = (s[k] || {}) as any
+      if (!d || d.score === undefined) return
+      const v = Number(d.score) || 0
+      items.push({
+        key: k,
+        name: (d.name as string) || k,
+        value: clamp((v / (d.max || 1)) * 100),
+        display: String(v) + '/' + d.max,
+        desc: (d.desc as string) || '',
+      })
+    })
+  }
+
   else if (props.testId === 'mid60') {
     title = 'MID-60 · 解离子量表剖面'
     icon = '🌀'

@@ -33,6 +33,7 @@ import { scoreECRR } from "./scoring-rules/scoreECRR";
 import { scorePSQI } from "./scoring-rules/scorePSQI";
 import { scoreSWLS } from "./scoring-rules/scoreSWLS";
 import { scoreHSPR } from "./scoring-rules/scoreHSPR";
+import { scoreSpNQ } from "./scoring-rules/scoreSpNQ";
 import { scoreSCOFF } from "./scoring-rules/scoreSCOFF";
 /** 作答来源：本人自评 / 他人代答（知情者评估） */
 export type RespondentMode = "self" | "proxy";
@@ -281,6 +282,8 @@ export function calculateScore(input: ScoringInput): ScoringResult {
       return scoreSWLS(answers);
     case "hspr":
       return scoreHSPR(answers);
+    case "spnq":
+      return scoreSpNQ(answers);
     case "multidim":
       return scoreMultidim(answers, mode, respondent);
     default:
