@@ -737,6 +737,35 @@ const config = computed(() => {
     })
   }
 
+  else if (props.testId === 'hspr') {
+    title = 'HSP-R · 高敏感特质'
+    icon = '🌱'
+    color = 'var(--personality)'
+    hint = '官方按 18 题的平均分判定：平均分 >5 提示高敏感倾向；敏感是中性的人格与气质特质，不是障碍，分数高不代表问题严重。'
+    const total = (s.total || {}) as any
+    const tv = Number(total.score) || 0
+    items.push({
+      key: 'total',
+      name: (total.name as string) || '总体敏感度',
+      value: clamp((tv / (total.max || 7)) * 100),
+      display: Number(tv).toFixed(2) + '/7',
+      level: (total.level as string) || '',
+      desc: (total.desc as string) || '',
+    })
+    ;['overstimulation', 'positive', 'social', 'depth', 'reactivity', 'details'].forEach((k) => {
+      const d = (s[k] || {}) as any
+      if (!d || d.score === undefined) return
+      const v = Number(d.score) || 0
+      items.push({
+        key: k,
+        name: (d.name as string) || k,
+        value: clamp((v / (d.max || 7)) * 100),
+        display: Number(v).toFixed(2) + '/7',
+        desc: (d.desc as string) || '',
+      })
+    })
+  }
+
   else if (props.testId === 'mid60') {
     title = 'MID-60 · 解离子量表剖面'
     icon = '🌀'

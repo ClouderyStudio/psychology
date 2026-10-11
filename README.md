@@ -85,6 +85,7 @@
 | **心理年龄测验**        | 42题  | 基于发展心理学多维模型探查心理年龄 |
 | **BIS-11 Barratt 冲动性量表** | 30题 | 评估注意力、运动与无计划三个维度的冲动性特质 |
 | **BPAQ Buss-Perry 攻击性问卷** | 29题 | 评估身体攻击、言语攻击、愤怒与敌意倾向 |
+| **HSP-R 高敏感特质量表** | 18题 | 评估感觉加工敏感性（高敏感特质），按平均分判定，非障碍 |
 
 ### 专项量表类
 
@@ -144,6 +145,7 @@
 | 亲密关系经历量表修订版（ECR-R） | Fraley, Waller &amp; Brennan | 2000 | https://labs.psychology.illinois.edu/~rcfraley/measures/ecrritems.htm |
 | 匹兹堡睡眠质量指数（PSQI） | Buysse 等（中文版刘贤臣等） | 1989/1996 | — |
 | 生活满意度量表（SWLS） | Diener, Emmons, Larsen &amp; Griffin | 1985 | https://eddiener.com/scales/7 |
+| 高敏感特质量表修订版（HSP-R） | Pluess, Aron 等 | 2026 | https://hsperson.com/test/highly-sensitive-test/ |
 | 心理年龄 / 情绪稳定性 / 自研量具 | 平台自研或改编 | — | — |
 
 

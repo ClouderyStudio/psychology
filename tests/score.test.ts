@@ -5,6 +5,7 @@ import { mid60Questions } from "../server/utils/questions/mid60-questions";
 import { DES2_SUBSCALES } from "../server/utils/scoring-rules/scoreDES2";
 import { des2Questions } from "../server/utils/questions/des2-questions";
 import { bisQuestions } from "../server/utils/questions/bis-questions";
+import { HSPR_SUBSCALES, HSPR_THRESHOLD } from "../server/utils/scoring-rules/scoreHSPR";
 import {
   MULTIDIM_BASE_MAINS,
   MULTIDIM_QUESTION_WINDOWS,
@@ -1817,6 +1818,57 @@ describe("SCOFF 进食障碍筛查问卷", () => {
   it("1 项阳性未达阈值，2 项即阳性", () => {
     expect(calculateScore({ testId: "scoff", answers: { ...full(5, 0), 1: 1 } }).level).toBe("筛查阴性");
     expect(calculateScore({ testId: "scoff", answers: { ...full(5, 0), 1: 1, 2: 1 } }).level).toContain("筛查阳性");
+  });
+});
+
+describe("HSP-R 高敏感特质量表（修订版）", () => {
+  it("全选 7 → 平均分 7，提示高敏感倾向", () => {
+    const r = calculateScore({ testId: "hspr", answers: full(18, 7) });
+    expect(r.totalScore).toBe(7);
+    expect(r.maxScore).toBe(7);
+    expect(r.level).toBe("高敏感倾向");
+    expect(r.dimensionScores?.total?.score).toBe(7);
+    expect(r.dimensionScores?.total?.max).toBe(7);
+  });
+
+  it("全选 1 → 平均分 1，未显示高敏感倾向", () => {
+    const r = calculateScore({ testId: "hspr", answers: full(18, 1) });
+    expect(r.totalScore).toBe(1);
+    expect(r.level).toBe("未显示高敏感倾向");
+  });
+
+  it("判定为「严格大于 5」：全选 5 未显示，全选 6 显示", () => {
+    expect(calculateScore({ testId: "hspr", answers: full(18, 5) }).level).toBe("未显示高敏感倾向");
+    expect(calculateScore({ testId: "hspr", answers: full(18, 6) }).level).toBe("高敏感倾向");
+    expect(HSPR_THRESHOLD).toBe(5);
+  });
+
+  it("总分是平均分而不是求和（18 题全选 4 → 4，不是 72）", () => {
+    const r = calculateScore({ testId: "hspr", answers: full(18, 4) });
+    expect(r.totalScore).toBe(4);
+    expect(r.scoreNote).toContain("平均分");
+  });
+
+  it("六个分量表各 3 题，题号并集恰为 1-18", () => {
+    expect(HSPR_SUBSCALES).toHaveLength(6);
+    const all: number[] = [];
+    for (const sub of HSPR_SUBSCALES) {
+      expect(sub.items).toHaveLength(3);
+      all.push(...sub.items);
+    }
+    expect([...all].sort((a, b) => a - b)).toEqual(
+      Array.from({ length: 18 }, (_, i) => i + 1),
+    );
+  });
+
+  it("单题升高只影响它所属的分量表", () => {
+    // 第 3 题属「过度唤起」，其余全选 1
+    const r = calculateScore({ testId: "hspr", answers: { ...full(18, 1), 3: 7 } });
+    expect(r.dimensionScores?.overstimulation?.score).toBe(3); // (7+1+1)/3
+    expect(r.dimensionScores?.positive?.score).toBe(1);
+    expect(r.dimensionScores?.social?.score).toBe(1);
+    // 总量随之变化：(7 + 17×1) / 18 = 1.33
+    expect(r.totalScore).toBe(1.33);
   });
 });
 

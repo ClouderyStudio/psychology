@@ -51,6 +51,8 @@ export const TEST_TIME_FRAME: Record<string, string> = {
   psqi: "最近一个月",
   // SWLS 问的是对整个人生的总体判断，没有时间窗口
   swls: "对整体人生的总体判断（无固定窗口）",
+  // HSP-R 问的是"你作为一个人一贯的样子"，官方指导语本身就没有回忆期
+  hspr: "你作为一个人的整体情况（无固定窗口）",
 };
 
 /**

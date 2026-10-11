@@ -131,6 +131,7 @@ import {
   psqiQuestions,
 } from "~~/server/utils/questions/psqi-questions";
 import { swlsOptions, swlsQuestions } from "~~/server/utils/questions/swls-questions";
+import { hsprOptions, hsprQuestions } from "~~/server/utils/questions/hspr-questions";
 import {
   buildMultidimQuestions,
   isMultidimMode,
@@ -955,6 +956,23 @@ export default defineEventHandler(async (event) => {
       })),
       scoringRules: {
         type: "swls",
+      },
+    },
+    hspr: {
+      id: "hspr",
+      title: "高敏感特质量表（修订版）",
+      description:
+        "Pluess 等 2026 年发表的 HSP-R，18 题评估成人对环境的敏感度（感觉加工敏感性），含过度唤起、积极体验敏感、社交敏感、深度加工、情绪反应、细节敏感六个方面各 3 题。",
+      instructions:
+        "请按你作为一个人的整体情况作答，每题从 1=完全没有 到 7=极其；本量表没有固定的时间窗口，问的是你平时一贯的样子。官方指导语允许跳过实在无法回答的题目，但本平台要求全部作答。HSP-R 测量的是感觉加工敏感性这一人格与气质特质——敏感既不是疾病，也不是缺点；结果按 18 题的平均分判定（平均分 > 5 提示高敏感倾向），仅供参考，不构成诊断。",
+      questions: hsprQuestions.map((q) => ({
+        id: q.id,
+        text: q.text,
+        type: "likert",
+        options: hsprOptions,
+      })),
+      scoringRules: {
+        type: "hspr",
       },
     },
     multidim: {

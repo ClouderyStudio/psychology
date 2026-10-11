@@ -267,6 +267,17 @@ export default defineEventHandler(() => {
       category: "personality",
     },
     {
+      id: "hspr",
+      title: "高敏感特质量表（修订版）",
+      englishName: "Highly Sensitive Person Scale–Revised (HSP-R)",
+      description:
+        "Pluess等2026年发表的18题修订版，评估成人感觉加工敏感性，按平均分判定，平均分>5提示高敏感倾向（气质特质，非障碍）",
+      duration: "约3-5分钟",
+      questionsCount: 18,
+      tags: ["高敏感", "气质特质"],
+      category: "personality",
+    },
+    {
       id: "ymrs",
       title: "杨氏躁狂评定量表",
       englishName: "Young Mania Rating Scale (YMRS)",

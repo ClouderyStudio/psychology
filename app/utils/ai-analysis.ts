@@ -93,6 +93,7 @@ const TRAIT_SCALES = new Set([
   "pss",
   "bis",
   "bpaq",
+  "hspr",
 ]);
 
 function toNumber(value: unknown): number | undefined {
